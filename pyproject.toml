@@ -21,3 +21,6 @@ dependencies = [
 
 [project.scripts]
 nrobo = "nrobo.cli:main"
+
+[tool.setuptools.package-data]
+"nrobo" = ["templates/*"]

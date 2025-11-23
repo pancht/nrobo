@@ -2,11 +2,17 @@ import pytest
 import typer
 
 from .runner import run_tests
+from .utils import initialize_project
 
 app = typer.Typer(help="nRoBo - Smart Test Runner built on Pytest",
                   add_completion=False,
                   context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
                   )
+
+@app.command()
+def init():
+    """Initialize a new nRoBo project with sample suite and tests."""
+    initialize_project()
 
 
 @app.command()
