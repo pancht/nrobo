@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nrobo"
+version = "2025.0.1"
+description = "Custom pytest launcher with YAML suite support"
+authors = [{ name="Panchdev Singh Chauhan", email="erpanchdev@gmail.com" }]
+requires-python = ">=3.8"
+dependencies = ["pytest", "pyyaml"]
+
+[project.scripts]
+nrobo = "nrobo.cli_launcher:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v"
+markers = [
+  "sanity: mark sanity tests",
+  "regression: mark regression tests",
+  "ui: mark ui tests"
+]
