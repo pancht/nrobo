@@ -18,7 +18,7 @@ def run_tests(suite=None, pytest_args=None):
     pytest_options = selected_tests
 
     if pytest_args:
-        for k, v in pytest_args.items():
-            pytest_options.append(f"--{k}={v}")
+        # Append all extra pytest args (supports -v, -k test, --maxfail=1, etc.)
+        pytest_options.extend(pytest_args)
 
     return pytest_options

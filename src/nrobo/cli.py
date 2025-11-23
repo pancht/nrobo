@@ -11,7 +11,7 @@ app = typer.Typer(help="nRoBo - Smart Test Runner built on Pytest",
 
 @app.command()
 def run(ctx: typer.Context,
-        suite: str = typer.Option(None, "--suite", "-s", help="Suite YAML file name under suites/"),
+        suite: str = typer.Option(None, "--suite", help="Suite YAML file name under suites/"),
 ):
     """Run tests via nrobo."""
     pytest_args = ctx.args
