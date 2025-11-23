@@ -1,0 +1,5 @@
+suite_name: sanity_suite
+description: Basic sanity checks
+tests:
+  - test_cli.py
+  - test_loader.py
