@@ -1,6 +1,7 @@
-import pytest
-import yaml
 from pathlib import Path
+
+import yaml
+
 
 def run_tests(suite=None, pytest_args=None):
     test_dir = Path.cwd() / "tests"
