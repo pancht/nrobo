@@ -7,30 +7,38 @@ from .utils import initialize_project
 app = typer.Typer(
     help="nRoBo - Smart Test Runner built on Pytest",
     add_completion=False,
-    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
+    context_settings={
+        "allow_extra_args": True,
+        "ignore_unknown_options": True,
+        "allow_interspersed_args": True,  # <- optional but helps with mixed ordering
+    },
+
 )
+
 
 @app.command()
 def init():
     """Initialize a new nRoBo project with sample suite and tests."""
     initialize_project()
 
+
 @app.callback(invoke_without_command=True)
 def main_callback(
-    ctx: typer.Context,
-    suite: str = typer.Option(
-        None,
-        "--suite",
-        help="Suite YAML file name under suites/ (optional; if omitted, all tests will run or first suite will be used).",
-    ),
-    browser: str = typer.Option(
-        "chrome",
-        "-b",
-        "--browser",
-        help="Browser to run tests on (chrome, firefox, edge, etc.)",
-    ),
+        ctx: typer.Context,
+        suite: str = typer.Option(
+            None,
+            "--suite",
+            help="Suite YAML file name under suites/ (optional; if omitted, all tests will run or first suite will be used).",
+        ),
+        browser: str = typer.Option(
+            "chrome",
+            "-b",
+            "--browser",
+            help="Browser to run tests on (chrome, firefox, edge, etc.)",
+        ),
 ):
     """Default command: run tests if --suite provided, else run all tests."""
+    print(ctx.args)
     pytest_args = ctx.args
 
     # auto-detect suite if not provided
@@ -46,12 +54,14 @@ def main_callback(
 
     typer.echo(f"Starting nRoBo test execution on browser: {browser} ...")
 
-    pytest_options = run_tests(suite=suite, pytest_args=pytest_args) #, browser=browser)
+    pytest_options = run_tests(suite=suite, pytest_args=pytest_args)  # , browser=browser)
     exit_code = pytest.main(pytest_options)
     raise typer.Exit(code=exit_code)
 
+
 def main():
     app()
+
 
 if __name__ == "__main__":
     main()
