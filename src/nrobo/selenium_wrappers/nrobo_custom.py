@@ -12,7 +12,7 @@ from selenium.webdriver.common.actions.wheel_input import WheelInput
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from nrobo.drivers.selenium_wrappers.appium import NRoboAppiumWrapper
+from nrobo.selenium_wrappers.appium import NRoboAppiumWrapper
 
 AnyDevice = Union[PointerInput, KeyInput, WheelInput]
 AnyBy = Union[By, AppiumBy]

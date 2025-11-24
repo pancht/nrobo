@@ -1,4 +1,4 @@
-from nrobo.drivers.selenium_wrappers.nrobo_selenium_wrapper import NRoboSeleniumWrapperClass
+from nrobo.selenium_wrappers.nrobo_selenium_wrapper import NRoboSeleniumWrapperClass
 
 
 def test_launch_google(driver:NRoboSeleniumWrapperClass):

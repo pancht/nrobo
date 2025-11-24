@@ -1,6 +1,6 @@
 from selenium.common import TimeoutException
 
-from nrobo.drivers.selenium_wrappers.element import WebElementWrapper
+from nrobo.selenium_wrappers.element import WebElementWrapper
 import logging
 import time
 import typing
@@ -10,7 +10,6 @@ from appium.webdriver.common.appiumby import AppiumBy
 from appium.webdriver.webdriver import (  # pylint: disable=C0412
     WebDriver as AppiumWebDriver,
 )  # pylint: disable=C0412
-from selenium.webdriver import Keys
 from selenium.webdriver.common.actions.key_input import KeyInput
 from selenium.webdriver.common.actions.pointer_input import PointerInput
 from selenium.webdriver.common.actions.wheel_input import WheelInput
@@ -20,8 +19,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 
-from nrobo.drivers.selenium_wrappers.action_chains import ActionChainsWrapper
-from nrobo.drivers.selenium_wrappers.base import ELE_WAIT_TIMEOUT, PAGE_LOAD_TIMEOUT
+from nrobo.selenium_wrappers.base import ELE_WAIT_TIMEOUT, PAGE_LOAD_TIMEOUT
 from nrobo.utils.driver_utils import is_mobile_session
 
 AnyDevice = typing.Union[PointerInput, KeyInput, WheelInput]
