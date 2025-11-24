@@ -26,6 +26,12 @@ def main():
         default="chrome",
     )
     parser.add_argument(
+        "--no-headless",
+        action="store_true",
+        default=False,
+        help="Run browser in headed mode (default is headless)"
+    )
+    parser.add_argument(
         "--init",
         action="store_true",
         help="Initialize a new nRoBo project with sample suite and tests.",
@@ -42,6 +48,7 @@ def main():
     # Handle test execution
     suites = args.suite
     browser = args.browser
+    no_headless = args.no_headless
     pytest_args = unknown_args  # e.g., ['-v', '-s', '--maxfail=1']
 
     # auto-detect suite(s) if not provided
@@ -62,7 +69,10 @@ def main():
 
     pytest_options = prepare_pytest_cli_options(suites=suites, pytest_args=pytest_args)
     #update args
+    if args.no_headless:
+        pytest_options.append("--no-headless")
     pytest_options.extend([f"--browser={browser}"])
+
     # Uncomment to actually run
     plugin = nRoboWebDriverPlugin()
     exit_code = pytest.main(args=pytest_options, plugins=[plugin])
