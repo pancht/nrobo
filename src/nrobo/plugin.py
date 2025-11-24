@@ -13,10 +13,17 @@ class nRoboWebDriverPlugin:
             default="chrome",
             help="Browser to run tests: chrome, firefox, edge, safari"
         )
+        parser.addoption(
+            "--no-headless",
+            action="store_true",
+            default=False,
+            help="Run browser in headed mode (default is headless)"
+        )
 
     @pytest.fixture(scope="function")
     def driver(self, request):
         browser = request.config.getoption("--browser")
-        self.driver_instance = get_driver(browser)
+        headless = not request.config.getoption("--no-headless")
+        self.driver_instance = get_driver(browser, headless=headless)
         yield self.driver_instance
         self.driver_instance.quit()

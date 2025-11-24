@@ -9,21 +9,31 @@ from webdriver_manager.microsoft import EdgeChromiumDriverManager
 import sys
 
 
-def get_driver(browser_name: str):
+def get_driver(browser_name: str, headless: bool = True):
     browser = browser_name.lower()
 
     if browser == "chrome":
         options = webdriver.ChromeOptions()
+        if headless:
+            options.add_argument("--headless=new")
         options.add_argument("--start-maximized")
         return webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
 
     elif browser == "firefox":
-        return webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()))
+        options = webdriver.FirefoxOptions()
+        if headless:
+            options.add_argument("--headless")
+        return webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), options=options)
 
     elif browser == "edge":
-        return webdriver.Edge(service=EdgeService(EdgeChromiumDriverManager().install()))
+        options = webdriver.EdgeOptions()
+        if headless:
+            options.add_argument("--headless=new")
+        return webdriver.Edge(service=EdgeService(EdgeChromiumDriverManager().install()), options=options)
 
     elif browser == "safari":
+        if headless:
+            raise NotImplementedError("Safari does not support headless mode")
         if sys.platform != 'darwin':
             raise EnvironmentError("Safari is only supported on macOS.")
         return SafariDriver()
