@@ -4,6 +4,7 @@ import pytest
 from pathlib import Path
 from .runner import prepare_pytest_cli_options
 from .utils import initialize_project
+from .plugin import nRoboWebDriverPlugin
 
 
 def main():
@@ -60,9 +61,11 @@ def main():
     print(f"Extra pytest args: {pytest_args}")
 
     pytest_options = prepare_pytest_cli_options(suites=suites, pytest_args=pytest_args)
-
+    #update args
+    pytest_options.extend([f"--browser={browser}"])
     # Uncomment to actually run
-    exit_code = pytest.main(pytest_options)
+    plugin = nRoboWebDriverPlugin()
+    exit_code = pytest.main(args=pytest_options, plugins=[plugin])
     if exit_code != 0:
         sys.exit(exit_code)
 
