@@ -1,0 +1,42 @@
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.webdriver.edge.service import Service as EdgeService
+from selenium.webdriver.safari.webdriver import WebDriver as SafariDriver
+from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.firefox import GeckoDriverManager
+from webdriver_manager.microsoft import EdgeChromiumDriverManager
+import sys
+
+
+def get_driver(browser_name: str, headless: bool = True):
+    browser = browser_name.lower()
+
+    if browser == "chrome":
+        options = webdriver.ChromeOptions()
+        if headless:
+            options.add_argument("--headless=new")
+        options.add_argument("--start-maximized")
+        return webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
+
+    elif browser == "firefox":
+        options = webdriver.FirefoxOptions()
+        if headless:
+            options.add_argument("--headless")
+        return webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()), options=options)
+
+    elif browser == "edge":
+        options = webdriver.EdgeOptions()
+        if headless:
+            options.add_argument("--headless=new")
+        return webdriver.Edge(service=EdgeService(EdgeChromiumDriverManager().install()), options=options)
+
+    elif browser == "safari":
+        if headless:
+            raise NotImplementedError("Safari does not support headless mode")
+        if sys.platform != 'darwin':
+            raise EnvironmentError("Safari is only supported on macOS.")
+        return SafariDriver()
+
+    else:
+        raise ValueError(f"Unsupported browser: {browser}")

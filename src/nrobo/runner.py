@@ -3,14 +3,14 @@ from pathlib import Path
 from typing import List, Optional, Union
 
 def prepare_pytest_cli_options(
-    suite: Optional[Union[str, List[str]]] = None,
+    suites: Optional[Union[str, List[str]]] = None,
     pytest_args: Optional[List[str]] = None
 ) -> List[str]:
     """
     Build the final list of pytest CLI options based on suite YAML files and extra args.
 
     Args:
-        suite: Single suite file name, list of suite files, or None.
+        suites: Single suite file name, list of suite files, or None.
         pytest_args: Additional pytest command-line arguments.
 
     Returns:
@@ -22,9 +22,9 @@ def prepare_pytest_cli_options(
     # Start with default: run all tests if no suite provided
     selected_tests = [str(test_dir)]
 
-    if suite:
+    if suites:
         selected_tests = []  # override default
-        suite_files = [suite] if isinstance(suite, str) else suite
+        suite_files = [suites] if isinstance(suites, str) else suites
 
         for suite_file in suite_files:
             suite_path = suite_dir / suite_file
