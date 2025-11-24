@@ -1,0 +1,68 @@
+# nrobo_wrapper.py
+
+
+import logging
+import typing
+
+from appium.webdriver.common.appiumby import AppiumBy
+from appium.webdriver.webdriver import (  # pylint: disable=C0412
+    WebDriver as AppiumWebDriver,
+)  # pylint: disable=C0412
+from selenium.webdriver import Keys
+from selenium.webdriver.common.actions.key_input import KeyInput
+from selenium.webdriver.common.actions.pointer_input import PointerInput
+from selenium.webdriver.common.actions.wheel_input import WheelInput
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.print_page_options import PrintOptions
+from selenium.webdriver.common.window import WindowTypes
+from selenium.webdriver.remote.webdriver import WebDriver
+
+from nrobo.drivers.selenium_wrappers.nrobo_custom import NRoBoCustomMethods
+
+AnyDevice = typing.Union[PointerInput, KeyInput, WheelInput]
+AnyBy = typing.Union[By, AppiumBy]
+AnyDriver = typing.Union[None, WebDriver, AppiumWebDriver]
+
+class NRoboSeleniumWrapperClass(NRoBoCustomMethods):
+
+
+    def __init__(
+        self,
+        driver: AnyDriver,
+        logger: logging.Logger,
+        duration: int = 250,
+        devices: list[AnyDevice] | None = None,
+    ):
+        """
+        Constructor - NroboSeleniumWrapper
+
+        :param driver: reference to selenium webdriver
+        :param logger: reference to logger instance
+        """
+        super().__init__(driver, logger, duration=duration, devices=devices)
+
+        # objects from common classes
+        self.keys = Keys()
+        self.by = By()
+        self.print_options = PrintOptions()
+        self.window_types = WindowTypes()
+        self.scrolled_height = 0
+
+        # wait for page load
+        self.wait_for_page_to_be_loaded()
+
+    def scroll_down(self):
+        """scroll down web page by its scroll height"""
+        screen_height = int(self.driver.execute_script("return screen.height"))
+        self.driver.execute_script(
+            f"window.scrollTo({self.scrolled_height}, "
+            f"{self.scrolled_height + screen_height})"
+        )
+        self.scrolled_height += screen_height
+
+    def scroll_to_top(self):
+        """scroll to top of the page"""
+        self.scrolled_height = 0
+        self.driver.execute_script(
+            f"window.scrollTo({self.scrolled_height}, " f"{self.scrolled_height})"
+        )
