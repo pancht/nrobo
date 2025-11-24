@@ -36,9 +36,6 @@ def main():
         action="store_true",
         help="Initialize a new nRoBo project with sample suite and tests.",
     )
-    parser.add_argument("--auto-driver", action="store_true",
-                        default=False,
-                        help="Auto use driver in tests")
 
     if "--help" in sys.argv:
         print("\n📜 nRobo Help Menu:")
@@ -89,8 +86,6 @@ def main():
     #update args
     if args.no_headless:
         pytest_options.append("--no-headless")
-    if args.auto_driver:
-        pytest_options.append("--auto-driver")
     pytest_options.extend([f"--browser={browser}"])
 
     # Uncomment to actually run
