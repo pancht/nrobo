@@ -14,7 +14,7 @@ markdown-it-py==4.0.0
 mdurl==0.1.2
 more-itertools==10.8.0
 nh3==0.3.2
--e git+ssh://git@github.com/pancht/nrobo.git@837627088d5d0fb4e06d5f027eb72e3d9d5523e2#egg=nrobo
+-e git+ssh://git@github.com/pancht/nrobo.git@276ffcf7ff4eb932f78a99e5c2c44c33a20b2855#egg=nrobo
 packaging==25.0
 pluggy==1.6.0
 Pygments==2.19.2
@@ -27,6 +27,7 @@ requests-toolbelt==1.0.0
 rfc3986==2.0.0
 rich==14.2.0
 shellingham==1.5.4
+tomlkit==0.13.3
 twine==6.2.0
 typer==0.20.0
 typing_extensions==4.15.0
