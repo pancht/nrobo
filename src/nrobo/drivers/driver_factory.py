@@ -7,9 +7,9 @@ from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
 import sys
+from selenium.webdriver.remote.webdriver import WebDriver
 
-
-def get_driver(browser_name: str, headless: bool = True):
+def get_driver(browser_name: str, headless: bool = True) -> WebDriver:
     browser = browser_name.lower()
 
     if browser == "chrome":

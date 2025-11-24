@@ -3,7 +3,7 @@ import sys
 import pytest
 from pathlib import Path
 from .runner import prepare_pytest_cli_options
-from .utils import initialize_project
+from .utils.utils import initialize_project
 from .plugin import nRoboWebDriverPlugin
 
 
@@ -64,7 +64,6 @@ def main():
     # Handle test execution
     suites = args.suite
     browser = args.browser
-    no_headless = args.no_headless
     pytest_args = unknown_args  # e.g., ['-v', '-s', '--maxfail=1']
 
     # auto-detect suite(s) if not provided

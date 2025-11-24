@@ -1,3 +1,4 @@
+Appium-Python-Client==5.2.4
 attrs==25.4.0
 build==1.3.0
 certifi==2025.11.12
@@ -16,7 +17,7 @@ markdown-it-py==4.0.0
 mdurl==0.1.2
 more-itertools==10.8.0
 nh3==0.3.2
--e git+ssh://git@github.com/pancht/nrobo.git@58abb9a771c0f7ac836ae8e6f83408a94afa7cec#egg=nrobo
+-e git+ssh://git@github.com/pancht/nrobo.git@098f07c8ab6814421e33cd8c99bc008ca950f72d#egg=nrobo
 outcome==1.3.0.post0
 packaging==25.0
 pluggy==1.6.0
