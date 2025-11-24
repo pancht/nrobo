@@ -48,7 +48,7 @@ def main():
         suites_dir = Path.cwd() / "suites"
         yml_files = list(suites_dir.glob("*.yml"))
         if yml_files:
-            suites = [yml_files[0].name]
+            # suites = [yml_files[0].name]
             suites = None
             # print(f"No --suite provided. Auto-detected suite: {suites[0]}")
         else:
@@ -59,8 +59,8 @@ def main():
     print(f"Suites to execute: {suites}")
     print(f"Extra pytest args: {pytest_args}")
 
-    pytest_options = prepare_pytest_cli_options(suite=suites, pytest_args=pytest_args)
-    print(f"pytest options => {pytest_options}")
+    pytest_options = prepare_pytest_cli_options(suites=suites, pytest_args=pytest_args)
+
     # Uncomment to actually run
     exit_code = pytest.main(pytest_options)
     if exit_code != 0:
