@@ -14,8 +14,8 @@ def initialize_project():
     tests_dir.mkdir(exist_ok=True)
 
     # Copy template files from package templates
-    with res.files("nrobo.templates").joinpath("sample_suite.ymlsss").open("rb") as src:
-        (suites_dir / "sample_suite.ymlsss").write_bytes(src.read())
+    with res.files("nrobo.templates").joinpath("sample_suite.yml").open("rb") as src:
+        (suites_dir / "sample_suite.yml").write_bytes(src.read())
 
     with res.files("nrobo.templates").joinpath("test_sample.py").open("rb") as src:
         (tests_dir / "test_sample.py").write_bytes(src.read())
@@ -27,4 +27,4 @@ def initialize_project():
 
     console.print("✨ [bold green]nRoBo project initialized![/]")
     console.print("📂 Created: suites/, tests/")
-    console.print("🧩 Added: sample_suite.ymlsss + test_sample.py + test_sample_another.py")
+    console.print("🧩 Added: sample_suite.yml + test_sample.py + test_sample_another.py")
