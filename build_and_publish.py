@@ -6,7 +6,7 @@ increment version, build, and ask confirmation before uploading.
 Usage:
   python build_and_publish.py [--level patch|minor|major] [--test]
 """
-
+import shutil
 import sys
 import subprocess
 import requests
@@ -37,6 +37,12 @@ def get_latest_pypi_version(package: str, test=False) -> str:
         print(f"⚠️ Could not fetch latest version: {e}")
     return "0.0.0"
 
+def clear_dist_folder():
+    dist_path = Path("dist")
+    if dist_path.exists() and dist_path.is_dir():
+        print("🧹 Clearing old dist/ directory...")
+        shutil.rmtree(dist_path)
+
 def main():
     level = "patch"
     test_mode = "--test" in sys.argv
@@ -63,6 +69,9 @@ def main():
     # Update pyproject.toml
     doc["project"]["version"] = new_version
     PYPROJECT.write_text(tomlkit.dumps(doc))
+
+    # Clean dist before build
+    clear_dist_folder()
 
     # Build
     print("\n🔧 Building package...")
