@@ -3,7 +3,7 @@ import sys
 import pytest
 from pathlib import Path
 from .runner import prepare_pytest_cli_options
-from .utils import initialize_project
+from .utils.utils import initialize_project
 from .plugin import nRoboWebDriverPlugin
 
 

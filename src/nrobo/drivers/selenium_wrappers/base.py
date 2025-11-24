@@ -373,7 +373,7 @@ class SeleniumWrapperBase:  # pylint: disable=R0904
         self.driver.refresh()
 
     # Options
-    def get_cookies(self) -> List[dict]:
+    def get_cookies(self) -> typing.List[dict]:
         """Returns a set of dictionaries, corresponding to cookies visible in
         the current session.
 

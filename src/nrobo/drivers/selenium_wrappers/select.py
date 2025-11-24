@@ -1,5 +1,5 @@
 import logging
-from typing import Union
+from typing import Union, Optional, Dict
 
 from appium.webdriver.common.appiumby import AppiumBy
 from appium.webdriver.webdriver import (  # pylint: disable=C0412
@@ -10,6 +10,7 @@ from selenium.webdriver.common.actions.pointer_input import PointerInput
 from selenium.webdriver.common.actions.wheel_input import WheelInput
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.support.select import Select
 
 from nrobo.drivers.selenium_wrappers.desired_cap import DesiredCapabilitiesWrapper
 

@@ -7,11 +7,13 @@ from appium.webdriver.common.appiumby import AppiumBy
 from appium.webdriver.webdriver import (  # pylint: disable=C0412
     WebDriver as AppiumWebDriver,
 )  # pylint: disable=C0412
+from selenium.common import NoSuchElementException
 from selenium.webdriver import Keys
 from selenium.webdriver.common.actions.key_input import KeyInput
 from selenium.webdriver.common.actions.pointer_input import PointerInput
 from selenium.webdriver.common.actions.wheel_input import WheelInput
 from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.shadowroot import ShadowRoot
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions

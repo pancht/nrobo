@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 from selenium.webdriver.remote.webdriver import WebDriver
 from .drivers.driver_factory import get_driver
@@ -28,6 +30,11 @@ class nRoboWebDriverPlugin:
         browser = request.config.getoption("--browser")
         headless = not request.config.getoption("--no-headless")
         self.driver_instance:WebDriver = get_driver(browser, headless=headless)
-        wrapper:NRoboSeleniumWrapperClass = NRoboSeleniumWrapperClass(self.driver_instance)
+
+        # Create a logger
+        logger = logging.getLogger(f"test_logger.{request.node.name}")
+        logger.setLevel(logging.DEBUG)
+
+        wrapper:NRoboSeleniumWrapperClass = NRoboSeleniumWrapperClass(self.driver_instance,logger=logger)
         yield wrapper
         self.driver_instance.quit()
