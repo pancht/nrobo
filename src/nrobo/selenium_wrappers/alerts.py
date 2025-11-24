@@ -11,7 +11,7 @@ from selenium.webdriver.common.actions.wheel_input import WheelInput
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from nrobo.drivers.selenium_wrappers.waits import WaitsClassWrapper
+from nrobo.selenium_wrappers.waits import WaitsClassWrapper
 
 AnyDevice = typing.Union[PointerInput, KeyInput, WheelInput]
 AnyBy = typing.Union[By, AppiumBy]

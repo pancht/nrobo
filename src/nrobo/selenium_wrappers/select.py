@@ -1,5 +1,5 @@
 import logging
-from typing import Union
+from typing import Union, Optional, Dict
 
 from appium.webdriver.common.appiumby import AppiumBy
 from appium.webdriver.webdriver import (  # pylint: disable=C0412
@@ -10,15 +10,16 @@ from selenium.webdriver.common.actions.pointer_input import PointerInput
 from selenium.webdriver.common.actions.wheel_input import WheelInput
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.support.select import Select
 
-from nrobo.drivers.selenium_wrappers.by import ByWrapper
+from nrobo.selenium_wrappers.desired_cap import DesiredCapabilitiesWrapper
 
 AnyDevice = Union[PointerInput, KeyInput, WheelInput]
 AnyBy = Union[By, AppiumBy]
 AnyDriver = Union[None, WebDriver, AppiumWebDriver]
 
-class DesiredCapabilitiesWrapper(ByWrapper):  # pylint: disable=R0901
-    """Wrapper class for selenium class: DesiredCapabilities"""
+class SeleniumSelectWrapper(DesiredCapabilitiesWrapper):  # pylint: disable=R0901
+    """Select nrobo."""
 
     def __init__(
         self,
@@ -35,3 +36,24 @@ class DesiredCapabilitiesWrapper(ByWrapper):  # pylint: disable=R0901
         """
         super().__init__(driver, logger, duration=duration, devices=devices)
 
+    def select(self, by: AnyBy, value: Optional[str] = None) -> Select:
+        """
+        Get SELECT element
+
+        :param by:
+        :param value:
+        :return:
+        """
+        return Select(self.find_element(by, value))
+
+    def get_status(self) -> Dict:
+        """
+        Get the Appium server status
+
+        Usage:
+            driver.get_status()
+        Returns:
+            Dict: The status information
+
+        """
+        return self.driver.get_status()

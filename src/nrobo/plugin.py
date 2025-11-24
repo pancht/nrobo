@@ -3,7 +3,7 @@ import logging
 import pytest
 from selenium.webdriver.remote.webdriver import WebDriver
 from .drivers.driver_factory import get_driver
-from nrobo.drivers.selenium_wrappers.nrobo_selenium_wrapper import NRoboSeleniumWrapperClass
+from nrobo.selenium_wrappers.nrobo_selenium_wrapper import NRoboSeleniumWrapperClass
 
 
 class nRoboWebDriverPlugin:

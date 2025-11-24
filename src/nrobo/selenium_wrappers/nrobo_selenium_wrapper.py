@@ -17,7 +17,7 @@ from selenium.webdriver.common.print_page_options import PrintOptions
 from selenium.webdriver.common.window import WindowTypes
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from nrobo.drivers.selenium_wrappers.nrobo_custom import NRoBoCustomMethods
+from nrobo.selenium_wrappers.nrobo_custom import NRoBoCustomMethods
 
 AnyDevice = typing.Union[PointerInput, KeyInput, WheelInput]
 AnyBy = typing.Union[By, AppiumBy]

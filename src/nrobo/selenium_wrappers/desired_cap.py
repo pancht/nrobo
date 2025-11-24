@@ -11,14 +11,14 @@ from selenium.webdriver.common.actions.wheel_input import WheelInput
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from nrobo.drivers.selenium_wrappers.select import SeleniumSelectWrapper
+from nrobo.selenium_wrappers.by import ByWrapper
 
 AnyDevice = Union[PointerInput, KeyInput, WheelInput]
 AnyBy = Union[By, AppiumBy]
 AnyDriver = Union[None, WebDriver, AppiumWebDriver]
 
-class NRoboAppiumWrapper(SeleniumSelectWrapper):  # pylint: disable=R0901
-    """Appium specific nRoBo methods"""
+class DesiredCapabilitiesWrapper(ByWrapper):  # pylint: disable=R0901
+    """Wrapper class for selenium class: DesiredCapabilities"""
 
     def __init__(
         self,
@@ -27,5 +27,11 @@ class NRoboAppiumWrapper(SeleniumSelectWrapper):  # pylint: disable=R0901
         duration: int = 250,
         devices: list[AnyDevice] | None = None,
     ):
-        """constructor"""
+        """
+        Constructor
+
+        :param driver: reference to selenium webdriver
+        :param logger: reference to logger instance
+        """
         super().__init__(driver, logger, duration=duration, devices=devices)
+
