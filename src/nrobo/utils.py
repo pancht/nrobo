@@ -23,6 +23,8 @@ def initialize_project():
     with res.files("nrobo.templates").joinpath("test_sample_another.py").open("rb") as src:
         (tests_dir / "test_sample_another.py").write_bytes(src.read())
 
+    #
+
     console.print("✨ [bold green]nRoBo project initialized![/]")
     console.print("📂 Created: suites/, tests/")
-    console.print("🧩 Added: sample_suite.yml + test_sample.py")
+    console.print("🧩 Added: sample_suite.yml + test_sample.py + test_sample_another.py")
