@@ -37,6 +37,21 @@ def main():
         help="Initialize a new nRoBo project with sample suite and tests.",
     )
 
+    if "--help" in sys.argv:
+        print("\n📜 nRobo Help Menu:")
+        parser.print_help()
+
+        try:
+            user_input = input("\n❓ nRobo is backed by PyTest. Show PyTest options too? (y/n): ").strip().lower()
+        except EOFError:
+            user_input = "n"  # fallback in non-interactive shells
+
+        if user_input.startswith("y"):
+            print("\n📜 Pytest Help Menu:")
+            pytest.main(["--help"])
+            sys.exit(0)
+
+
     # parse_known_args() → splits known vs unknown args safely
     args, unknown_args = parser.parse_known_args()
 
@@ -44,6 +59,7 @@ def main():
     if args.init:
         initialize_project()
         sys.exit(0)
+
 
     # Handle test execution
     suites = args.suite
