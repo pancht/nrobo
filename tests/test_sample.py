@@ -1,5 +1,8 @@
-def test_a():
-    pass
+from nrobo.selenium_wrappers.nrobo_selenium_wrapper import NRoboSeleniumWrapperClass
 
-def test_b():
-    pass
+
+def test_a(driver:NRoboSeleniumWrapperClass):
+    driver.logger.info("HI")
+
+def test_b(driver:NRoboSeleniumWrapperClass):
+    driver.logger.info("BYE")

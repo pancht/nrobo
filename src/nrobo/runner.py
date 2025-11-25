@@ -1,3 +1,5 @@
+import os
+
 import yaml
 from pathlib import Path
 from typing import List, Optional, Union
@@ -47,3 +49,4 @@ def prepare_pytest_cli_options(
     pytest_options = selected_tests + (pytest_args or [])
 
     return pytest_options
+

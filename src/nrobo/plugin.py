@@ -1,7 +1,9 @@
 import logging
 import os
+import sys
 import time
 
+import allure
 import pytest
 from _pytest.config import Config
 from _pytest.fixtures import FixtureRequest
@@ -30,6 +32,8 @@ class nRoboWebDriverPlugin:
             default=False,
             help="Run browser in headed mode (default is headless)"
         )
+        # parser.addoption("--alluredir", action="store", default="allure-results",
+        #                  help="Directory for Allure test results")
 
 
     def _get_logger(self, request: FixtureRequest) -> logging.Logger:
@@ -40,34 +44,31 @@ class nRoboWebDriverPlugin:
         logger = logging.getLogger(f"nrobo.{test_name}")
         logger.setLevel(logging.DEBUG)
 
-        if not logger.handlers:  # Avoid duplicate handlers
-            # Console Handler
-            ch = logging.StreamHandler()
-            ch.setLevel(logging.DEBUG)
+        # ✅ Stream to stdout instead of stderr to avoid pytest duplication
+        ch = logging.StreamHandler(sys.stdout)
+        ch.setLevel(logging.DEBUG)
 
-            # color formatter
-            formatter = ColoredFormatter(
-                "%(log_color)s[%(levelname)s]%(reset)s %(message)s",
-                log_colors={
-                    'DEBUG': 'cyan',
-                    'INFO': 'green',
-                    'WARNING': 'yellow',
-                    'ERROR': 'red',
-                    'CRITICAL': 'red,bg_white'
-                }
-            )
-            ch.setFormatter(formatter)
+        formatter = ColoredFormatter(
+            "%(log_color)s[%(levelname)s]%(reset)s %(message)s",
+            log_colors={
+                'DEBUG': 'cyan',
+                'INFO': 'green',
+                'WARNING': 'yellow',
+                'ERROR': 'red',
+                'CRITICAL': 'red,bg_white'
+            }
+        )
+        ch.setFormatter(formatter)
 
-            # File Handler
-            fh = logging.FileHandler(os.path.join(log_dir, f"{test_name}.log"))
-            fh.setLevel(logging.DEBUG)
-            fh.setFormatter(logging.Formatter(
-                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            ))
+        fh = logging.FileHandler(os.path.join(log_dir, f"{test_name}.log"))
+        fh.setLevel(logging.DEBUG)
+        fh.setFormatter(logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        ))
 
-            logger.addHandler(ch)
-            logger.addHandler(fh)
-            logger.info(f"nrobo.{test_name}")
+        logger.addHandler(ch)
+        logger.addHandler(fh)
+        logger.info(f"Logger initialized: nrobo.{test_name}")
 
         return logger
 
@@ -117,14 +118,37 @@ class nRoboWebDriverPlugin:
             os.makedirs(screenshots_dir, exist_ok=True)
             screenshot_file = os.path.join(screenshots_dir, f"{test_name}.png")
             try:
-                b64 = wrapper.driver.get_screenshot_as_base64()  # using Selenium WebDriver API
+                screenshot_bytes = wrapper.driver.get_screenshot_as_base64()
+                screenshot_as_png = wrapper.driver.get_screenshot_as_png()
+
+                # allure report handling
+                allure.attach(screenshot_as_png,
+                              name=f"screenshot_{item.name}",
+                              attachment_type=allure.attachment_type.PNG)
+                # optionally attach logs
+                # log_file = os.path.join("logs", f"nrobo.{test_name}.log")
+                # if os.path.exists(log_file):
+                #     with open(log_file, "r") as f:
+                #         allure.attach(f.readlines(), name="test_log", attachment_type=allure.attachment_type.TEXT)
+
+                # if log_content:
+                #     allure.attach(log_content,
+                #                   name="test_log",
+                #                   attachment_type=allure.attachment_type.TEXT)
+
+                # using Selenium WebDriver API
                 extras = getattr(report, "extras", [])
                 import pytest_html
-                extras.append(pytest_html.extras.image(b64, mime_type="image/png", extension="png"))
+                extras.append(pytest_html.extras.image(screenshot_bytes, mime_type="image/png", extension="png"))
                 report.extras = extras# + [extras.image(screenshot_file)]
             except Exception as e:
                 logging.getLogger(f"nrobo.{test_name}").warning(f"Could not save screenshot: {e}")
 
-    def pytest_configure(self, config:Config):
-        pass
+    def pytest_configure(self, config: Config):
+        # Ensure default alluredir is used if not set
+        alluredir = getattr(config.option, "alluredir", None)
+        if not alluredir:
+            config.option.alluredir = "allure-results"
+        os.makedirs(config.option.alluredir, exist_ok=True)
+
 
