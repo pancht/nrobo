@@ -45,13 +45,58 @@ graph TD
 
 ---
 
-## 📦 Installation
+
+## 🧰 Pre-requisites
+
+- Install Python (3.11 or higher)
+  - python --version
+- Install Java (11  or higher)
+- Install allure command line tool.
+  - Check [Install guide](https://allurereport.org/docs/gettingstarted-installation/)
+        - Run the following command to check if allure cli is installed
 
 ```bash
-pip install nrobo
-nrobo init
+  allure --version
+````
+
+
+## 📦 Installation
+
+- Make a directory for automation project
+```bash
+  mkdir dream
+  cd dream
+```
+- Install **virtualenv** package
+
+```bash
+  pip install virtualenv
+```
+- Create virtual environment - `.venv`
+
+```bash
+  virtualenv .venv
+```
+- Activate virtual environment
+  - Unix/Mac/Linux
+    - `source .venv/bin/activate`
+  - Windows
+    - `.\\.venv\\Scripts\\activate`
+
+- Install *nrobo*
+
+```bash
+  pip install nrobo
+  nrobo --init
+  nrobo # This will run sample tests
 ```
 
+- Other ways to work with `nrobo`
+```bash
+    nrobo -s
+    nrobo -n 2 -s
+    nrobo --co
+```
 **Or** clone locally for development:
 
 ```bash
