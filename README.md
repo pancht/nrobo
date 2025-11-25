@@ -1,5 +1,6 @@
 # nROBO - NextGen automation pytest backed testing framework
 
+```mermaid
 graph TD
     A[User Project] --> B[nrobo CLI / Runner]
 
@@ -17,3 +18,4 @@ graph TD
 
     B --> L[Build & Publish Script]
     L --> M[PyPI Packaging]
+```
