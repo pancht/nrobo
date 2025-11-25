@@ -1,12 +1,12 @@
-import os
-
-import yaml
 from pathlib import Path
 from typing import List, Optional, Union
 
+import yaml
+
+
 def prepare_pytest_cli_options(
-    suites: Optional[Union[str, List[str]]] = None,
-    pytest_args: Optional[List[str]] = None
+    suites: Optional[Union[str, List[str]]] = None,  # noqa: E501
+    pytest_args: Optional[List[str]] = None,
 ) -> List[str]:
     """
     Build the final list of pytest CLI options based on suite YAML files and extra args.
@@ -17,7 +17,7 @@ def prepare_pytest_cli_options(
 
     Returns:
         List of pytest CLI arguments to pass to pytest.main().
-    """
+    """  # noqa: E501
     test_dir = Path.cwd() / "tests"
     suite_dir = Path.cwd() / "suites"
 
@@ -49,4 +49,3 @@ def prepare_pytest_cli_options(
     pytest_options = (pytest_args or []) + selected_tests
 
     return pytest_options
-
