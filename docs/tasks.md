@@ -12,3 +12,8 @@
 
 - Ready to use logging fixture
 - Colorful console logging
+
+## ✅ Reporting
+
+-- Integrated pytest-html plugin
+
