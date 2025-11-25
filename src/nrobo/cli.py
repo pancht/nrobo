@@ -1,14 +1,18 @@
 import argparse
 import os
-import subprocess
+import subprocess  # nosec B404
 import sys
-import pytest
 from pathlib import Path
 
-from nrobo.helpers.arg_parsing import standardize_html_reoprt_path, standardize_allure_reoprt_path
+import pytest
+
+from nrobo.helpers.arg_parsing import (
+    standardize_allure_reoprt_path,
+    standardize_html_reoprt_path,
+)
+
 from .runner import prepare_pytest_cli_options
 from .utils.utils import initialize_project
-from .plugin import nRoboWebDriverPlugin
 
 
 def main():
@@ -21,9 +25,9 @@ def main():
     parser.add_argument(
         "--suite",
         nargs="+",  # Accepts multiple values (space-separated)
-        help="One or more suite YAML files under suites/ (space-separated or repeated).",
+        help="One or more suite YAML files under suites/ (space-separated or repeated).",  # noqa: E501
         default=None,
-    )
+    )  # noqa: E501
     parser.add_argument(
         "--browser",
         action="store",
@@ -34,7 +38,7 @@ def main():
         "--no-headless",
         action="store_true",
         default=False,
-        help="Run browser in headed mode (default is headless)"
+        help="Run browser in headed mode (default is headless)",
     )
     parser.add_argument(
         "--init",
@@ -47,7 +51,13 @@ def main():
         parser.print_help()
 
         try:
-            user_input = input("\n❓ nRobo is backed by PyTest. Show PyTest options too? (y/n): ").strip().lower()
+            user_input = (
+                input(
+                    "\n❓ nRobo is backed by PyTest. Show PyTest options too? (y/n): "  # noqa: E501
+                )  # noqa: E501
+                .strip()
+                .lower()
+            )  # noqa: E501
         except EOFError:
             user_input = "n"  # fallback in non-interactive shells
 
@@ -56,7 +66,6 @@ def main():
             pytest.main(["--help"])
             sys.exit(0)
 
-
     # parse_known_args() → splits known vs unknown args safely
     args, unknown_args = parser.parse_known_args()
 
@@ -64,7 +73,6 @@ def main():
     if args.init:
         initialize_project()
         sys.exit(0)
-
 
     # Handle test execution
     suites = args.suite
@@ -80,14 +88,16 @@ def main():
             suites = None
             # print(f"No --suite provided. Auto-detected suite: {suites[0]}")
         else:
-            print("No suite specified and no suite files found. Running all tests...")
+            print("No suite specified and no suite files found. Running all tests...")  # noqa: E501
             suites = [None]
 
-    print(f"Starting nRoBo test execution on browser: {browser} {"" if args.no_headless else "in headless mode"}...")
+    print(
+        f"Starting nRoBo test execution on browser: {browser} {"" if args.no_headless else "in headless mode"}..."  # noqa: E501
+    )
     print(f"Suites to execute: {suites}")
     print(f"Extra pytest args: {pytest_args}")
 
-    #update args
+    # update args
     os.environ["NROBO_BROWSER"] = browser
 
     if args.no_headless:
@@ -101,7 +111,7 @@ def main():
     if any("--html" in arg for arg in pytest_args):
         pytest_args = standardize_html_reoprt_path(pytest_args)
     else:
-        pytest_args.extend(["--html=reports/report.html", "--self-contained-html"])
+        pytest_args.extend(["--html=reports/report.html", "--self-contained-html"])  # noqa: E501
     allure_results_dir = "allure-results"
     allure_report_dir = "allure-reports"
 
@@ -110,9 +120,10 @@ def main():
     else:
         pytest_args.extend([f"--alluredir={allure_results_dir}"])
 
-    pytest_options = prepare_pytest_cli_options(suites=suites, pytest_args=pytest_args)
-    print(pytest_options)
-
+    pytest_options = prepare_pytest_cli_options(
+        suites=suites, pytest_args=pytest_args
+    )  # noqa: E501
+    # print(pytest_options)
 
     # Uncomment to actually run
     # No need to pass plugin manually to pytest.main
@@ -134,9 +145,21 @@ def main():
     if any("--alluredir" in arg for arg in pytest_options):
         # 2️⃣ Generate allure report (HTML)
         os.makedirs(allure_report_dir, exist_ok=True)
-        subprocess.run(["allure", "generate", allure_results_dir, "-o", allure_report_dir, "--clean"], check=True)
+        subprocess.run(  # nosec B603
+            [
+                "allure",
+                "generate",
+                allure_results_dir,
+                "-o",
+                allure_report_dir,
+                "--clean",
+            ],
+            check=True,
+        )
 
-        print(f"✅ Allure report ready: file://{os.path.abspath(allure_report_dir)}/index.html")
+        print(
+            f"✅ Allure report ready: file://{os.path.abspath(allure_report_dir)}/index.html"  # noqa: E501
+        )  # noqa: E501
 
 
 if __name__ == "__main__":
