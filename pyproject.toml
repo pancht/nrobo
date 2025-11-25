@@ -16,7 +16,8 @@ dependencies = [
   "pytest>=7.0",
   "pyyaml",
   "typer>=0.9",
-  "rich"
+  "rich",
+  "pytest-html>=4.0.0",
 ]
 
 [project.scripts]
