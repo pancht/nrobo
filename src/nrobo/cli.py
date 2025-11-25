@@ -86,6 +86,8 @@ def main():
     #update args
     if args.no_headless:
         pytest_options.append("--no-headless")
+    if "--html" not in pytest_args:
+        pytest_options.extend(["--html=reports/report.html", "--self-contained-html"])
     pytest_options.extend([f"--browser={browser}"])
 
     # Uncomment to actually run
