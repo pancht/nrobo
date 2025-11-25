@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 
 import pytest
 from selenium.webdriver.remote.webdriver import WebDriver
@@ -81,3 +82,17 @@ class nRoboWebDriverPlugin:
         yield wrapper
 
         self.driver_instance.quit()
+
+        def pytest_runtest_setup( item):
+            item.start_time = time.time()
+
+        def pytest_runtest_makereport(item, call):
+            outcome = yield
+            report = outcome.get_result()
+
+            if call.when == "call":
+                end_time = time.time()
+                duration = end_time - getattr(item, "start_time", end_time)
+                logger = logging.getLogger(f"nrobo.{item.name}")
+                logger.info(f"Test Status: {report.outcome.upper()}")
+                logger.info(f"Duration: {duration:.2f} seconds")

@@ -78,7 +78,7 @@ def main():
             print("No suite specified and no suite files found. Running all tests...")
             suites = [None]
 
-    print(f"Starting nRoBo test execution on browser: {browser} ...")
+    print(f"Starting nRoBo test execution on browser: {browser} {"" if args.no_headless else "in headless mode"}...")
     print(f"Suites to execute: {suites}")
     print(f"Extra pytest args: {pytest_args}")
 
