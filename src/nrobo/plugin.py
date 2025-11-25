@@ -13,6 +13,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from nrobo.selenium_wrappers.nrobo_selenium_wrapper import NRoboSeleniumWrapperClass
 from .drivers.driver_factory import get_driver
 from .helpers._pytest import extract_test_name
+from .helpers._pytest_xdist import is_running_with_xdist
 
 
 class nRoboWebDriverPlugin:
@@ -35,41 +36,72 @@ class nRoboWebDriverPlugin:
         # parser.addoption("--alluredir", action="store", default="allure-results",
         #                  help="Directory for Allure test results")
 
-
     def _get_logger(self, request: FixtureRequest) -> logging.Logger:
-        test_name = request.node.name
-        log_dir = os.path.join("logs")
+        """
+        Create a per-test, per-worker logger.
+        Example: logs/gw0/test_example.log
+        """
+        node = request.node
+        class_name = node.cls.__name__ if node.cls else None
+        node_name = node.name
+        test_name = f"{class_name}_{node_name}" if node.cls else node_name
+        print(f"$$$$$$|{f"{class_name}.{test_name}" if node.cls else test_name}")
+
+        # ✅ detect xdist worker ID (gw0, gw1, etc.) — default to 'master' if local
+        worker_id = os.environ.get("PYTEST_XDIST_WORKER", "master")
+
+        # ✅ make directory structure logs/<worker_id>/
+        log_dir = os.path.join("logs", worker_id) if is_running_with_xdist() else os.path.join("logs")
         os.makedirs(log_dir, exist_ok=True)
 
-        logger = logging.getLogger(f"nrobo.{test_name}")
+        if is_running_with_xdist():
+            # ✅ unique log file per test
+            log_path = os.path.join(log_dir, f"nrobo_{test_name}.log")
+        else:
+            log_path = os.path.join(log_dir, f"nrobo_{test_name}.log")
+
+        # Initialize logger
+        if is_running_with_xdist():
+            logger = logging.getLogger(f"nrobo_{worker_id}_{test_name}")
+        else:
+            logger = logging.getLogger(f"nrobo_{test_name}")
+            print(f"======|nrobo_{test_name}")
         logger.setLevel(logging.DEBUG)
 
-        # ✅ Stream to stdout instead of stderr to avoid pytest duplication
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setLevel(logging.DEBUG)
+        # Avoid duplicate handlers (important in pytest runs)
+        if logger.handlers:
+            return logger
 
-        formatter = ColoredFormatter(
+        # Stream handler (stdout)
+        ch = logging.StreamHandler(sys.stdout)
+        ch.setLevel(logging.INFO)
+        ch.setFormatter(ColoredFormatter(
             "%(log_color)s[%(levelname)s]%(reset)s %(message)s",
             log_colors={
-                'DEBUG': 'cyan',
-                'INFO': 'green',
-                'WARNING': 'yellow',
-                'ERROR': 'red',
-                'CRITICAL': 'red,bg_white'
-            }
-        )
-        ch.setFormatter(formatter)
-
-        fh = logging.FileHandler(os.path.join(log_dir, f"{test_name}.log"))
-        fh.setLevel(logging.DEBUG)
-        fh.setFormatter(logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+                "DEBUG": "cyan",
+                "INFO": "green",
+                "WARNING": "yellow",
+                "ERROR": "red",
+                "CRITICAL": "bold_red",
+            },
         ))
 
+        # File handler (persistent logs)
+        fh = logging.FileHandler(log_path, mode="w", encoding="utf-8")
+        fh.setLevel(logging.DEBUG)
+        fh.setFormatter(logging.Formatter(
+            "%(asctime)s - %(levelname)s - %(message)s"
+        ))
+
+        # Add handlers
         logger.addHandler(ch)
         logger.addHandler(fh)
-        logger.info(f"Logger initialized: nrobo.{test_name}")
 
+        # logger.propagate = False
+        if is_running_with_xdist():
+            logger.info(f"Logger initialized for test: {test_name} (worker: {worker_id})")
+        else:
+            logger.info(f"Logger initialized for test: {test_name}")
         return logger
 
     @pytest.fixture(scope="function")
@@ -106,7 +138,8 @@ class nRoboWebDriverPlugin:
             duration = end_time - getattr(item, "start_time", end_time)
 
             test_name = extract_test_name(item)
-            logger = logging.getLogger(f"nrobo.{test_name}")
+            print(f"#######|nrobo_{test_name}.log")
+            logger = logging.getLogger(f"nrobo_{test_name}")
             logger.info(f"Test Status: {report.outcome.upper()}")
             logger.info(f"Duration: {duration:.2f} seconds")
 
@@ -125,16 +158,6 @@ class nRoboWebDriverPlugin:
                 allure.attach(screenshot_as_png,
                               name=f"screenshot_{item.name}",
                               attachment_type=allure.attachment_type.PNG)
-                # optionally attach logs
-                # log_file = os.path.join("logs", f"nrobo.{test_name}.log")
-                # if os.path.exists(log_file):
-                #     with open(log_file, "r") as f:
-                #         allure.attach(f.readlines(), name="test_log", attachment_type=allure.attachment_type.TEXT)
-
-                # if log_content:
-                #     allure.attach(log_content,
-                #                   name="test_log",
-                #                   attachment_type=allure.attachment_type.TEXT)
 
                 # using Selenium WebDriver API
                 extras = getattr(report, "extras", [])

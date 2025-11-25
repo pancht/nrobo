@@ -12,7 +12,7 @@ def extract_test_name(item: Item) -> str:
     if len(parts) == 3:
         # Format: file::class::method
         _, cls, method = parts
-        return f"{cls}.{method}"
+        return f"{cls}_{method}"
     elif len(parts) == 2:
         # Format: file::method
         _, method = parts
