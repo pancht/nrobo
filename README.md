@@ -1,4 +1,12 @@
-# nROBO - NextGen automation pytest backed testing framework
+
+# 🤖 nrobo – NextGen Test Automation Framework
+
+**nrobo** is a modular, YAML-driven test automation framework powered by PyTest, designed for web automation teams that value simplicity, flexibility, and CI/CD readiness.
+
+
+---
+
+# Architecture
 
 ```mermaid
 graph TD
@@ -19,3 +27,109 @@ graph TD
     B --> L[Build & Publish Script]
     L --> M[PyPI Packaging]
 ```
+
+
+## 🚀 Features
+
+- ✅ **PyTest-Powered Engine** – built on the rock-solid `pytest` foundation
+- 🧱 **Modular Architecture** – decoupled loader, executor, and reporter components
+- 📜 **YAML-Based Test Suites** – write tests in a human-readable format
+- 🖥️ **Selenium Web Integration** – cross-browser support (Chrome, Firefox, Edge)
+- 📊 **Allure + HTML Reporting** – customizable test reports with logs and screenshots
+- 🔧 **Reusable Steps & Configs** – DRY principle applied across suites
+- 🔁 **Data-Driven Testing** – externalize inputs for flexible test coverage
+- 🧪 **Self-Tested Framework** – internal tests for reliability
+- 📦 **Modern Packaging** – install via `pip`, structured with `pyproject.toml`
+- 🛡️ **Security Audited** – integrates with `bandit` and `pip-audit`
+- ⚙️ **CI/CD Friendly** – GitHub Actions-ready out of the box
+
+---
+
+## 📦 Installation
+
+```bash
+pip install nrobo
+nrobo init
+```
+
+**Or** clone locally for development:
+
+```bash
+git clone https://github.com/pancht/nrobo.git
+cd nrobo
+pip install -e .
+```
+
+🧪 Quick Start
+
+```bash
+nrobo run --suite suites/login_test.yaml
+```
+
+**Or** run via `pytest` if testing a local implementation:
+
+```bash
+pytest --nrobo-suite=suites/login_test.yaml
+```
+
+🧱 Directory Structure
+
+```bash
+nrobo/
+├── src/nrobo/         ← Core framework (loader, executor, reporter)
+├── suites/            ← YAML-defined test suites
+├── tests/             ← Unit/integration tests for framework
+├── docs/              ← Architecture docs, diagrams, examples
+├── pyproject.toml     ← Packaging configuration
+└── build_and_publish.py
+```
+
+📊 Reports
+
+After execution, you'll get rich test reports:
+
+- **Allure Report:**
+
+```bash
+allure serve results/
+```
+
+- **HTML Report:**
+
+Open **reports/report.html** in your browser.
+
+🛠️ Developer Guide
+
+Run code checks:
+
+```bash
+black src/ tests/
+flake8 src/ tests/
+pytest --cov=src/
+```
+
+📚 Documentation
+
+- Getting Started
+- Writing Test Suites
+- Architecture Diagram
+- Extending nrobo
+
+👥 Contributing
+
+Want to add your own modules or reporters? Open a pull request or start a discussion!
+
+- Fork this repo
+
+- Create a feature branch
+
+- Add tests for new logic
+
+- Run `black`, `flake8`, and `pytest`
+
+- Submit your PR with a detailed description
+
+📝 License
+MIT © 2025 pancht
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/pancht/nrobo/blob/production/LICENSE)

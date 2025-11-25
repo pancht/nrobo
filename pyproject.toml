@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nrobo"
-version = "2025.0.0"
+version = "2025.0.1"
 description = "A Pytest-powered Smart Test Runner CLI tool."
 readme = "README.md"
 license = { text = "MIT" }
@@ -31,4 +31,4 @@ nrobo = "nrobo.cli:main"
 nrobo = "nrobo.plugin"
 
 [tool.bandit]
-skips = ["B607"]
+skips = ["B607", "B101"]
