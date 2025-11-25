@@ -31,7 +31,6 @@ class nRoboWebDriverPlugin:
             help="Run browser in headed mode (default is headless)"
         )
 
-
     def _get_logger(self, request: FixtureRequest) -> logging.Logger:
         test_name = request.node.name
         log_dir = os.path.join("logs")
@@ -125,6 +124,5 @@ class nRoboWebDriverPlugin:
             except Exception as e:
                 logging.getLogger(f"nrobo.{test_name}").warning(f"Could not save screenshot: {e}")
 
-    def pytest_configure(self, config:Config):
+    def pytest_configure(self, config: Config):
         pass
-

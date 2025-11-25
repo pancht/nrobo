@@ -2,6 +2,8 @@ import argparse
 import sys
 import pytest
 from pathlib import Path
+
+from nrobo.helpers.arg_parsing import standardize_html_reoprt_path
 from .runner import prepare_pytest_cli_options
 from .utils.utils import initialize_project
 from .plugin import nRoboWebDriverPlugin
@@ -86,7 +88,9 @@ def main():
     #update args
     if args.no_headless:
         pytest_options.append("--no-headless")
-    if "--html" not in pytest_args:
+    if any("--html" in arg for arg in pytest_args):
+        pytest_options = standardize_html_reoprt_path(pytest_options)
+    else:
         pytest_options.extend(["--html=reports/report.html", "--self-contained-html"])
     pytest_options.extend([f"--browser={browser}"])
 
