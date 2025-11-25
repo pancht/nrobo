@@ -25,7 +25,8 @@ def main():
         default=None,
     )
     parser.add_argument(
-        "-b", "--browser",
+        "--browser",
+        action="store",
         help="Browser to run tests on (chrome, firefox, edge, etc.)",
         default="chrome",
     )
@@ -86,25 +87,47 @@ def main():
     print(f"Suites to execute: {suites}")
     print(f"Extra pytest args: {pytest_args}")
 
-    pytest_options = prepare_pytest_cli_options(suites=suites, pytest_args=pytest_args)
     #update args
+    os.environ["NROBO_BROWSER"] = browser
+
     if args.no_headless:
-        pytest_options.append("--no-headless")
-    if any("--html" in arg for arg in pytest_args):
-        pytest_options = standardize_html_reoprt_path(pytest_options)
+        os.environ["NROBO_HEADLESS"] = "False"
     else:
-        pytest_options.extend(["--html=reports/report.html", "--self-contained-html"])
+        os.environ["NROBO_HEADLESS"] = "True"
+
+    # if not any("-n" in arg for arg in pytest_args):
+    #     pytest_args.extend(["-n",  "4"])
+
+    if any("--html" in arg for arg in pytest_args):
+        pytest_args = standardize_html_reoprt_path(pytest_args)
+    else:
+        pytest_args.extend(["--html=reports/report.html", "--self-contained-html"])
     allure_results_dir = "allure-results"
     allure_report_dir = "allure-reports"
+
     if any("--alluredir" in arg for arg in pytest_args):
-        pytest_options = standardize_allure_reoprt_path(pytest_options)
+        pytest_args = standardize_allure_reoprt_path(pytest_args)
     else:
-        pytest_options.extend([f"--alluredir={allure_results_dir}"])
-    pytest_options.extend([f"--browser={browser}"])
+        pytest_args.extend([f"--alluredir={allure_results_dir}"])
+
+    pytest_options = prepare_pytest_cli_options(suites=suites, pytest_args=pytest_args)
+    print(pytest_options)
+
 
     # Uncomment to actually run
-    plugin = nRoboWebDriverPlugin()
-    pytest.main(args=pytest_options, plugins=[plugin])
+    # No need to pass plugin manually to pytest.main
+    # As it was already loaded per the lines following in the pyproject.toml
+    # This is modern (PEP 621) way of loading plugins
+    # -----------------------------------------------------------------------
+    #   [project.entry-points.pytest11]
+    #   allure_pytest = "allure_pytest.plugin"
+    #   xdist = "xdist.plugin"
+    #   nrobo = "nrobo.plugin"
+    # -----------------------------------------------------------------------
+    # instead of the this below:
+    #   plugin = nRoboWebDriverPlugin()
+    #   pytest.main(args=pytest_options, plugins=[plugin])
+    pytest.main(args=pytest_options)
 
     print("\n✅ All suites executed successfully.")
 

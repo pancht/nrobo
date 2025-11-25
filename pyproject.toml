@@ -26,3 +26,6 @@ nrobo = "nrobo.cli:main"
 
 [tool.setuptools.package-data]
 "nrobo" = ["templates/*"]
+
+[project.entry-points.pytest11]
+nrobo = "nrobo.plugin"
