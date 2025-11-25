@@ -8,6 +8,10 @@ from .drivers.driver_factory import get_driver
 from nrobo.selenium_wrappers.nrobo_selenium_wrapper import NRoboSeleniumWrapperClass
 from _pytest.fixtures import FixtureRequest
 from colorlog import ColoredFormatter
+from _pytest.nodes import Item
+
+from .helpers._pytest import extract_test_name
+
 
 class nRoboWebDriverPlugin:
     def __init__(self):
@@ -63,6 +67,7 @@ class nRoboWebDriverPlugin:
 
             logger.addHandler(ch)
             logger.addHandler(fh)
+            logger.info(f"nrobo.{test_name}")
 
         return logger
 
@@ -83,16 +88,20 @@ class nRoboWebDriverPlugin:
 
         self.driver_instance.quit()
 
-        def pytest_runtest_setup( item):
-            item.start_time = time.time()
 
-        def pytest_runtest_makereport(item, call):
-            outcome = yield
-            report = outcome.get_result()
+    def pytest_runtest_setup(self, item):
+        item.start_time = time.time()
 
-            if call.when == "call":
-                end_time = time.time()
-                duration = end_time - getattr(item, "start_time", end_time)
-                logger = logging.getLogger(f"nrobo.{item.name}")
-                logger.info(f"Test Status: {report.outcome.upper()}")
-                logger.info(f"Duration: {duration:.2f} seconds")
+    @pytest.hookimpl(hookwrapper=True)
+    def pytest_runtest_makereport(self, item, call):
+        outcome = yield
+        report = outcome.get_result()
+
+        if call.when == "call":
+            end_time = time.time()
+            duration = end_time - getattr(item, "start_time", end_time)
+
+            test_name = extract_test_name(item)
+            logger = logging.getLogger(f"nrobo.{test_name}")
+            logger.info(f"Test Status: {report.outcome.upper()}")
+            logger.info(f"Duration: {duration:.2f} seconds")
