@@ -5,4 +5,4 @@
 - ✅ `--no-headless`: headless test
 - 🔴  xdist support
 
-## 🔴Selenium webdriver wrapper apis
+## ✅ Selenium webdriver wrapper apis

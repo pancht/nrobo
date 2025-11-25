@@ -78,7 +78,7 @@ def main():
             print("No suite specified and no suite files found. Running all tests...")
             suites = [None]
 
-    print(f"Starting nRoBo test execution on browser: {browser} ...")
+    print(f"Starting nRoBo test execution on browser: {browser} {"" if args.no_headless else "in headless mode"}...")
     print(f"Suites to execute: {suites}")
     print(f"Extra pytest args: {pytest_args}")
 
@@ -86,6 +86,8 @@ def main():
     #update args
     if args.no_headless:
         pytest_options.append("--no-headless")
+    if "--html" not in pytest_args:
+        pytest_options.extend(["--html=reports/report.html", "--self-contained-html"])
     pytest_options.extend([f"--browser={browser}"])
 
     # Uncomment to actually run
