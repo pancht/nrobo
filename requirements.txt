@@ -5,6 +5,7 @@ build==1.3.0
 certifi==2025.11.12
 charset-normalizer==3.4.4
 click==8.3.1
+colorlog==6.10.1
 dill==0.4.0
 docutils==0.22.3
 h11==0.16.0
@@ -21,7 +22,7 @@ mccabe==0.7.0
 mdurl==0.1.2
 more-itertools==10.8.0
 nh3==0.3.2
--e git+ssh://git@github.com/pancht/nrobo.git@f6752037e311fba335dc32c6d6c8b61f5c7f0116#egg=nrobo
+-e git+ssh://git@github.com/pancht/nrobo.git@f029e2ed75981b97a4f24d5da75e66bc8cded955#egg=nrobo
 outcome==1.3.0.post0
 packaging==25.0
 platformdirs==4.5.0

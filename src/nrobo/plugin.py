@@ -6,7 +6,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from .drivers.driver_factory import get_driver
 from nrobo.selenium_wrappers.nrobo_selenium_wrapper import NRoboSeleniumWrapperClass
 from _pytest.fixtures import FixtureRequest
-
+from colorlog import ColoredFormatter
 
 class nRoboWebDriverPlugin:
     def __init__(self):
@@ -39,7 +39,19 @@ class nRoboWebDriverPlugin:
             # Console Handler
             ch = logging.StreamHandler()
             ch.setLevel(logging.DEBUG)
-            ch.setFormatter(logging.Formatter("[%(levelname)s] %(message)s"))
+
+            # color formatter
+            formatter = ColoredFormatter(
+                "%(log_color)s[%(levelname)s]%(reset)s %(message)s",
+                log_colors={
+                    'DEBUG': 'cyan',
+                    'INFO': 'green',
+                    'WARNING': 'yellow',
+                    'ERROR': 'red',
+                    'CRITICAL': 'red,bg_white'
+                }
+            )
+            ch.setFormatter(formatter)
 
             # File Handler
             fh = logging.FileHandler(os.path.join(log_dir, f"{test_name}.log"))
