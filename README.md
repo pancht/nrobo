@@ -108,13 +108,13 @@ pip install -e .
 🧪 Quick Start
 
 ```bash
-nrobo run --suite suites/login_test.yaml
+nrobo --suite suites/login_test.yaml
 ```
 
 **Or** run via `pytest` if testing a local implementation:
 
 ```bash
-pytest --nrobo-suite=suites/login_test.yaml
+nrobo -suite=suites/login_test.yaml
 ```
 
 🧱 Directory Structure
