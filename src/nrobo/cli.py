@@ -118,12 +118,15 @@ def main():
     # No need to pass plugin manually to pytest.main
     # As it was already loaded per the lines following in the pyproject.toml
     # This is modern (PEP 621) way of loading plugins
-    # [project.entry-points.pytest11]
-    # allure_pytest = "allure_pytest.plugin"
-    # xdist = "xdist.plugin"
-    # nrobo = "nrobo.plugin"
-    # plugin = nRoboWebDriverPlugin()
-    # pytest.main(args=pytest_options, plugins=[plugin])
+    # -----------------------------------------------------------------------
+    #   [project.entry-points.pytest11]
+    #   allure_pytest = "allure_pytest.plugin"
+    #   xdist = "xdist.plugin"
+    #   nrobo = "nrobo.plugin"
+    # -----------------------------------------------------------------------
+    # instead of the this below:
+    #   plugin = nRoboWebDriverPlugin()
+    #   pytest.main(args=pytest_options, plugins=[plugin])
     pytest.main(args=pytest_options)
 
     print("\n✅ All suites executed successfully.")
