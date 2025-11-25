@@ -206,7 +206,9 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-#project files
+#project files and directories
 .idea
 reports
 screenshots
+allure-reports
+allure-results

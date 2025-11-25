@@ -1,9 +1,11 @@
 import argparse
+import os
+import subprocess
 import sys
 import pytest
 from pathlib import Path
 
-from nrobo.helpers.arg_parsing import standardize_html_reoprt_path
+from nrobo.helpers.arg_parsing import standardize_html_reoprt_path, standardize_allure_reoprt_path
 from .runner import prepare_pytest_cli_options
 from .utils.utils import initialize_project
 from .plugin import nRoboWebDriverPlugin
@@ -92,15 +94,26 @@ def main():
         pytest_options = standardize_html_reoprt_path(pytest_options)
     else:
         pytest_options.extend(["--html=reports/report.html", "--self-contained-html"])
+    allure_results_dir = "allure-results"
+    allure_report_dir = "allure-reports"
+    if any("--alluredir" in arg for arg in pytest_args):
+        pytest_options = standardize_allure_reoprt_path(pytest_options)
+    else:
+        pytest_options.extend([f"--alluredir={allure_results_dir}"])
     pytest_options.extend([f"--browser={browser}"])
 
     # Uncomment to actually run
     plugin = nRoboWebDriverPlugin()
-    exit_code = pytest.main(args=pytest_options, plugins=[plugin])
-    if exit_code != 0:
-        sys.exit(exit_code)
+    pytest.main(args=pytest_options, plugins=[plugin])
 
     print("\n✅ All suites executed successfully.")
+
+    if any("--alluredir" in arg for arg in pytest_options):
+        # 2️⃣ Generate allure report (HTML)
+        os.makedirs(allure_report_dir, exist_ok=True)
+        subprocess.run(["allure", "generate", allure_results_dir, "-o", allure_report_dir, "--clean"], check=True)
+
+        print(f"✅ Allure report ready: file://{os.path.abspath(allure_report_dir)}/index.html")
 
 
 if __name__ == "__main__":
