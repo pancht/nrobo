@@ -21,20 +21,6 @@ class nRoboWebDriverPlugin:
         self.driver_instance = None
 
     def pytest_addoption(self, parser):
-        # parser.addoption(
-        #     "--browser",
-        #     action="store",
-        #     default="chrome",
-        #     help="Browser to run tests: chrome, firefox, edge, safari"
-        # )
-        # parser.addoption(
-        #     "--no-headless",
-        #     action="store_true",
-        #     default=False,
-        #     help="Run browser in headed mode (default is headless)"
-        # )
-        # parser.addoption("--alluredir", action="store", default="allure-results",
-        #                  help="Directory for Allure test results")
         pass
 
     def _get_logger(self, request: FixtureRequest) -> logging.Logger:
