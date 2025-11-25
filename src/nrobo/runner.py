@@ -50,19 +50,3 @@ def prepare_pytest_cli_options(
 
     return pytest_options
 
-
-def run_with_allure():
-    results_dir = os.path.join(os.getcwd(), "allure-results")
-    report_dir = os.path.join(os.getcwd(), "allure-report")
-
-    os.makedirs(results_dir, exist_ok=True)
-    os.makedirs(report_dir, exist_ok=True)
-
-    # 1️⃣ Run tests and collect allure results
-    pytest_args = ["-v", "--alluredir", results_dir]
-    pytest.main(pytest_args)
-
-    # 2️⃣ Generate allure report (HTML)
-    subprocess.run(["allure", "generate", results_dir, "-o", report_dir, "--clean"], check=True)
-
-    print(f"✅ Allure report ready: file://{os.path.abspath(report_dir)}/index.html")
