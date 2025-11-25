@@ -29,3 +29,6 @@ nrobo = "nrobo.cli:main"
 
 [project.entry-points.pytest11]
 nrobo = "nrobo.plugin"
+
+[tool.bandit]
+skips = ["B607"]
