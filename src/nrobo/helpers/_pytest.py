@@ -1,5 +1,5 @@
-import re
 from _pytest.nodes import Item
+
 
 def extract_test_name(item: Item) -> str:
     """

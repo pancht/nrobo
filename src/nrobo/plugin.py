@@ -13,7 +13,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from nrobo.selenium_wrappers.nrobo_selenium_wrapper import NRoboSeleniumWrapperClass
 from .drivers.driver_factory import get_driver
 from .helpers._pytest import extract_test_name
-from .helpers._pytest_xdist import is_running_with_xdist
+from .helpers._pytest_xdist import is_running_with_xdist, grab_worker_id
 
 
 class nRoboWebDriverPlugin:
@@ -21,20 +21,21 @@ class nRoboWebDriverPlugin:
         self.driver_instance = None
 
     def pytest_addoption(self, parser):
-        parser.addoption(
-            "--browser",
-            action="store",
-            default="chrome",
-            help="Browser to run tests: chrome, firefox, edge, safari"
-        )
-        parser.addoption(
-            "--no-headless",
-            action="store_true",
-            default=False,
-            help="Run browser in headed mode (default is headless)"
-        )
+        # parser.addoption(
+        #     "--browser",
+        #     action="store",
+        #     default="chrome",
+        #     help="Browser to run tests: chrome, firefox, edge, safari"
+        # )
+        # parser.addoption(
+        #     "--no-headless",
+        #     action="store_true",
+        #     default=False,
+        #     help="Run browser in headed mode (default is headless)"
+        # )
         # parser.addoption("--alluredir", action="store", default="allure-results",
         #                  help="Directory for Allure test results")
+        pass
 
     def _get_logger(self, request: FixtureRequest) -> logging.Logger:
         """
@@ -45,27 +46,19 @@ class nRoboWebDriverPlugin:
         class_name = node.cls.__name__ if node.cls else None
         node_name = node.name
         test_name = f"{class_name}_{node_name}" if node.cls else node_name
-        print(f"$$$$$$|{f"{class_name}.{test_name}" if node.cls else test_name}")
 
         # ✅ detect xdist worker ID (gw0, gw1, etc.) — default to 'master' if local
-        worker_id = os.environ.get("PYTEST_XDIST_WORKER", "master")
+        worker_id = grab_worker_id()
 
         # ✅ make directory structure logs/<worker_id>/
         log_dir = os.path.join("logs", worker_id) if is_running_with_xdist() else os.path.join("logs")
         os.makedirs(log_dir, exist_ok=True)
 
-        if is_running_with_xdist():
-            # ✅ unique log file per test
-            log_path = os.path.join(log_dir, f"nrobo_{test_name}.log")
-        else:
-            log_path = os.path.join(log_dir, f"nrobo_{test_name}.log")
+        unique_logger_name = f"nrobo_{worker_id}_{test_name}.log" if is_running_with_xdist() else f"nrobo_{test_name}.log"
+        log_path = os.path.join(log_dir, unique_logger_name)
 
         # Initialize logger
-        if is_running_with_xdist():
-            logger = logging.getLogger(f"nrobo_{worker_id}_{test_name}")
-        else:
-            logger = logging.getLogger(f"nrobo_{test_name}")
-            print(f"======|nrobo_{test_name}")
+        logger = logging.getLogger(f"nrobo_{test_name}")
         logger.setLevel(logging.DEBUG)
 
         # Avoid duplicate handlers (important in pytest runs)
@@ -108,11 +101,11 @@ class nRoboWebDriverPlugin:
     def logger(self, request) -> logging.Logger:
         return self._get_logger(request)
 
-    @pytest.fixture(scope="function", autouse=False)
+    @pytest.fixture(scope="function")
     def driver(self, request, logger):
-        browser = request.config.getoption("--browser")
-        headless = not request.config.getoption("--no-headless")
-        self.driver_instance: WebDriver = get_driver(browser, headless=headless)
+        env_browser = os.getenv("NROBO_BROWSER").lower()
+        env_headless = os.getenv("NROBO_HEADLESS").lower().strip() == "true"
+        self.driver_instance: WebDriver = get_driver(env_browser, headless=env_headless)
 
         # Inject logger
         wrapper: NRoboSeleniumWrapperClass = NRoboSeleniumWrapperClass(self.driver_instance, logger=logger)
@@ -138,8 +131,8 @@ class nRoboWebDriverPlugin:
             duration = end_time - getattr(item, "start_time", end_time)
 
             test_name = extract_test_name(item)
-            print(f"#######|nrobo_{test_name}.log")
-            logger = logging.getLogger(f"nrobo_{test_name}")
+            final_test_name = f"nrobo_{grab_worker_id()}_{test_name}" if is_running_with_xdist() else f"nrobo_{test_name}"
+            logger = logging.getLogger(final_test_name)
             logger.info(f"Test Status: {report.outcome.upper()}")
             logger.info(f"Duration: {duration:.2f} seconds")
 
@@ -149,7 +142,7 @@ class nRoboWebDriverPlugin:
         if wrapper is not None and report.outcome == "failed":
             screenshots_dir = os.path.join("screenshots")
             os.makedirs(screenshots_dir, exist_ok=True)
-            screenshot_file = os.path.join(screenshots_dir, f"{test_name}.png")
+            screenshot_file = os.path.join(screenshots_dir, f"{final_test_name}.png")
             try:
                 screenshot_bytes = wrapper.driver.get_screenshot_as_base64()
                 screenshot_as_png = wrapper.driver.get_screenshot_as_png()
@@ -175,3 +168,11 @@ class nRoboWebDriverPlugin:
         os.makedirs(config.option.alluredir, exist_ok=True)
 
 
+def pytest_configure(config):
+    """
+    Called automatically by pytest in every process (master + workers).
+    We register an instance of nRoboWebDriverPlugin so its fixtures
+    and hooks become globally available.
+    """
+    plugin_instance = nRoboWebDriverPlugin()
+    config.pluginmanager.register(plugin_instance, name="nrobo_webdriver_plugin")
