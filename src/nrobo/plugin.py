@@ -65,13 +65,16 @@ class nRoboWebDriverPlugin:
 
         return logger
 
+    @pytest.fixture(scope="function")
+    def logger(self, request) -> logging.Logger:
+        return self._get_logger(request)
+
     @pytest.fixture(scope="function", autouse=False)
-    def driver(self, request):
+    def driver(self, request, logger):
         browser = request.config.getoption("--browser")
         headless = not request.config.getoption("--no-headless")
         self.driver_instance: WebDriver = get_driver(browser, headless=headless)
 
-        logger = self._get_logger(request)
         # Inject logger
         wrapper: NRoboSeleniumWrapperClass = NRoboSeleniumWrapperClass(self.driver_instance, logger=logger)
 
