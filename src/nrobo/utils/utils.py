@@ -24,10 +24,10 @@ def initialize_project():
         (suites_dir / "sample_suite.yml").write_bytes(src.read())
 
     with res.files("nrobo.templates").joinpath("test_sample.py").open("rb") as src:
-        (tests_dir / "test_sample.py").write_bytes(src.read())
+        (ui_dir / "test_sample.py").write_bytes(src.read())
 
     with res.files("nrobo.templates").joinpath("test_sample_another.py").open("rb") as src:
-        (tests_dir / "test_sample_another.py").write_bytes(src.read())
+        (ui_dir / "test_sample_another.py").write_bytes(src.read())
 
     #
 
