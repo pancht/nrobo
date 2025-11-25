@@ -15,6 +15,7 @@ def initialize_project():
     reports_dir = base_dir / "reports"
     allure_reports_dir = base_dir / "allure-reports"
     allure_results_dir = base_dir / "allure-results"
+    logs_dir = base_dir / "logs"
 
     suites_dir.mkdir(exist_ok=True)
     tests_dir.mkdir(exist_ok=True)
@@ -24,6 +25,7 @@ def initialize_project():
     reports_dir.mkdir(exist_ok=True)
     allure_reports_dir.mkdir(exist_ok=True)
     allure_results_dir.mkdir(exist_ok=True)
+    logs_dir.mkdir(exist_ok=True)
 
     # Copy template files from package templates
     with res.files("nrobo.templates").joinpath("sample_suite.yml").open("rb") as src:
