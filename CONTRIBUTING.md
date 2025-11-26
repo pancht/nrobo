@@ -1,5 +1,5 @@
 
-# 🤖 nrobo – NextGen Test Automation Framework
+# 🤖 nRobo – NextGen Test Automation Framework
 
 **nrobo** is a modular, YAML-driven test automation framework powered by PyTest, designed for web automation teams that value simplicity, flexibility, and CI/CD readiness.
 

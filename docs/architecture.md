@@ -1,4 +1,4 @@
-# nrobo — Architecture Overview
+# nRobo — Architecture Overview
 
 ## High‑Level Architecture
 
