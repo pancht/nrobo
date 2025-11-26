@@ -46,3 +46,32 @@ def get_logger(
     logger.addHandler(fh)
 
     return logger
+
+
+def set_logger_level(
+    logger: logging.Logger, stream_level: int = None, file_level: int = None
+):  # noqa: E501
+    """
+    Dynamically update the log level of the given logger's handlers.
+
+    Args:
+        logger: The logger object (e.g. from get_logger()).
+        stream_level: Optional new level for stream handler.
+        file_level: Optional new level for file handler.
+    """
+    for handler in logger.handlers:
+        # Identify handler type
+        if isinstance(handler, logging.StreamHandler) and not isinstance(
+            handler, logging.FileHandler
+        ):
+            if stream_level:
+                handler.setLevel(stream_level)
+        elif isinstance(handler, logging.FileHandler):
+            if file_level:
+                handler.setLevel(file_level)
+
+    # Optionally adjust the logger's own level as well
+    highest_level = min(
+        h.level for h in logger.handlers
+    )  # ensures logger accepts lower levels # noqa: E501
+    logger.setLevel(highest_level)
