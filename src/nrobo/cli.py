@@ -45,10 +45,7 @@ def main():
     # update args
     os.environ["NROBO_BROWSER"] = browser
 
-    if args.no_headless:
-        os.environ["NROBO_HEADLESS"] = "False"
-    else:
-        os.environ["NROBO_HEADLESS"] = "True"
+    os.environ["NROBO_HEADLESS"] = str(not args.no_headless)
 
     # if not any("-n" in arg for arg in pytest_args):
     #     pytest_args.extend(["-n",  "4"])
