@@ -3,11 +3,6 @@
 ## High‑Level Architecture
 
 ```mermaid
-# nrobo — Software Architecture Overview
-
-## 🧱 Layered Architecture
-
-```mermaid
 flowchart TD
     %% Layer: Input / Config
     subgraph Input_Layer["🟦 Input / Config"]
@@ -54,5 +49,4 @@ flowchart TD
     REPORT --> ALLURE
 
     BUILD --> PYPI
-
 ```
