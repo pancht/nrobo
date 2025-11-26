@@ -3,18 +3,11 @@
 
 import logging
 import typing
+from abc import ABC
 
-from appium.webdriver.common.appiumby import AppiumBy
-from appium.webdriver.webdriver import (
-    WebDriver as AppiumWebDriver,  # pylint: disable=C0412
-)
 from selenium.common import TimeoutException
 from selenium.common.exceptions import UnexpectedAlertPresentException
-from selenium.webdriver.common.actions.key_input import KeyInput
-from selenium.webdriver.common.actions.pointer_input import PointerInput
-from selenium.webdriver.common.actions.wheel_input import WheelInput
 from selenium.webdriver.common.alert import Alert
-from selenium.webdriver.common.by import By
 from selenium.webdriver.common.print_page_options import (  # pylint: disable=C0412, C0412 # noqa: E501
     PrintOptions,
 )
@@ -25,22 +18,18 @@ from selenium.webdriver.common.virtual_authenticator import (
     required_virtual_authenticator,
 )
 from selenium.webdriver.remote.file_detector import FileDetector
-from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 
+from nrobo.nrobo_types import AnyBy, AnyDriver
 from nrobo.utils.driver_utils import is_mobile_session
-
-AnyDevice = typing.Union[PointerInput, KeyInput, WheelInput]
-AnyBy = typing.Union[By, AppiumBy]
-AnyDriver = typing.Union[None, WebDriver, AppiumWebDriver]
 
 PAGE_LOAD_TIMEOUT = 30
 ELE_WAIT_TIMEOUT = 10
 
 
-class SeleniumWrapperBase:  # pylint: disable=R0904
+class SeleniumWrapperBase(ABC):  # pylint: disable=R0904
 
     def __init__(
         self, driver: AnyDriver, logger: logging.Logger

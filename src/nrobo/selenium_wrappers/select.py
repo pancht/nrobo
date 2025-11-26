@@ -1,25 +1,14 @@
 import logging
-from typing import Dict, Optional, Union
+from abc import ABC
+from typing import Dict, Optional
 
-from appium.webdriver.common.appiumby import AppiumBy
-from appium.webdriver.webdriver import (
-    WebDriver as AppiumWebDriver,  # pylint: disable=C0412
-)
-from selenium.webdriver.common.actions.key_input import KeyInput
-from selenium.webdriver.common.actions.pointer_input import PointerInput
-from selenium.webdriver.common.actions.wheel_input import WheelInput
-from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support.select import Select
 
+from nrobo.nrobo_types import AnyBy, AnyDevice, AnyDriver
 from nrobo.selenium_wrappers.desired_cap import DesiredCapabilitiesWrapper
 
-AnyDevice = Union[PointerInput, KeyInput, WheelInput]
-AnyBy = Union[By, AppiumBy]
-AnyDriver = Union[None, WebDriver, AppiumWebDriver]
 
-
-class SeleniumSelectWrapper(DesiredCapabilitiesWrapper):  # pylint: disable=R0901 # noqa: E501
+class SeleniumSelectWrapper(DesiredCapabilitiesWrapper, ABC):  # pylint: disable=R0901 # noqa: E501
     """Select nrobo."""
 
     def __init__(
