@@ -12,7 +12,7 @@ from nrobo.nrobo_types import AnyDevice, AnyDriver
 from nrobo.selenium_wrappers.nrobo_custom import NRoBoCustomMethods
 
 
-
+class NRoboSeleniumWrapperClass(NRoBoCustomMethods):
     def __init__(
         self,
         driver: AnyDriver,
