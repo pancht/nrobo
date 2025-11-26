@@ -19,7 +19,7 @@ from .utils.utils import initialize_project
 
 def main():
     parser = argparse.ArgumentParser(
-        description="nRoBo - Smart Test Runner built on Pytest",
+        description=f"{settings.APP} - Smart Test Runner built on Pytest",
         add_help=True,
     )
 
@@ -45,17 +45,17 @@ def main():
     parser.add_argument(
         "--init",
         action="store_true",
-        help="Initialize a new nRoBo project with sample suite and tests.",
+        help=f"Initialize a new {settings.APP} project with sample suite and tests.",  # noqa: E501
     )
 
     if "--help" in sys.argv:
-        print("\n📜 nRobo Help Menu:")
+        print(f"\n📜 {settings.APP} Help Menu:")
         parser.print_help()
 
         try:
             user_input = (
                 input(
-                    "\n❓ nRobo is backed by PyTest. Show PyTest options too? (y/n): "  # noqa: E501
+                    f"\n❓ {settings.APP} is backed by PyTest. Show PyTest options too? (y/n): "  # noqa: E501
                 )  # noqa: E501
                 .strip()
                 .lower()
@@ -94,7 +94,7 @@ def main():
             suites = [None]
 
     print(
-        f"Starting nRoBo test execution on browser: {browser} {"" if args.no_headless else "in headless mode"}..."  # noqa: E501
+        f"Starting {settings.APP} test execution on browser: {browser} {"" if args.no_headless else "in headless mode"}..."  # noqa: E501
     )
     print(f"Suites to execute: {suites}")
     print(f"Extra pytest args: {pytest_args}")

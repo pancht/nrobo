@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 # Core Framework Settings
+APP = "nRobo"
 NROBO_VERSION = "0.1.0"
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 

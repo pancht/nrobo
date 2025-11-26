@@ -49,14 +49,14 @@ class nRoboWebDriverPlugin:
         os.makedirs(log_dir, exist_ok=True)
 
         unique_logger_name = (
-            f"nrobo_{worker_id}_{test_name}.log"
+            f"{settings.APP}_{worker_id}_{test_name}.log"
             if is_running_with_xdist()
-            else f"nrobo_{test_name}.log"
+            else f"{settings.APP}_{test_name}.log"
         )
         log_path = os.path.join(log_dir, unique_logger_name)
 
         # Initialize logger
-        logger = logging.getLogger(f"nrobo_{test_name}")
+        logger = logging.getLogger(f"{settings.APP}_{test_name}")
         logger.setLevel(logging.DEBUG)
 
         # Avoid duplicate handlers (important in pytest runs)
@@ -130,9 +130,9 @@ class nRoboWebDriverPlugin:
 
             test_name = extract_test_name(item)
             final_test_name = (
-                f"nrobo_{grab_worker_id()}_{test_name}"
+                f"{settings.APP}_{grab_worker_id()}_{test_name}"
                 if is_running_with_xdist()
-                else f"nrobo_{test_name}"
+                else f"{settings.APP}_{test_name}"
             )
             logger = logging.getLogger(final_test_name)
             logger.info(f"Test Status: {report.outcome.upper()}")
@@ -169,7 +169,7 @@ class nRoboWebDriverPlugin:
                 )
                 report.extras = extras  # + [extras.image(screenshot_file)]
             except Exception as e:
-                logging.getLogger(f"nrobo.{test_name}").warning(
+                logging.getLogger(f"{settings.APP}.{test_name}").warning(
                     f"Could not save screenshot: {e}"
                 )  # noqa: E501
 
