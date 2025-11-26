@@ -107,11 +107,11 @@ def main():
             f"✅ Allure report ready: file://{os.path.abspath(settings.ALLURE_REPORT_DIR)}/index.html"  # noqa: E501
         )  # noqa: E501
     except subprocess.CalledProcessError as e:
-        logger.info("❌ Failed to generate Allure report.")
-        logger.info("Command:", e.cmd)
-        logger.info("Exit Code:", e.returncode)
-        logger.info("Output:", e.output)
-        logger.info("Error Output:", e.stderr)
+        logger.error("❌ Failed to generate Allure report.")
+        logger.error("Command:", e.cmd)
+        logger.error("Exit Code:", e.returncode)
+        logger.error("Output:", e.output)
+        logger.error("Error Output:", e.stderr)
 
 
 if __name__ == "__main__":
