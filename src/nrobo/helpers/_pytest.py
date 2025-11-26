@@ -24,7 +24,7 @@ def extract_test_name(item: Item) -> str:
 
 
 def should_proceed(exit_code) -> bool:
-    """Return True if further steps (e.g. report generation) should continue."""  # noqa: E501
+    """Return True if further steps (e.g. report generation) should continue post pytest execution."""  # noqa: E501
 
     if isinstance(exit_code, int):
         try:
