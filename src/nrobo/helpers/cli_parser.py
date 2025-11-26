@@ -1,10 +1,11 @@
 import argparse
+import os
 import sys
 
 import pytest
 
 from nrobo.core import settings
-from nrobo.helpers.logging import get_logger
+from nrobo.helpers.logging import get_logger, set_logger_level
 from nrobo.utils.utils import initialize_project
 
 logger = get_logger(name=settings.APP)
@@ -14,6 +15,13 @@ def get_nrobo_arg_parser():
     parser = argparse.ArgumentParser(
         description=f"{settings.APP} - Smart Test Runner built on Pytest",
         add_help=True,
+    )
+
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        default=False,
+        help="Enable debug mode (prints verbose logs and sets NROBO_DEBUG=True)",  # noqa: E501
     )
 
     # known args
@@ -72,5 +80,11 @@ def get_nrobo_arg_parser():
     # Handle test execution
     suites = args.suite
     browser = args.browser
+
+    if args.debug:
+        os.environ["NROBO_DEBUG"] = "True"
+        settings.DEBUG = True
+        set_logger_level(logger=logger, stream_level=10, file_level=10)
+
     # e.g., ['-v', '-s', '--maxfail=1']
     return suites, browser, args, unknown_args

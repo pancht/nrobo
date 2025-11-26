@@ -6,6 +6,8 @@ APP = "nRobo"
 NROBO_VERSION = "0.1.0"
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
+# APP Mode
+DEBUG = os.getenv("NROBO_DEBUG", "False").lower() in ("true", "1", "yes")  # noqa: E501
 # Test Execution
 DEFAULT_BROWSER = "chrome"
 NROBO_BROWSER = os.getenv("NROBO_BROWSER", "chrome")
