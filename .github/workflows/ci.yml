@@ -20,8 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          brew install allure
+          sudo dpkg -i allure_2.29.0-1_all.deb
           allure --version
           pip install -r requirements.txt
           pip install -e .
