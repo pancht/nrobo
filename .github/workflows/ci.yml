@@ -20,7 +20,16 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo dpkg -i allure_2.29.0-1_all.deb
+          sudo apt update
+          sudo apt install -y openjdk-17-jre
+          sudo apt install -y gnupg2 wget
+          wget -qO - https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.25.0/allure-commandline-2.25.0.zip -O allure.zip
+          sudo apt install unzip
+          unzip allure.zip -d allure
+          sudo mv allure/allure-* /opt/allure
+
+          echo 'export PATH=$PATH:/opt/allure/bin' >> ~/.bashrc
+          source ~/.bashrc
           allure --version
           pip install -r requirements.txt
           pip install -e .
