@@ -51,10 +51,10 @@ You can then run the existing test suite with:
   nrobo
 
   # Execute a suite
-  nrobo --suite sample_suite.yml
+  nrobo --suite google_test_suite.yml
 
   # Execute multiple suites
-  nrobo --suite sample_suite.yml sample_suite_another.yml
+  nrobo --suite google_test_suite.yml sample_suite_another.yml
 
   # Execute tests in parallel
   nrobo -n 2 # two tests run in concurrency

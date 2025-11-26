@@ -35,8 +35,10 @@ def initialize_project():
     test_data_dir.mkdir(exist_ok=True)
 
     # Copy template files from package templates
-    with res.files("nrobo.templates").joinpath("sample_suite.yml").open("rb") as src:  # noqa: E501
-        (suites_dir / "sample_suite.yml").write_bytes(src.read())
+    with res.files("nrobo.templates").joinpath("google_test_suite.yml").open(
+        "rb"
+    ) as src:  # noqa: E501
+        (suites_dir / "google_test_suite.yml").write_bytes(src.read())
 
     with res.files("nrobo.templates").joinpath("test_sample.py").open("rb") as src:  # noqa: E501
         (ui_dir / "test_sample.py").write_bytes(src.read())
@@ -51,5 +53,5 @@ def initialize_project():
     console.print(f"✨ [bold green]{settings.APP} project initialized![/]")
     console.print("📂 Created: suites/, tests/")
     console.print(
-        "🧩 Added: sample_suite.yml + test_sample.py + test_sample_another.py"
+        "🧩 Added: google_test_suite.yml + test_sample.py + test_sample_another.py"  # noqa: E501
     )  # noqa: E501
