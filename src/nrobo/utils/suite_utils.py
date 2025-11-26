@@ -1,9 +1,11 @@
+import sys
 from pathlib import Path
 
 from nrobo.core import settings
 from nrobo.helpers.logging import get_logger
 from nrobo.helpers.validations import validate_suite_paths
 from nrobo.utils.common_utils import deduplicate_preserve_order
+from nrobo.utils.tests_discovery_utils import has_pytest_tests
 
 logger = get_logger(name=settings.APP)
 
@@ -28,10 +30,11 @@ def detect_or_validate_suites(
                 None  # meaning: run all detected suites (logic continues elsewhere) # noqa: E501
             )
         else:
-            logger.info(
-                "No suite specified and no suite files found. Running all tests..."  # noqa: E501
-            )  # noqa: E501
-            suites = [None]
+            logger.warning("⚠️ No suite specified and no suite files found!")
+            if not has_pytest_tests(settings.TESTS_DIR):
+                logger.critical("❌ No pytest tests found in the tests/ directory.")  # noqa: E501
+                sys.exit(1)
+            suites = None
     else:
         validate_suite_paths(suites=suites)
 

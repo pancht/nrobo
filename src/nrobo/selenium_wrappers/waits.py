@@ -1,15 +1,13 @@
-from selenium.common import TimeoutException
-
-from nrobo.selenium_wrappers.element import WebElementWrapper
 import logging
 import time
 import typing
 from typing import Optional
 
 from appium.webdriver.common.appiumby import AppiumBy
-from appium.webdriver.webdriver import (  # pylint: disable=C0412
-    WebDriver as AppiumWebDriver,
-)  # pylint: disable=C0412
+from appium.webdriver.webdriver import (
+    WebDriver as AppiumWebDriver,  # pylint: disable=C0412
+)
+from selenium.common import TimeoutException
 from selenium.webdriver.common.actions.key_input import KeyInput
 from selenium.webdriver.common.actions.pointer_input import PointerInput
 from selenium.webdriver.common.actions.wheel_input import WheelInput
@@ -20,11 +18,13 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 
 from nrobo.selenium_wrappers.base import ELE_WAIT_TIMEOUT, PAGE_LOAD_TIMEOUT
+from nrobo.selenium_wrappers.element import WebElementWrapper
 from nrobo.utils.driver_utils import is_mobile_session
 
 AnyDevice = typing.Union[PointerInput, KeyInput, WheelInput]
 AnyBy = typing.Union[By, AppiumBy]
 AnyDriver = typing.Union[None, WebDriver, AppiumWebDriver]
+
 
 class WaitsClassWrapper(WebElementWrapper):
     """
@@ -33,7 +33,7 @@ class WaitsClassWrapper(WebElementWrapper):
 
     def __init__(
         self, driver: AnyDriver, logger: logging.Logger
-    ):  # pylint: disable=W0246
+    ):  # pylint: disable=W0246; noqa: E501
         """
         Constructor - NroboSeleniumWrapper
 
@@ -56,7 +56,7 @@ class WaitsClassWrapper(WebElementWrapper):
 
             # Custom page load timeout
             WebDriverWait(self.driver, PAGE_LOAD_TIMEOUT).until(
-                lambda driver: driver.execute_script("return document.readyState")
+                lambda driver: driver.execute_script("return document.readyState")  # noqa: E501
                 == "complete"
             )
         except TimeoutException as te:
@@ -111,13 +111,13 @@ class WaitsClassWrapper(WebElementWrapper):
 
     def wait_for_element_to_be_present(
         self, by: AnyBy, value: Optional[str] = None, wait: int = 0
-    ):
+    ):  # noqa: E501
         """Wait for element to be visible"""
 
         if wait:
             try:
                 WebDriverWait(self.driver, wait).until(
-                    expected_conditions.presence_of_element_located([by, value])
+                    expected_conditions.presence_of_element_located([by, value])  # noqa: E501
                 )
                 return True
             except Exception:  # pylint: disable=W0718  # noqa: W0718
@@ -143,7 +143,7 @@ class WaitsClassWrapper(WebElementWrapper):
         if wait:
             try:
                 WebDriverWait(self.driver, wait).until(
-                    expected_conditions.invisibility_of_element_located([by, value])
+                    expected_conditions.invisibility_of_element_located([by, value])  # noqa: E501
                 )
             except Exception:  # pylint: disable=W0718
                 return False
@@ -153,7 +153,7 @@ class WaitsClassWrapper(WebElementWrapper):
 
         try:
             WebDriverWait(self.driver, ELE_WAIT_TIMEOUT).until(
-                expected_conditions.invisibility_of_element_located([by, value])
+                expected_conditions.invisibility_of_element_located([by, value])  # noqa: E501
             )
         except Exception:  # pylint: disable=W0718
             return False
@@ -163,7 +163,7 @@ class WaitsClassWrapper(WebElementWrapper):
 
     def wait_for_element_to_be_clickable(
         self, by: AnyBy = None, value: Optional[str] = None
-    ):
+    ):  # noqa: E501
         """
         wait till element is visible and clickable.
 
@@ -173,4 +173,3 @@ class WaitsClassWrapper(WebElementWrapper):
         :return:
         """
         self.element_to_be_clickable(by, value)
-

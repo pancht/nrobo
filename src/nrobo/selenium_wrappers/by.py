@@ -2,9 +2,9 @@ import logging
 import typing
 
 from appium.webdriver.common.appiumby import AppiumBy
-from appium.webdriver.webdriver import (  # pylint: disable=C0412
-    WebDriver as AppiumWebDriver,
-)  # pylint: disable=C0412
+from appium.webdriver.webdriver import (
+    WebDriver as AppiumWebDriver,  # pylint: disable=C0412
+)
 from selenium.webdriver.common.actions.key_input import KeyInput
 from selenium.webdriver.common.actions.pointer_input import PointerInput
 from selenium.webdriver.common.actions.wheel_input import WheelInput
@@ -16,6 +16,7 @@ from nrobo.selenium_wrappers.alerts import AlertWrapper
 AnyDevice = typing.Union[PointerInput, KeyInput, WheelInput]
 AnyBy = typing.Union[By, AppiumBy]
 AnyDriver = typing.Union[None, WebDriver, AppiumWebDriver]
+
 
 class ByWrapper(AlertWrapper):
     """

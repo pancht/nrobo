@@ -4,7 +4,9 @@ from nrobo.core import settings
 from nrobo.exceptions import SuiteNotFoundError
 
 
-def validate_suite_paths(suites: list[str] | str | None = None) -> None:
+def validate_suite_paths(
+    suites: list[str] | str | None = None,
+) -> None | SuiteNotFoundError:  # noqa: E501
     """
     Validate that all specified suite files exist in the configured SUITES_DIR.
     Raises SuiteNotFoundError if any file is missing.

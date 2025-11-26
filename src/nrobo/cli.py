@@ -22,12 +22,6 @@ def main():
 
     suites = detect_or_validate_suites(suites=suites)
 
-    logger.info(
-        f"Starting {settings.APP} test execution on browser: {browser} {"" if args.no_headless else "in headless mode"}..."  # noqa: E501
-    )
-    logger.info(f"Suites to execute: {suites}")
-    logger.debug(f"PyTest args: {pytest_args}")
-
     if args.cov:
         pytest_args.extend(
             [
@@ -40,6 +34,11 @@ def main():
 
     pytest_args = prepare_reporting_args(pytest_args=pytest_args)
 
+    msg = "" if args.no_headless else "in headless mode"
+    logger.info(f"Starting {settings.APP} test execution on browser: {browser} {msg}")  # noqa: E501
+    logger.info(f"Suites to execute: {suites}")
+    logger.debug(f"PyTest args: {pytest_args}")
+
     pytest_options = prepare_pytest_cli_options(
         suites=suites, pytest_args=pytest_args
     )  # noqa: E501
@@ -47,7 +46,7 @@ def main():
 
     exit_code = pytest.main(args=pytest_options)
 
-    logger.info("\n✅ All suites executed successfully.")
+    logger.info("✅ All suites executed successfully.")
 
     if not should_proceed(exit_code) or no_execution_key_found(pytest_options):
         # no need to proceed further...
@@ -56,9 +55,8 @@ def main():
     generate_allure_report()
 
     if args.cov:
-        logger.info(
-            f"📈Open coverage report → file://{os.path.abspath("htmlcov/index.html")}"  # noqa: E501
-        )  # noqa: E501
+        coverage_report_path = os.path.abspath("htmlcov/index.html")
+        logger.info(f"📈Open coverage report → file://{coverage_report_path}")
 
 
 if __name__ == "__main__":

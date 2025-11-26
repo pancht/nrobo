@@ -8,7 +8,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [3.8, 3.9, 3.10, 3.11]
+        python-version: ["3.10", "3.11"]
 
     steps:
       - uses: actions/checkout@v4
@@ -20,13 +20,27 @@ jobs:
 
       - name: Install dependencies
         run: |
+          sudo apt update
+          sudo apt install -y openjdk-17-jre
+          sudo apt install -y gnupg2 wget
+          java -version
+          wget -qO - https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.25.0/allure-commandline-2.25.0.zip -O allure.zip
+          sudo apt install unzip
+          unzip allure.zip -d allure
+          sudo mv allure/allure-* /opt/allure
+
+          echo 'export PATH=$PATH:/opt/allure/bin' >> ~/.bashrc
+          source ~/.bashrc
+          sudo ln -s /opt/allure/bin/allure /usr/local/bin/allure
+          allure --version
           pip install -r requirements.txt
+          pip install -e .
 
       - name: Run lint
-        run: flake8 src/nrobo tests
+        run: python -m flake8 src/nrobo
 
       - name: Run tests
-        run: pytest --cov=src/nrobo --junitxml=pytest-results.xml tests
+        run: nrobo --cov
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

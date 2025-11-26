@@ -38,3 +38,9 @@ class DependencyNotFoundError(NRoboError):
         if install_hint:
             message += f"\n   💡 To fix: {install_hint}"
         super().__init__(message)
+
+
+class NoTestsFoundException(Exception):
+    """Raised when no test suites are found or detected."""
+
+    pass
