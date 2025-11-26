@@ -16,6 +16,7 @@ NROBO_HEADLESS = os.getenv("NROBO_HEADLESS", "True").lower() in ("true", "1", "y
 # Reporting
 REPORT_TYPE_HTML = "html"
 HTML_REPORT_PATH = "reports"
+HTML_DEFAULT_REPORT_NAME = "report.html"
 REPORT_TYPE_ALLURE = "alluredir"
 ALLURE_RESULTS_DIR = "allure-results"
 ALLURE_REPORT_DIR = "allure-reports"

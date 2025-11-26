@@ -26,3 +26,15 @@ class ReadSuiteFailed(NRoboError):
         if reason:
             msg += f"\n   → Reason: {reason}"
         super().__init__(msg)
+
+
+class DependencyNotFoundError(NRoboError):
+    """Raised when a required CLI or system dependency is not available."""
+
+    def __init__(self, dependency: str, install_hint: str | None = None):
+        self.dependency = dependency
+        self.install_hint = install_hint
+        message = f"❌ Required dependency/CLI not found: {dependency}"
+        if install_hint:
+            message += f"\n   💡 To fix: {install_hint}"
+        super().__init__(message)

@@ -11,6 +11,7 @@ from nrobo.helpers.arg_parsing import (
 )
 from nrobo.helpers.cli_parser import get_nrobo_arg_parser
 from nrobo.helpers.logging import get_logger
+from nrobo.helpers.report_helper import check_dependency
 from nrobo.helpers.validations import validate_suite_files
 
 from .helpers._pytest import no_execution_key_found, should_proceed
@@ -56,7 +57,12 @@ def main():
     if any("--html" in arg for arg in pytest_args):
         pytest_args = standardize_html_reoprt_path(pytest_args)
     else:
-        pytest_args.extend(["--html=reports/report.html", "--self-contained-html"])  # noqa: E501
+        pytest_args.extend(
+            [
+                f"--{settings.REPORT_TYPE_HTML}={settings.HTML_REPORT_PATH}/{settings.HTML_DEFAULT_REPORT_NAME}",  # noqa: E501
+                "--self-contained-html",
+            ]
+        )  # noqa: E501
 
     if any(f"--{settings.REPORT_TYPE_ALLURE}" in arg for arg in pytest_args):
         pytest_args = standardize_allure_reoprt_path(pytest_args)
@@ -88,6 +94,11 @@ def main():
     if not should_proceed(exit_code) or no_execution_key_found(pytest_options):
         # no need to proceed further...
         return 0
+
+    check_dependency(
+        name="allure",
+        install_hint="Visit link for more info=> https://allurereport.org/docs/install/",  # noqa: E501
+    )
 
     try:
         subprocess.run(  # nosec B603
