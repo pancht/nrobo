@@ -3,7 +3,10 @@ from pathlib import Path
 
 from rich.console import Console
 
+from nrobo.core import settings
+
 console = Console()
+
 
 def initialize_project():
     base_dir = Path.cwd()
@@ -28,17 +31,21 @@ def initialize_project():
     logs_dir.mkdir(exist_ok=True)
 
     # Copy template files from package templates
-    with res.files("nrobo.templates").joinpath("sample_suite.yml").open("rb") as src:
+    with res.files("nrobo.templates").joinpath("sample_suite.yml").open("rb") as src:  # noqa: E501
         (suites_dir / "sample_suite.yml").write_bytes(src.read())
 
-    with res.files("nrobo.templates").joinpath("test_sample.py").open("rb") as src:
+    with res.files("nrobo.templates").joinpath("test_sample.py").open("rb") as src:  # noqa: E501
         (ui_dir / "test_sample.py").write_bytes(src.read())
 
-    with res.files("nrobo.templates").joinpath("test_sample_another.py").open("rb") as src:
+    with res.files("nrobo.templates").joinpath("test_sample_another.py").open(
+        "rb"
+    ) as src:  # noqa: E501
         (ui_dir / "test_sample_another.py").write_bytes(src.read())
 
     #
 
-    console.print("✨ [bold green]nRoBo project initialized![/]")
+    console.print(f"✨ [bold green]{settings.APP} project initialized![/]")
     console.print("📂 Created: suites/, tests/")
-    console.print("🧩 Added: sample_suite.yml + test_sample.py + test_sample_another.py")
+    console.print(
+        "🧩 Added: sample_suite.yml + test_sample.py + test_sample_another.py"
+    )  # noqa: E501
