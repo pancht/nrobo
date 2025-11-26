@@ -10,7 +10,7 @@ from nrobo.helpers.arg_parsing import (
     standardize_html_reoprt_path,
 )
 from nrobo.helpers.cli_parser import get_nrobo_arg_parser
-from nrobo.helpers.logging import get_logger
+from nrobo.helpers.logging import get_logger, set_logger_level
 
 from .helpers._pytest import no_execution_key_found, should_proceed
 from .runner import prepare_pytest_cli_options
@@ -21,6 +21,7 @@ def main():
     logger = get_logger(name=settings.APP)
 
     suites, browser, args, pytest_args = get_nrobo_arg_parser()
+    set_logger_level(logger=logger, stream_level=10, file_level=10)
 
     # auto-detect suite(s) if not provided
     if suites is None:
