@@ -137,7 +137,6 @@ def main():
     # instead of the this below:
     #   plugin = nRoboWebDriverPlugin()
     #   pytest.main(args=pytest_options, plugins=[plugin])
-    print(f"#####|{pytest_options}")
     pytest.main(args=pytest_options)
 
     print("\n✅ All suites executed successfully.")
