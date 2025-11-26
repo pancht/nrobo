@@ -6,7 +6,7 @@ import pytest
 
 from nrobo.core import settings
 from nrobo.helpers.logging import get_logger, set_logger_level
-from nrobo.utils.utils import initialize_project
+from nrobo.utils.command_utils import initialize_project
 
 logger = get_logger(name=settings.APP)
 
@@ -85,6 +85,11 @@ def get_nrobo_arg_parser():
         os.environ["NROBO_DEBUG"] = "True"
         settings.DEBUG = True
         set_logger_level(logger=logger, stream_level=10, file_level=10)
+
+    # update args
+    os.environ["NROBO_BROWSER"] = browser
+
+    os.environ["NROBO_HEADLESS"] = str(not args.no_headless)
 
     # e.g., ['-v', '-s', '--maxfail=1']
     return suites, browser, args, unknown_args
