@@ -4,9 +4,9 @@ import typing
 from typing import Optional
 
 from appium.webdriver.common.appiumby import AppiumBy
-from appium.webdriver.webdriver import (  # pylint: disable=C0412
-    WebDriver as AppiumWebDriver,
-)  # pylint: disable=C0412
+from appium.webdriver.webdriver import (
+    WebDriver as AppiumWebDriver,  # pylint: disable=C0412
+)
 from selenium.common import NoSuchElementException
 from selenium.webdriver import Keys
 from selenium.webdriver.common.actions.key_input import KeyInput
@@ -26,12 +26,13 @@ AnyDevice = typing.Union[PointerInput, KeyInput, WheelInput]
 AnyBy = typing.Union[By, AppiumBy]
 AnyDriver = typing.Union[None, WebDriver, AppiumWebDriver]
 
+
 class WebElementWrapper(ActionChainsWrapper):  # pylint: disable=R0904
     """NRobo webelement wrapper class"""
 
     def __init__(
         self, driver: AnyDriver, logger: logging.Logger
-    ):  # pylint: disable=W0246
+    ):  # pylint: disable=W0246, noqa: E501
         """
         Constructor - NroboSeleniumWrapper
 
@@ -55,7 +56,7 @@ class WebElementWrapper(ActionChainsWrapper):  # pylint: disable=R0904
 
     def click_and_wait(
         self, by: AnyBy, value: Optional[str] = None, wait: int = None
-    ) -> None:
+    ) -> None:  # noqa: E501
         """Clicks the element."""
         self.find_element(by, value).click()
 
@@ -66,9 +67,10 @@ class WebElementWrapper(ActionChainsWrapper):  # pylint: disable=R0904
 
         self.update_windows(self.window_handles)
 
-    def element_to_be_clickable(self, by: AnyBy, value: Optional[str] = None) -> None:
+    def element_to_be_clickable(self, by: AnyBy, value: Optional[str] = None) -> None:  # noqa: E501
         """
-        wait for <wait> seconds mentioned in nrobo-config.yaml till the element is clickble.
+        wait for <wait> seconds mentioned in
+          nrobo-config.yaml till the element is clickble.
 
         :param by:
         :param value:
@@ -116,7 +118,7 @@ class WebElementWrapper(ActionChainsWrapper):  # pylint: disable=R0904
         """
         return self.find_element(by, value).get_property(name)
 
-    def get_dom_attribute(self, name, by: AnyBy, value: Optional[str] = None) -> str:
+    def get_dom_attribute(self, name, by: AnyBy, value: Optional[str] = None) -> str:  # noqa: E501
         """Gets the given attribute of the element. Unlike
         :func:`~selenium.webdriver.remote.BaseWebElement.get_attribute`, this
         method only returns attributes declared in the element's HTML markup.
@@ -131,7 +133,9 @@ class WebElementWrapper(ActionChainsWrapper):  # pylint: disable=R0904
         """
         return self.find_element(by, value).get_dom_attribute(name)
 
-    def get_attribute(self, name, by: AnyBy, value: Optional[str] = None) -> str | None:
+    def get_attribute(
+        self, name, by: AnyBy, value: Optional[str] = None
+    ) -> str | None:  # noqa: E501
         """Gets the given attribute or property of the element.
 
         This method will first try to return the value of a property with the
@@ -145,8 +149,10 @@ class WebElementWrapper(ActionChainsWrapper):  # pylint: disable=R0904
         is returned.
 
         To obtain the exact value of the attribute or property,
-        use :func:`~selenium.webdriver.remote.BaseWebElement.get_dom_attribute` or
-        :func:`~selenium.webdriver.remote.BaseWebElement.get_property` methods respectively.
+        use :func:`~selenium.webdriver.remote.
+                    BaseWebElement.get_dom_attribute` or
+        :func:`~selenium.webdriver.remote.
+                    BaseWebElement.get_property` methods respectively.
 
         :Args:
             - name - Name of the attribute/property to retrieve.
@@ -203,7 +209,7 @@ class WebElementWrapper(ActionChainsWrapper):  # pylint: disable=R0904
         """
         self.find_element(by, value).send_keys(text)
 
-    def shadow_root(self, by: AnyBy, value: Optional[str] = None) -> ShadowRoot:
+    def shadow_root(self, by: AnyBy, value: Optional[str] = None) -> ShadowRoot:  # noqa: E501
         """Returns a shadow root of the element if there is one or an error.
         Only works from Chromium 96, Firefox 96, and Safari 16.4 onwards.
 
@@ -214,7 +220,7 @@ class WebElementWrapper(ActionChainsWrapper):  # pylint: disable=R0904
         return self.find_element(by, value).shadow_root
 
     # RenderedWebElement Items
-    def is_displayed(self, by: AnyBy, value: Optional[str] = None) -> bool:
+    def is_displayed(self, by: AnyBy, value: Optional[str] = None) -> bool:  # noqa: E501
         """Whether the element is visible to a user."""
         try:
             return self.driver.find_element(by, value).is_displayed()
@@ -223,7 +229,7 @@ class WebElementWrapper(ActionChainsWrapper):  # pylint: disable=R0904
 
     def location_once_scrolled_into_view(
         self, by: AnyBy, value: Optional[str] = None
-    ) -> dict:
+    ) -> dict:  # noqa: E501
         """THIS PROPERTY MAY CHANGE WITHOUT WARNING. Use this to discover where
         on the screen an element is so that we can click it. This method should
         cause the element to be scrolled into view.
@@ -239,27 +245,27 @@ class WebElementWrapper(ActionChainsWrapper):  # pylint: disable=R0904
 
     def value_of_css_property(
         self, property_name, by: AnyBy, value: Optional[str] = None
-    ) -> str:
+    ) -> str:  # noqa: E501
         """The value of a CSS property."""
-        return self.find_element(by, value).value_of_css_property(property_name)
+        return self.find_element(by, value).value_of_css_property(property_name)  # noqa: E501
 
-    def location(self, by: AnyBy, value: Optional[str] = None) -> dict:
+    def location(self, by: AnyBy, value: Optional[str] = None) -> dict:  # noqa: E501
         """The location of the element in the renderable canvas."""
         return self.find_element(by, value).location
 
-    def rect(self, by: AnyBy, value: Optional[str] = None) -> dict:
+    def rect(self, by: AnyBy, value: Optional[str] = None) -> dict:  # noqa: E501
         """A dictionary with the size and location of the element."""
         return self.find_element(by, value).rect
 
-    def aria_role(self, by: AnyBy, value: Optional[str] = None) -> str:
+    def aria_role(self, by: AnyBy, value: Optional[str] = None) -> str:  # noqa: E501
         """Returns the ARIA role of the current web element."""
         return self.find_element(by, value).aria_role
 
-    def accessible_name(self, by: AnyBy, value: Optional[str] = None) -> str:
+    def accessible_name(self, by: AnyBy, value: Optional[str] = None) -> str:  # noqa: E501
         """Returns the ARIA Level of the current webelement."""
         return self.find_element(by, value).accessible_name
 
-    def screenshot_as_base64(self, by: AnyBy, value: Optional[str] = None) -> str:
+    def screenshot_as_base64(self, by: AnyBy, value: Optional[str] = None) -> str:  # noqa: E501
         """Gets the screenshot of the current element as a base64 encoded
         string.
 
@@ -270,7 +276,7 @@ class WebElementWrapper(ActionChainsWrapper):  # pylint: disable=R0904
         """
         return self.find_element(by, value).screenshot_as_base64
 
-    def screenshot_as_png(self, by: AnyBy, value: Optional[str] = None) -> bytes:
+    def screenshot_as_png(self, by: AnyBy, value: Optional[str] = None) -> bytes:  # noqa: E501
         """Gets the screenshot of the current element as a binary data.
 
         :Usage:
@@ -280,7 +286,7 @@ class WebElementWrapper(ActionChainsWrapper):  # pylint: disable=R0904
         """
         return self.find_element(by, value).screenshot_as_png
 
-    def screenshot(self, filename, by: AnyBy, value: Optional[str] = None) -> bool:
+    def screenshot(self, filename, by: AnyBy, value: Optional[str] = None) -> bool:  # noqa: E501
         """Saves a screenshot of the current element to a PNG image file.
         Returns False if there is any IOError, else returns True. Use full
         paths in your filename.
@@ -311,4 +317,3 @@ class WebElementWrapper(ActionChainsWrapper):  # pylint: disable=R0904
                 print("These 2 are equal")
         """
         return self.find_element(by, value).id
-

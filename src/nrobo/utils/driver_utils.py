@@ -1,9 +1,11 @@
 # in e.g. utils/driver_utils.py
 from selenium.webdriver.remote.webdriver import WebDriver
 
+
 def is_mobile_session(driver: WebDriver) -> bool:
     """
-    Returns True if the WebDriver session appears to be a mobile (Appium) session.
+    Returns True if the WebDriver
+    session appears to be a mobile (Appium) session.
     """
     caps = getattr(driver, "capabilities", {}) or {}
     platform = caps.get("platformName")  # e.g., "Android", "iOS", or "Windows"

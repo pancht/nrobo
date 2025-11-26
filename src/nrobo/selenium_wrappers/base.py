@@ -5,26 +5,24 @@ import logging
 import typing
 
 from appium.webdriver.common.appiumby import AppiumBy
-from appium.webdriver.webdriver import (  # pylint: disable=C0412
-    WebDriver as AppiumWebDriver,
-)  # pylint: disable=C0412
-from selenium.common import TimeoutException
-from selenium.common.exceptions import (
-    UnexpectedAlertPresentException,
+from appium.webdriver.webdriver import (
+    WebDriver as AppiumWebDriver,  # pylint: disable=C0412
 )
+from selenium.common import TimeoutException
+from selenium.common.exceptions import UnexpectedAlertPresentException
 from selenium.webdriver.common.actions.key_input import KeyInput
 from selenium.webdriver.common.actions.pointer_input import PointerInput
 from selenium.webdriver.common.actions.wheel_input import WheelInput
 from selenium.webdriver.common.alert import Alert
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.print_page_options import (  # pylint: disable=C0412
+from selenium.webdriver.common.print_page_options import (  # pylint: disable=C0412, C0412 # noqa: E501
     PrintOptions,
-)  # pylint: disable=C0412
+)
 from selenium.webdriver.common.timeouts import Timeouts
 from selenium.webdriver.common.virtual_authenticator import (
+    Credential,
     VirtualAuthenticatorOptions,
     required_virtual_authenticator,
-    Credential,
 )
 from selenium.webdriver.remote.file_detector import FileDetector
 from selenium.webdriver.remote.webdriver import WebDriver
@@ -41,13 +39,12 @@ AnyDriver = typing.Union[None, WebDriver, AppiumWebDriver]
 PAGE_LOAD_TIMEOUT = 30
 ELE_WAIT_TIMEOUT = 10
 
+
 class SeleniumWrapperBase:  # pylint: disable=R0904
 
     def __init__(
-        self,
-        driver: AnyDriver,
-        logger: logging.Logger
-    ):  # pylint: disable=W0231
+        self, driver: AnyDriver, logger: logging.Logger
+    ):  # pylint: disable=W0231,  noqa: E501
         self.driver = driver
         self.logger = logger
         self._windows = {}
@@ -109,8 +106,9 @@ class SeleniumWrapperBase:  # pylint: disable=R0904
             self.set_page_load_timeout(PAGE_LOAD_TIMEOUT)
 
             # Custom page load timeout
-            WebDriverWait(self.driver, PAGE_LOAD_TIMEOUT).until(
-                lambda driver: driver.execute_script("return document.readyState")== "complete"
+            WebDriverWait(self.driver, PAGE_LOAD_TIMEOUT).until(  # noqa: E501
+                lambda driver: driver.execute_script("return document.readyState")  # noqa: E501
+                == "complete"  # noqa: E501
             )
         except TimeoutException as te:
             self.logger.info(f"Exception: {te}")
@@ -252,7 +250,7 @@ class SeleniumWrapperBase:  # pylint: disable=R0904
 
         self.driver.minimize_window()
 
-    def print_page(self, print_options: typing.Optional[PrintOptions] = None) -> str:
+    def print_page(self, print_options: typing.Optional[PrintOptions] = None) -> str:  # noqa: E501
         """Takes PDF of the current page.
 
         The driver makes a best effort to return a PDF based on the
@@ -274,23 +272,28 @@ class SeleniumWrapperBase:  # pylint: disable=R0904
 
         return self.driver.switch_to.default_content()
 
-    def frame(self, frame_reference: typing.Union[str, int, WebElement]) -> None:
-        """Switches focus to the specified frame, by index, name, or webelement.
+    def frame(self, frame_reference: typing.Union[str, int, WebElement]) -> None:  # noqa: E501
+        """Switches focus to the specified frame,
+             by index, name, or webelement.
 
         :Args:
-         - frame_reference: The name of the window to switch to, an integer representing the index,
-                            or a webelement that is an (i)frame to switch to.
+         - frame_reference: The name of the window to switch to,
+          an integer representing the index,
+          or a webelement that is an (i)frame to switch to.
 
         :Usage:
             ::
 
                 switch_to_frame('frame_name')
                 switch_to_frame(1)
-                switch_to_frame(driver.find_elements(By.TAG_NAME, "iframe")[0])"""
+                switch_to_frame(
+                   driver.find_elements(By.TAG_NAME, "iframe")[0])"""
 
         return self.driver.switch_to.frame(frame_reference)
 
-    def switch_to_new_window(self, type_hint: typing.Optional[str] = "window") -> None:
+    def switch_to_new_window(
+        self, type_hint: typing.Optional[str] = "window"
+    ) -> None:  # noqa: E501
         """Switches to a new top-level browsing context.
 
         The type hint can be one of "tab" or "window". If not specified the
@@ -419,16 +422,22 @@ class SeleniumWrapperBase:  # pylint: disable=R0904
         """Adds a cookie to your current session.
 
         :Args:
-         - cookie_dict: A dictionary object, with required keys - "name" and "value";
-            optional keys - "path", "domain", "secure", "httpOnly", "expiry", "sameSite"
+         - cookie_dict: A dictionary object,
+            with required keys - "name" and "value";
+            optional keys - "path", "domain",
+            "secure", "httpOnly", "expiry", "sameSite"
 
         :Usage:
             ::
 
-                add_cookie({'name' : 'foo', 'value' : 'bar'})
-                add_cookie({'name' : 'foo', 'value' : 'bar', 'path' : '/'})
-                add_cookie({'name' : 'foo', 'value' : 'bar', 'path' : '/', 'secure' : True})
-                add_cookie({'name' : 'foo', 'value' : 'bar', 'sameSite' : 'Strict'})
+                add_cookie({'name' : 'foo',
+                             'value' : 'bar'})
+                add_cookie({'name' : 'foo',
+                            'value' : 'bar', 'path' : '/'})
+                add_cookie({'name' : 'foo',
+                            'value' : 'bar', 'path' : '/', 'secure' : True})
+                add_cookie({'name' : 'foo',
+                          'value' : 'bar', 'sameSite' : 'Strict'})
         """
         self.driver.add_cookie(cookie_dict)
 
@@ -596,7 +605,7 @@ class SeleniumWrapperBase:  # pylint: disable=R0904
         """
         return self.driver.get_screenshot_as_base64()
 
-    def set_window_size(self, width, height, window_handle: str = "current") -> None:
+    def set_window_size(self, width, height, window_handle: str = "current") -> None:  # noqa: E501
         """Sets the width and height of the current window. (window.resizeTo)
 
         :Args:
@@ -620,7 +629,7 @@ class SeleniumWrapperBase:  # pylint: disable=R0904
         """
         return self.driver.get_window_size(window_handle)
 
-    def set_window_position(self, x, y, window_handle: str = "current") -> dict:
+    def set_window_position(self, x, y, window_handle: str = "current") -> dict:  # noqa: E501
         """Sets the x,y position of the current window. (window.moveTo)
 
         :Args:
@@ -749,7 +758,7 @@ class SeleniumWrapperBase:  # pylint: disable=R0904
     # """
 
     # Virtual Authenticator Methods
-    def add_virtual_authenticator(self, options: VirtualAuthenticatorOptions) -> None:
+    def add_virtual_authenticator(self, options: VirtualAuthenticatorOptions) -> None:  # noqa: E501
         """Adds a virtual authenticator with the given options."""
         self.driver.add_virtual_authenticator(options)
 
@@ -778,7 +787,7 @@ class SeleniumWrapperBase:  # pylint: disable=R0904
         return self.driver.get_credentials()
 
     @required_virtual_authenticator
-    def remove_credential(self, credential_id: typing.Union[str, bytearray]) -> None:
+    def remove_credential(self, credential_id: typing.Union[str, bytearray]) -> None:  # noqa: E501
         """Removes a credential from the authenticator."""
         return self.driver.remove_credential()
 
@@ -792,7 +801,8 @@ class SeleniumWrapperBase:  # pylint: disable=R0904
         """Sets whether the authenticator will simulate success or fail on user
         verification.
 
-        verified: True if the authenticator will pass user verification, False otherwise.
+        verified: True if the authenticator will
+                    pass user verification, False otherwise.
         """
         return self.driver.set_user_verified(verified)
 
@@ -806,12 +816,11 @@ class SeleniumWrapperBase:  # pylint: disable=R0904
         directory.
 
         file_name: The name of the file to download.
-        target_directory: The path to the directory to save the downloaded file.
+        target_directory: The path to the
+             directory to save the downloaded file.
         """
         return self.driver.download_file(file_name, target_directory)
 
     def delete_downloadable_files(self) -> None:
         """Deletes all downloadable files."""
         return self.driver.delete_downloadable_files()
-
-

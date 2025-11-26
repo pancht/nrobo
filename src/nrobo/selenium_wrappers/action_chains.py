@@ -1,12 +1,10 @@
-
-
 import logging
 import typing
 
 from appium.webdriver.common.appiumby import AppiumBy
-from appium.webdriver.webdriver import (  # pylint: disable=C0412
-    WebDriver as AppiumWebDriver,
-)  # pylint: disable=C0412
+from appium.webdriver.webdriver import (
+    WebDriver as AppiumWebDriver,  # pylint: disable=C0412
+)
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.actions.key_input import KeyInput
 from selenium.webdriver.common.actions.pointer_input import PointerInput
@@ -40,7 +38,7 @@ class ActionChainsWrapper(SeleniumWrapperBase):
         super().__init__(driver, logger)
         self._action_chain = ActionChains(
             self.driver, duration=duration, devices=devices
-        )
+        )  # noqa: E501
 
     def action_chain(self):
         """Return ActionChains object"""

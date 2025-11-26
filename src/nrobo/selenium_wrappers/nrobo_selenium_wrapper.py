@@ -5,9 +5,9 @@ import logging
 import typing
 
 from appium.webdriver.common.appiumby import AppiumBy
-from appium.webdriver.webdriver import (  # pylint: disable=C0412
-    WebDriver as AppiumWebDriver,
-)  # pylint: disable=C0412
+from appium.webdriver.webdriver import (
+    WebDriver as AppiumWebDriver,  # pylint: disable=C0412
+)
 from selenium.webdriver import Keys
 from selenium.webdriver.common.actions.key_input import KeyInput
 from selenium.webdriver.common.actions.pointer_input import PointerInput
@@ -23,8 +23,8 @@ AnyDevice = typing.Union[PointerInput, KeyInput, WheelInput]
 AnyBy = typing.Union[By, AppiumBy]
 AnyDriver = typing.Union[None, WebDriver, AppiumWebDriver]
 
-class NRoboSeleniumWrapperClass(NRoBoCustomMethods):
 
+class NRoboSeleniumWrapperClass(NRoBoCustomMethods):
 
     def __init__(
         self,
@@ -56,7 +56,7 @@ class NRoboSeleniumWrapperClass(NRoBoCustomMethods):
         screen_height = int(self.driver.execute_script("return screen.height"))
         self.driver.execute_script(
             f"window.scrollTo({self.scrolled_height}, "
-            f"{self.scrolled_height + screen_height})"
+            f"{self.scrolled_height + screen_height})"  # noqa: E501
         )
         self.scrolled_height += screen_height
 
@@ -64,5 +64,6 @@ class NRoboSeleniumWrapperClass(NRoBoCustomMethods):
         """scroll to top of the page"""
         self.scrolled_height = 0
         self.driver.execute_script(
-            f"window.scrollTo({self.scrolled_height}, " f"{self.scrolled_height})"
+            f"window.scrollTo({self.scrolled_height}, "
+            f"{self.scrolled_height})"  # noqa: E501
         )
