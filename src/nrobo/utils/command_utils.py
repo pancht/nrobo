@@ -10,15 +10,17 @@ console = Console()
 
 def initialize_project():
     base_dir = Path.cwd()
-    suites_dir = base_dir / "suites"
-    tests_dir = base_dir / "tests"
-    ui_dir = tests_dir / "ui"
-    api_dir = tests_dir / "api"
-    mobile_dir = tests_dir / "mobile"
-    reports_dir = base_dir / "reports"
-    allure_reports_dir = base_dir / "allure-reports"
-    allure_results_dir = base_dir / "allure-results"
-    logs_dir = base_dir / "logs"
+    suites_dir = base_dir / settings.SUITES_DIR
+    tests_dir = base_dir / settings.TESTS_DIR
+    ui_dir = tests_dir / settings.UI_DIR
+    api_dir = tests_dir / settings.API_DIR
+    mobile_dir = tests_dir / settings.MOBILE_DIR
+    reports_dir = base_dir / settings.HTML_REPORT_PATH
+    allure_reports_dir = base_dir / settings.ALLURE_REPORT_DIR
+    allure_results_dir = base_dir / settings.ALLURE_RESULTS_DIR
+    logs_dir = base_dir / settings.LOG_DIR
+    page_dir = base_dir / settings.PAGE_OBJECT_DIR
+    test_data_dir = base_dir / settings.TEST_DATA_DIR
 
     suites_dir.mkdir(exist_ok=True)
     tests_dir.mkdir(exist_ok=True)
@@ -29,6 +31,8 @@ def initialize_project():
     allure_reports_dir.mkdir(exist_ok=True)
     allure_results_dir.mkdir(exist_ok=True)
     logs_dir.mkdir(exist_ok=True)
+    page_dir.mkdir(exist_ok=True)
+    test_data_dir.mkdir(exist_ok=True)
 
     # Copy template files from package templates
     with res.files("nrobo.templates").joinpath("sample_suite.yml").open("rb") as src:  # noqa: E501

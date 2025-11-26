@@ -1,32 +1,20 @@
 import logging
 import time
-import typing
+from abc import ABC
 from typing import Optional
 
-from appium.webdriver.common.appiumby import AppiumBy
-from appium.webdriver.webdriver import (
-    WebDriver as AppiumWebDriver,  # pylint: disable=C0412
-)
 from selenium.common import TimeoutException
-from selenium.webdriver.common.actions.key_input import KeyInput
-from selenium.webdriver.common.actions.pointer_input import PointerInput
-from selenium.webdriver.common.actions.wheel_input import WheelInput
-from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 
+from nrobo.nrobo_types import AnyBy, AnyDriver
 from nrobo.selenium_wrappers.base import ELE_WAIT_TIMEOUT, PAGE_LOAD_TIMEOUT
 from nrobo.selenium_wrappers.element import WebElementWrapper
 from nrobo.utils.driver_utils import is_mobile_session
 
-AnyDevice = typing.Union[PointerInput, KeyInput, WheelInput]
-AnyBy = typing.Union[By, AppiumBy]
-AnyDriver = typing.Union[None, WebDriver, AppiumWebDriver]
 
-
-class WaitsClassWrapper(WebElementWrapper):
+class WaitsClassWrapper(WebElementWrapper, ABC):
     """
     Nrobo implementation of wait methods
     """

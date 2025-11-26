@@ -1,24 +1,11 @@
 import logging
-import typing
+from abc import ABC
 
-from appium.webdriver.common.appiumby import AppiumBy
-from appium.webdriver.webdriver import (
-    WebDriver as AppiumWebDriver,  # pylint: disable=C0412
-)
-from selenium.webdriver.common.actions.key_input import KeyInput
-from selenium.webdriver.common.actions.pointer_input import PointerInput
-from selenium.webdriver.common.actions.wheel_input import WheelInput
-from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webdriver import WebDriver
-
+from nrobo.nrobo_types import AnyDevice, AnyDriver
 from nrobo.selenium_wrappers.waits import WaitsClassWrapper
 
-AnyDevice = typing.Union[PointerInput, KeyInput, WheelInput]
-AnyBy = typing.Union[By, AppiumBy]
-AnyDriver = typing.Union[None, WebDriver, AppiumWebDriver]
 
-
-class AlertWrapper(WaitsClassWrapper):
+class AlertWrapper(WaitsClassWrapper, ABC):
     """Alert nrobo."""
 
     def __init__(
