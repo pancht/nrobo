@@ -10,7 +10,9 @@ NROBO_BROWSER = os.getenv("NROBO_BROWSER", "chrome")
 NROBO_HEADLESS = os.getenv("NROBO_HEADLESS", "True").lower() in ("true", "1", "yes")  # noqa: E501
 
 # Reporting
-HTML_REPORT_PATH = "reports/report.html"
+REPORT_TYPE_HTML = "html"
+HTML_REPORT_PATH = "reports"
+REPORT_TYPE_ALLURE = "alluredir"
 ALLURE_RESULTS_DIR = "allure-results"
 ALLURE_REPORT_DIR = "allure-reports"
 

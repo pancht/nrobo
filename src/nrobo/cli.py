@@ -11,6 +11,7 @@ from nrobo.helpers.arg_parsing import (
     standardize_html_reoprt_path,
 )
 
+from .core import settings
 from .helpers._pytest import no_execution_key_found, should_proceed
 from .runner import prepare_pytest_cli_options
 from .utils.utils import initialize_project
@@ -113,13 +114,11 @@ def main():
         pytest_args = standardize_html_reoprt_path(pytest_args)
     else:
         pytest_args.extend(["--html=reports/report.html", "--self-contained-html"])  # noqa: E501
-    allure_results_dir = "allure-results"
-    allure_report_dir = "allure-reports"
 
-    if any("--alluredir" in arg for arg in pytest_args):
+    if any(f"--{settings.REPORT_TYPE_ALLURE}" in arg for arg in pytest_args):
         pytest_args = standardize_allure_reoprt_path(pytest_args)
     else:
-        pytest_args.extend([f"--alluredir={allure_results_dir}"])
+        pytest_args.extend([f"--alluredir={settings.ALLURE_RESULTS_DIR}"])
 
     pytest_options = prepare_pytest_cli_options(
         suites=suites, pytest_args=pytest_args
@@ -152,9 +151,9 @@ def main():
             [
                 "allure",
                 "generate",
-                allure_results_dir,
+                settings.ALLURE_RESULTS_DIR,
                 "-o",
-                allure_report_dir,
+                settings.ALLURE_REPORT_DIR,
                 "--clean",
             ],  # noqa: E501
             check=True,
@@ -162,7 +161,7 @@ def main():
             text=True,
         )
         print(
-            f"✅ Allure report ready: file://{os.path.abspath(allure_report_dir)}/index.html"  # noqa: E501
+            f"✅ Allure report ready: file://{os.path.abspath(settings.ALLURE_REPORT_DIR)}/index.html"  # noqa: E501
         )  # noqa: E501
     except subprocess.CalledProcessError as e:
         print("❌ Failed to generate Allure report.")
