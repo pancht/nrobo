@@ -24,8 +24,8 @@ def prepare_pytest_cli_options(
     Returns:
         List of pytest CLI arguments to pass to pytest.main().
     """  # noqa: E501
-    test_dir = Path.cwd() / "tests"
-    suite_dir = Path.cwd() / "suites"
+    test_dir = Path.cwd() / settings.TESTS_DIR
+    suite_dir = Path.cwd() / settings.SUITES_DIR
 
     # Start with default: run all tests if no suite provided
     selected_tests = [str(test_dir)]
