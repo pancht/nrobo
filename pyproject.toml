@@ -34,4 +34,4 @@ nrobo = "nrobo.plugin"
 skips = ["B607", "B101"]
 
 [project.optional-dependencies]
-dev = ["pytest", "pytest-cov", "pre-commit"]
+dev = ["pytest", "pytest-cov", "pre-commit", "flake8", "codecov", "allure-pytest"]
