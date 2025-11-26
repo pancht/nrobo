@@ -31,6 +31,7 @@ jobs:
 
           echo 'export PATH=$PATH:/opt/allure/bin' >> ~/.bashrc
           source ~/.bashrc
+          sudo ln -s /opt/allure/bin/allure /usr/local/bin/allure
           allure --version
           pip install -r requirements.txt
           pip install -e .
