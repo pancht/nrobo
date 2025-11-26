@@ -32,3 +32,6 @@ nrobo = "nrobo.plugin"
 
 [tool.bandit]
 skips = ["B607", "B101"]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov", "pre-commit"]
