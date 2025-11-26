@@ -101,7 +101,7 @@ def main():
             text=True,
         )
         logger.info(
-            f"✅ Allure report ready: file://{os.path.abspath(settings.ALLURE_REPORT_DIR)}/index.html"  # noqa: E501
+            f"✅ Allure report ready: file://{Path(settings.ALLURE_REPORT_DIR).resolve()}/index.html"  # noqa: E501
         )  # noqa: E501
     except subprocess.CalledProcessError as e:
         logger.error("❌ Failed to generate Allure report.")
