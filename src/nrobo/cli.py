@@ -53,7 +53,7 @@ def main():
     )
 
     if "--help" in sys.argv:
-        print(f"\n📜 {settings.APP} Help Menu:")
+        logger.info(f"\n📜 {settings.APP} Help Menu:")
         parser.print_help()
 
         try:
@@ -68,7 +68,7 @@ def main():
             user_input = "n"  # fallback in non-interactive shells
 
         if user_input.startswith("y"):
-            print("\n📜 Pytest Help Menu:")
+            logger.info("\n📜 Pytest Help Menu:")
             pytest.main(["--help"])
             sys.exit(0)
 
@@ -103,7 +103,7 @@ def main():
         f"Starting {settings.APP} test execution on browser: {browser} {"" if args.no_headless else "in headless mode"}..."  # noqa: E501
     )
     logger.info(f"Suites to execute: {suites}")
-    print(f"Extra pytest args: {pytest_args}")
+    logger.info(f"Extra pytest args: {pytest_args}")
 
     # update args
     os.environ["NROBO_BROWSER"] = browser
