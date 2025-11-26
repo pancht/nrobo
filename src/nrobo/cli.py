@@ -11,6 +11,7 @@ from nrobo.helpers.arg_parsing import (
 )
 from nrobo.helpers.cli_parser import get_nrobo_arg_parser
 from nrobo.helpers.logging import get_logger
+from nrobo.helpers.validations import validate_suite_files
 
 from .helpers._pytest import no_execution_key_found, should_proceed
 from .runner import prepare_pytest_cli_options
@@ -35,6 +36,8 @@ def main():
                 "No suite specified and no suite files found. Running all tests..."  # noqa: E501
             )  # noqa: E501
             suites = [None]
+    else:
+        validate_suite_files(suites=suites)
 
     logger.info(
         f"Starting {settings.APP} test execution on browser: {browser} {"" if args.no_headless else "in headless mode"}..."  # noqa: E501
