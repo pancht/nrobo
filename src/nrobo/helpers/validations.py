@@ -2,12 +2,13 @@ from pathlib import Path
 
 from nrobo.core import settings
 from nrobo.exceptions import SuiteNotFoundError
-from nrobo.helpers.logging import get_logger
-
-logger = get_logger(name=settings.APP)
 
 
-def validate_suite_files(suites: list[str] | str | None = None):
+def validate_suite_paths(suites: list[str] | str | None = None) -> None:
+    """
+    Validate that all specified suite files exist in the configured SUITES_DIR.
+    Raises SuiteNotFoundError if any file is missing.
+    """
     for suite in suites or []:
         suite_path = Path(settings.SUITES_DIR) / suite
         if not suite_path.exists():

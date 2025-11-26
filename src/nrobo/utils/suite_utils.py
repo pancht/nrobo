@@ -2,7 +2,7 @@ from pathlib import Path
 
 from nrobo.core import settings
 from nrobo.helpers.logging import get_logger
-from nrobo.helpers.validations import validate_suite_files
+from nrobo.helpers.validations import validate_suite_paths
 from nrobo.utils.common_utils import deduplicate_preserve_order
 
 logger = get_logger(name=settings.APP)
@@ -33,6 +33,6 @@ def detect_or_validate_suites(
             )  # noqa: E501
             suites = [None]
     else:
-        validate_suite_files(suites=suites)
+        validate_suite_paths(suites=suites)
 
     return deduplicate_preserve_order(suites)

@@ -24,13 +24,14 @@ def main():
         f"Starting {settings.APP} test execution on browser: {browser} {"" if args.no_headless else "in headless mode"}..."  # noqa: E501
     )
     logger.info(f"Suites to execute: {suites}")
-    logger.info(f"Extra pytest args: {pytest_args}")
+    logger.debug(f"PyTest args: {pytest_args}")
 
     pytest_args = prepare_reporting_args(pytest_args=pytest_args)
 
     pytest_options = prepare_pytest_cli_options(
         suites=suites, pytest_args=pytest_args
     )  # noqa: E501
+    logger.debug(f"Final PyTest CLI: {pytest_options}")
 
     exit_code = pytest.main(args=pytest_options)
 
