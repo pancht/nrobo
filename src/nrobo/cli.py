@@ -57,7 +57,7 @@ def main():
     if args.cov:
         logger.info(
             f"📈Open coverage report → file://{os.path.abspath("htmlcov/index.html")}"  # noqa: E501
-        )  # noqa: E501
+        )
 
 
 if __name__ == "__main__":
