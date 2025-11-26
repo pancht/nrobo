@@ -53,5 +53,5 @@ def initialize_project():
     console.print(f"✨ [bold green]{settings.APP} project initialized![/]")
     console.print("📂 Created: suites/, tests/")
     console.print(
-        "🧩 Added: google_test_suite.yml + test_sample.py + test_sample_another.py"  # noqa: E501
+        "🧩 Added: sample_suite.yml + test_sample.py + test_sample_another.py"  # noqa: E501
     )  # noqa: E501
