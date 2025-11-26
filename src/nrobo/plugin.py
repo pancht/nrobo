@@ -96,7 +96,7 @@ class nRoboWebDriverPlugin:
         return self._get_logger(request)
 
     @pytest.fixture(scope="function")
-    def driver(self, request, logger):
+    def nrobo_wrapper(self, request, logger):
         env_browser = os.getenv("NROBO_BROWSER").lower()
         env_headless = os.getenv("NROBO_HEADLESS").lower().strip() == "true"
         self.driver_instance: WebDriver = get_driver(
@@ -104,15 +104,15 @@ class nRoboWebDriverPlugin:
         )  # noqa: E501
 
         # Inject logger
-        wrapper: NRoboSeleniumWrapperClass = NRoboSeleniumWrapperClass(
+        nrobo_wrapper_: NRoboSeleniumWrapperClass = NRoboSeleniumWrapperClass(
             self.driver_instance, logger=logger
         )
 
         # Attach to item so that it wrapper can be accessed in pytest_runtest_makereport(item: Item, call) # noqa: E501
         # for capturing screenshot of the failure
-        request.node._driver_wrapper = wrapper
+        request.node._driver_wrapper = nrobo_wrapper_
 
-        yield wrapper
+        yield nrobo_wrapper_
 
         self.driver_instance.quit()
 
