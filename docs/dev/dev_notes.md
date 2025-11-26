@@ -6,10 +6,11 @@
 
 `pip install -e .`
 
-Then do 
+Then do
 
 `which nrobo`
 
+# Clear pytest cache
 
-
-
+``pytest --cache-clear
+``
