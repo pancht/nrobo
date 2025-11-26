@@ -42,9 +42,9 @@ class nRoboWebDriverPlugin:
 
         # ✅ make directory structure logs/<worker_id>/
         log_dir = (
-            os.path.join("logs", worker_id)
+            os.path.join(settings.LOG_DIR, worker_id)
             if is_running_with_xdist()
-            else os.path.join("logs")  # noqa: E501
+            else os.path.join(settings.LOG_DIR)  # noqa: E501
         )
         os.makedirs(log_dir, exist_ok=True)
 
