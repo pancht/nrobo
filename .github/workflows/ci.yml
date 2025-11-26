@@ -26,7 +26,7 @@ jobs:
           pip install -e .
 
       - name: Run lint
-        run: flake8 src/nrobo
+        run: python -m flake8 src/nrobo
 
       - name: Run tests
         run: pytest --cov=src/nrobo --junitxml=pytest-results.xml tests
