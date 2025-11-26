@@ -23,7 +23,8 @@ def main():
     suites = detect_or_validate_suites(suites=suites)
 
     logger.info(
-        f"Starting {settings.APP} test execution on browser: {browser} {"" if args.no_headless else "in headless mode"}..."  # noqa: E501
+        f"Starting {settings.APP} test execution on browser: {browser} "
+        f"{"" if args.no_headless else "in headless mode"}..."  # noqa: E501
     )
     logger.info(f"Suites to execute: {suites}")
     logger.debug(f"PyTest args: {pytest_args}")
