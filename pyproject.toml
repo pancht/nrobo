@@ -35,3 +35,13 @@ skips = ["B607", "B101"]
 
 [project.optional-dependencies]
 dev = ["pytest", "pytest-cov", "pre-commit", "flake8", "codecov", "allure-pytest"]
+
+# pyproject.toml
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
