@@ -48,6 +48,12 @@ def get_nrobo_arg_parser():
         action="store_true",
         help=f"Initialize a new {settings.APP} project with sample suite and tests.",  # noqa: E501
     )
+    parser.add_argument(
+        "--cov",
+        action="store_true",
+        default=False,
+        help="Enable coverage reporting for the nRoBo framework. Used for nRobo framework coverage report!",  # noqa: E501
+    )
 
     if "--help" in sys.argv:
         logger.info(f"\n📜 {settings.APP} Help Menu:")

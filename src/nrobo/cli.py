@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from nrobo.core import settings
@@ -26,6 +28,16 @@ def main():
     logger.info(f"Suites to execute: {suites}")
     logger.debug(f"PyTest args: {pytest_args}")
 
+    if args.cov:
+        pytest_args.extend(
+            [
+                "--cov=nrobo",  # measure coverage for your framework package
+                "--cov-report=html",  # generate HTML report
+                "--cov-report=term-missing",  # show missing lines in terminal
+                "--cov-fail-under=90",  # fail if coverage < 90%
+            ]
+        )
+
     pytest_args = prepare_reporting_args(pytest_args=pytest_args)
 
     pytest_options = prepare_pytest_cli_options(
@@ -42,6 +54,11 @@ def main():
         return 0
 
     generate_allure_report()
+
+    if args.cov:
+        logger.info(
+            f"📈Open coverage report → file://{os.path.abspath("htmlcov/index.html")}"  # noqa: E501
+        )  # noqa: E501
 
 
 if __name__ == "__main__":
