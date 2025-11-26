@@ -142,9 +142,7 @@ def main():
 
     print("\n✅ All suites executed successfully.")
 
-    if any("--alluredir" in arg for arg in pytest_options):
-        # 2️⃣ Generate allure report (HTML)
-        os.makedirs(allure_report_dir, exist_ok=True)
+    try:
         subprocess.run(  # nosec B603
             [
                 "allure",
@@ -153,13 +151,20 @@ def main():
                 "-o",
                 allure_report_dir,
                 "--clean",
-            ],
+            ],  # noqa: E501
             check=True,
+            capture_output=True,
+            text=True,
         )
-
         print(
             f"✅ Allure report ready: file://{os.path.abspath(allure_report_dir)}/index.html"  # noqa: E501
         )  # noqa: E501
+    except subprocess.CalledProcessError as e:
+        print("❌ Failed to generate Allure report.")
+        print("Command:", e.cmd)
+        print("Exit Code:", e.returncode)
+        print("Output:", e.output)
+        print("Error Output:", e.stderr)
 
 
 if __name__ == "__main__":
