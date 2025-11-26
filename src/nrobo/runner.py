@@ -51,6 +51,7 @@ def prepare_pytest_cli_options(
 
     # Merge pytest args
     selected_tests = selected_tests or [str(test_dir)]
+
     pytest_options = (pytest_args or []) + selected_tests
 
     return pytest_options
