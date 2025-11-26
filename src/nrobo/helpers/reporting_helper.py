@@ -71,7 +71,7 @@ def generate_allure_report() -> None:
             text=True,
         )
         report_path = Path(settings.ALLURE_REPORT_DIR).resolve() / "index.html"
-        logger.info(f"✅ Allure report ready: file://{report_path}")
+        logger.info(f"✅ Allure report ready  →  file://{report_path}")
     except subprocess.CalledProcessError as e:
         logger.error("❌ Failed to generate Allure report.")
         logger.error(f"Command: {e.cmd}")
