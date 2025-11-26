@@ -55,9 +55,8 @@ def main():
     generate_allure_report()
 
     if args.cov:
-        logger.info(
-            f"📈Open coverage report → file://{os.path.abspath("htmlcov/index.html")}"  # noqa: E501
-        )
+        coverage_report_path = os.path.abspath("htmlcov/index.html")
+        logger.info(f"📈Open coverage report → file://{coverage_report_path}")
 
 
 if __name__ == "__main__":
