@@ -97,13 +97,11 @@ graph TD
     nrobo -n 2 -s
     nrobo --co
 ```
-**Or** clone locally for development:
+**Or** Setup local development environment:
 
-```bash
-git clone https://github.com/pancht/nrobo.git
-cd nrobo
-pip install -e .
-```
+- [On MacOS](https://github.com/pancht/nrobo/wiki/Local-Development-Setup-(macOS))
+
+
 
 🧪 Quick Start
 
