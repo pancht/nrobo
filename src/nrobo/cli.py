@@ -5,14 +5,13 @@ import sys
 from pathlib import Path
 
 import pytest
+from runner import prepare_pytest_cli_options
+from utils.utils import initialize_project
 
 from nrobo.helpers.arg_parsing import (
     standardize_allure_reoprt_path,
     standardize_html_reoprt_path,
 )
-
-from .runner import prepare_pytest_cli_options
-from .utils.utils import initialize_project
 
 
 def main():
@@ -138,6 +137,7 @@ def main():
     # instead of the this below:
     #   plugin = nRoboWebDriverPlugin()
     #   pytest.main(args=pytest_options, plugins=[plugin])
+    print(f"#####|{pytest_options}")
     pytest.main(args=pytest_options)
 
     print("\n✅ All suites executed successfully.")
