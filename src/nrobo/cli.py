@@ -5,13 +5,15 @@ import sys
 from pathlib import Path
 
 import pytest
-from runner import prepare_pytest_cli_options
-from utils.utils import initialize_project
 
 from nrobo.helpers.arg_parsing import (
     standardize_allure_reoprt_path,
     standardize_html_reoprt_path,
 )
+
+from .helpers._pytest import no_execution_key_found, should_proceed
+from .runner import prepare_pytest_cli_options
+from .utils.utils import initialize_project
 
 
 def main():
@@ -137,9 +139,13 @@ def main():
     # instead of the this below:
     #   plugin = nRoboWebDriverPlugin()
     #   pytest.main(args=pytest_options, plugins=[plugin])
-    pytest.main(args=pytest_options)
+    exit_code = pytest.main(args=pytest_options)
 
     print("\n✅ All suites executed successfully.")
+
+    if not should_proceed(exit_code) or no_execution_key_found(pytest_options):
+        # no need to proceed further...
+        return 0
 
     try:
         subprocess.run(  # nosec B603
