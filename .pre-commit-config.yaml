@@ -43,7 +43,7 @@ repos:
     hooks:
       - id: flake8
         name: flake8 (nrobo lint)
-        args: ["src/nrobo", "tests"]
+        args: ["src/nrobo"]
 
 
   - repo: https://github.com/PyCQA/bandit

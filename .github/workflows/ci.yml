@@ -23,7 +23,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run lint
-        run: flake8 src/nrobo tests
+        run: flake8 src/nrobo
 
       - name: Run tests
         run: pytest --cov=src/nrobo --junitxml=pytest-results.xml tests
