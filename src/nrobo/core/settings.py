@@ -31,3 +31,4 @@ LOG_COLORS_STREAM = {
 LOG_FILE_FILE = os.getenv("NROBO_LOG_FILE", "")  # If set, use file logging
 LOG_LEVEL_FILE = os.getenv("NROBO_LOG_LEVEL", "DEBUG")
 LOG_FORMAT_FILE = "%(asctime)s - %(levelname)s - %(message)s"
+LOG_DIR = "logs"

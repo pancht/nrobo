@@ -1,7 +1,13 @@
+import sys
 from pathlib import Path
 from typing import List, Optional, Union
 
 import yaml
+
+from nrobo.core import settings
+from nrobo.helpers.logging import get_logger
+
+logger = get_logger(settings.APP)
 
 
 def prepare_pytest_cli_options(
@@ -31,14 +37,14 @@ def prepare_pytest_cli_options(
         for suite_file in suite_files:
             suite_path = suite_dir / suite_file
             if not suite_path.exists():
-                print(f"⚠️ Suite file not found: {suite_file}")
-                continue
+                logger.error(f"🐞 Suite file not found: {suite_file}")
+                sys.exit(1)
 
             try:
                 with open(suite_path, "r", encoding="utf-8") as f:
                     suite_data = yaml.safe_load(f) or {}
             except Exception as e:
-                print(f"⚠️ Failed to read suite '{suite_file}': {e}")
+                logger.info(f"⚠️ Failed to read suite '{suite_file}': {e}")
                 continue
 
             for t in suite_data.get("tests", []):
@@ -46,6 +52,7 @@ def prepare_pytest_cli_options(
                 selected_tests.append(str(test_path))
 
     # Merge pytest args
+    selected_tests = selected_tests or [str(test_dir)]
     pytest_options = (pytest_args or []) + selected_tests
 
     return pytest_options

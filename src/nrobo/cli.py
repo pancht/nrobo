@@ -6,18 +6,22 @@ from pathlib import Path
 
 import pytest
 
+from nrobo.core import settings
 from nrobo.helpers.arg_parsing import (
     standardize_allure_reoprt_path,
     standardize_html_reoprt_path,
 )
+from nrobo.helpers.logging import get_logger
 
-from .core import settings
 from .helpers._pytest import no_execution_key_found, should_proceed
 from .runner import prepare_pytest_cli_options
 from .utils.utils import initialize_project
 
 
 def main():
+
+    logger = get_logger(name=settings.APP)
+
     parser = argparse.ArgumentParser(
         description=f"{settings.APP} - Smart Test Runner built on Pytest",
         add_help=True,
@@ -49,7 +53,7 @@ def main():
     )
 
     if "--help" in sys.argv:
-        print(f"\n📜 {settings.APP} Help Menu:")
+        logger.info(f"\n📜 {settings.APP} Help Menu:")
         parser.print_help()
 
         try:
@@ -64,7 +68,7 @@ def main():
             user_input = "n"  # fallback in non-interactive shells
 
         if user_input.startswith("y"):
-            print("\n📜 Pytest Help Menu:")
+            logger.info("\n📜 Pytest Help Menu:")
             pytest.main(["--help"])
             sys.exit(0)
 
@@ -90,14 +94,16 @@ def main():
             suites = None
             # print(f"No --suite provided. Auto-detected suite: {suites[0]}")
         else:
-            print("No suite specified and no suite files found. Running all tests...")  # noqa: E501
+            logger.info(
+                "No suite specified and no suite files found. Running all tests..."  # noqa: E501
+            )  # noqa: E501
             suites = [None]
 
-    print(
+    logger.info(
         f"Starting {settings.APP} test execution on browser: {browser} {"" if args.no_headless else "in headless mode"}..."  # noqa: E501
     )
-    print(f"Suites to execute: {suites}")
-    print(f"Extra pytest args: {pytest_args}")
+    logger.info(f"Suites to execute: {suites}")
+    logger.info(f"Extra pytest args: {pytest_args}")
 
     # update args
     os.environ["NROBO_BROWSER"] = browser
@@ -140,7 +146,7 @@ def main():
     #   pytest.main(args=pytest_options, plugins=[plugin])
     exit_code = pytest.main(args=pytest_options)
 
-    print("\n✅ All suites executed successfully.")
+    logger.info("\n✅ All suites executed successfully.")
 
     if not should_proceed(exit_code) or no_execution_key_found(pytest_options):
         # no need to proceed further...
@@ -160,15 +166,15 @@ def main():
             capture_output=True,
             text=True,
         )
-        print(
+        logger.info(
             f"✅ Allure report ready: file://{os.path.abspath(settings.ALLURE_REPORT_DIR)}/index.html"  # noqa: E501
         )  # noqa: E501
     except subprocess.CalledProcessError as e:
-        print("❌ Failed to generate Allure report.")
-        print("Command:", e.cmd)
-        print("Exit Code:", e.returncode)
-        print("Output:", e.output)
-        print("Error Output:", e.stderr)
+        logger.info("❌ Failed to generate Allure report.")
+        logger.info("Command:", e.cmd)
+        logger.info("Exit Code:", e.returncode)
+        logger.info("Output:", e.output)
+        logger.info("Error Output:", e.stderr)
 
 
 if __name__ == "__main__":
