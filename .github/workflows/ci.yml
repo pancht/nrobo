@@ -27,7 +27,7 @@ jobs:
         run: flake8 src/nrobo tests
 
       - name: Run tests
-        run: pytest --cov=src/nrobo tests
+        run: pytest --cov=src/nrobo --junitxml=pytest-results.xml tests
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
