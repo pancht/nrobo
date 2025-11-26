@@ -52,3 +52,6 @@ class NRoBoCustomMethods(NRoboAppiumWrapper, ABC):  # pylint: disable=R0901
     ) -> None:  # pylint: disable=W1113
         """Type given text into given element located by (by, value)"""
         self.send_keys(by, value, text)
+
+    def is_page_visible(self) -> bool:
+        pass

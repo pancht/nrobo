@@ -96,7 +96,7 @@ class nRoboWebDriverPlugin:
         return self._get_logger(request)
 
     @pytest.fixture(scope="function")
-    def nrobo_wrapper(self, request, logger):
+    def nrobo(self, request, logger):
         env_browser = os.getenv("NROBO_BROWSER").lower()
         env_headless = os.getenv("NROBO_HEADLESS").lower().strip() == "true"
         self.driver_instance: WebDriver = get_driver(
