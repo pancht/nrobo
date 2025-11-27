@@ -40,7 +40,17 @@ class DependencyNotFoundError(NRoboError):
         super().__init__(message)
 
 
-class NoTestsFoundException(Exception):
-    """Raised when no test suites are found or detected."""
+class NoTestsFoundException(NRoboError):
+    """Raised when no test suites or pytest tests are found."""
 
-    pass
+    def __init__(
+        self, reason: str | None = None, search_path: str | Path | None = None
+    ):  # noqa: E501
+        self.reason = reason or "No test suites or pytest test files were detected."
+        self.search_path = Path(search_path) if search_path else None
+
+        message = f"❌ {self.reason}"
+        if self.search_path:
+            message += f"\n   🔍 Searched in: {self.search_path}"
+
+        super().__init__(message)

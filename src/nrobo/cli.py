@@ -11,7 +11,11 @@ from nrobo.helpers.reporting_helper import (
 )
 from nrobo.utils.suite_utils import detect_or_validate_suites
 
-from .helpers._pytest import no_execution_key_found, should_proceed
+from .helpers._pytest_helper import (
+    detect_fixture_usage,
+    no_execution_key_found,
+    should_proceed,
+)
 from .runner import prepare_pytest_cli_options
 
 logger = get_logger(name=settings.APP)
@@ -22,20 +26,14 @@ def main():
 
     suites = detect_or_validate_suites(suites=suites)
 
-    if args.cov:
-        pytest_args.extend(
-            [
-                "--cov=nrobo",  # measure coverage for your framework package
-                "--cov-report=html",  # generate HTML report
-                "--cov-report=term-missing",  # show missing lines in terminal
-                "--cov-fail-under=90",  # fail if coverage < 90%
-            ]
-        )
-
     pytest_args = prepare_reporting_args(pytest_args=pytest_args)
 
-    msg = "" if args.no_headless else "in headless mode"
-    logger.info(f"Starting {settings.APP} test execution on browser: {browser} {msg}")  # noqa: E501
+    if detect_fixture_usage("nrobo", [settings.TESTS_DIR], pytest_args=pytest_args):
+        msg = "" if args.no_headless else "in headless mode"
+        logger.info(f"Starting {settings.APP} test execution on browser: {browser} {msg}")
+    else:
+        logger.info("Running non-browser tests...")
+    # noqa: E501
     logger.info(f"Suites to execute: {suites}")
     logger.debug(f"PyTest args: {pytest_args}")
 

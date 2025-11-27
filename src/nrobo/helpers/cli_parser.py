@@ -97,5 +97,18 @@ def get_nrobo_arg_parser():
 
     os.environ["NROBO_HEADLESS"] = str(not args.no_headless)
 
+    if args.cov:
+        unknown_args.extend(
+            [
+                "--cov=nrobo",  # measure coverage for your framework package
+                "--cov-report=html",  # generate HTML report
+                "--cov-report=term-missing",  # show missing lines in terminal
+                "--cov-fail-under=90",  # fail if coverage < 90%
+            ]
+        )
+
+    # always change temp dir under project dir
+    unknown_args.extend(["--basetemp=.pytest_tmp"])
+
     # e.g., ['-v', '-s', '--maxfail=1']
     return suites, browser, args, unknown_args
