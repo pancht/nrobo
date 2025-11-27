@@ -1,5 +1,4 @@
 # detect_fixtures_plugin.py
-# detect_fixtures_plugin.py
 import json
 import os
 
