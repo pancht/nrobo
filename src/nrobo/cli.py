@@ -23,8 +23,6 @@ def main():
 
     suites = detect_or_validate_suites(suites=suites)
 
-    # pytest_args = prepare_reporting_args(pytest_args=pytest_args)
-
     if detect_fixture_usage("nrobo", [settings.TESTS_DIR], pytest_args=pytest_args):
         msg = "" if args.no_headless else "in headless mode"
         logger.info(f"Starting {settings.APP} test execution on browser: {browser} {msg}")
