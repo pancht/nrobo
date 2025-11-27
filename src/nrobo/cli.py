@@ -5,10 +5,7 @@ import pytest
 from nrobo.core import settings
 from nrobo.helpers.cli_parser import get_nrobo_arg_parser
 from nrobo.helpers.logging import get_logger
-from nrobo.helpers.reporting_helper import (
-    generate_allure_report,
-    prepare_reporting_args,
-)
+from nrobo.helpers.reporting_helper import generate_allure_report
 from nrobo.utils.suite_utils import detect_or_validate_suites
 
 from .helpers._pytest_helper import (
@@ -26,7 +23,7 @@ def main():
 
     suites = detect_or_validate_suites(suites=suites)
 
-    pytest_args = prepare_reporting_args(pytest_args=pytest_args)
+    # pytest_args = prepare_reporting_args(pytest_args=pytest_args)
 
     if detect_fixture_usage("nrobo", [settings.TESTS_DIR], pytest_args=pytest_args):
         msg = "" if args.no_headless else "in headless mode"

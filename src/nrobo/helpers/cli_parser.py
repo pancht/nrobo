@@ -6,6 +6,7 @@ import pytest
 
 from nrobo.core import settings
 from nrobo.helpers.logging import get_logger, set_logger_level
+from nrobo.helpers.reporting_helper import prepare_reporting_args
 from nrobo.utils.command_utils import initialize_project
 
 logger = get_logger(name=settings.APP)
@@ -91,6 +92,8 @@ def get_nrobo_arg_parser():
         os.environ["NROBO_DEBUG"] = "True"
         settings.DEBUG = True
         set_logger_level(logger=logger, stream_level=10, file_level=10)
+    else:
+        os.environ["NROBO_DEBUG"] = "False"
 
     # update args
     os.environ["NROBO_BROWSER"] = browser
@@ -109,6 +112,8 @@ def get_nrobo_arg_parser():
 
     # always change temp dir under project dir
     unknown_args.extend(["--basetemp=.pytest_tmp"])
+
+    unknown_args = prepare_reporting_args(pytest_args=unknown_args)
 
     # e.g., ['-v', '-s', '--maxfail=1']
     return suites, browser, args, unknown_args
