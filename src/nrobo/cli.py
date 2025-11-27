@@ -22,25 +22,12 @@ def main():
 
     suites = detect_or_validate_suites(suites=suites)
 
-    if args.cov:
-        pytest_args.extend(
-            [
-                "--cov=nrobo",  # measure coverage for your framework package
-                "--cov-report=html",  # generate HTML report
-                "--cov-report=term-missing",  # show missing lines in terminal
-                "--cov-fail-under=90",  # fail if coverage < 90%
-            ]
-        )
-
     pytest_args = prepare_reporting_args(pytest_args=pytest_args)
 
     msg = "" if args.no_headless else "in headless mode"
     logger.info(f"Starting {settings.APP} test execution on browser: {browser} {msg}")  # noqa: E501
     logger.info(f"Suites to execute: {suites}")
     logger.debug(f"PyTest args: {pytest_args}")
-
-    # always change temp dir under project dir
-    pytest_args.extend(["--basetemp=.pytest_tmp"])
 
     pytest_options = prepare_pytest_cli_options(
         suites=suites, pytest_args=pytest_args
