@@ -94,6 +94,7 @@ def get_nrobo_arg_parser():
         set_logger_level(logger=logger, stream_level=10, file_level=10)
     else:
         os.environ["NROBO_DEBUG"] = "False"
+        settings.DEBUG = False
 
     # update args
     os.environ["NROBO_BROWSER"] = browser
