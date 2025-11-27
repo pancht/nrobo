@@ -16,6 +16,7 @@ def get_nrobo_arg_parser():
     parser = argparse.ArgumentParser(
         description=f"{settings.APP} - Smart Test Runner built on Pytest",
         add_help=True,
+        allow_abbrev=False,  # ⛔ Prevents "--co" from resolving to "--cov"
     )
 
     parser.add_argument(
@@ -115,5 +116,5 @@ def get_nrobo_arg_parser():
     unknown_args.extend(["--basetemp=.pytest_tmp"])
 
     unknown_args = prepare_reporting_args(pytest_args=unknown_args)
-
+    logger.debug(f"Final PyTest Options=>{unknown_args}")
     return suites, browser, args, unknown_args
