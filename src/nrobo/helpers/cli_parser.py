@@ -116,5 +116,4 @@ def get_nrobo_arg_parser():
 
     unknown_args = prepare_reporting_args(pytest_args=unknown_args)
 
-    # e.g., ['-v', '-s', '--maxfail=1']
     return suites, browser, args, unknown_args
