@@ -1,9 +1,14 @@
 import os
 import sys
+from pathlib import Path
 from unittest import mock
 
+import pytest
+
 from nrobo.core import settings
+from nrobo.exceptions import NoTestsFoundException
 from nrobo.helpers.cli_parser import get_nrobo_arg_parser
+from nrobo.utils.suite_utils import detect_or_validate_suites
 
 
 def test_cli_parses_nrobo_switches_correctly_with_minimal_args(logger):
@@ -80,3 +85,25 @@ def test_cli_parses_all_nrobo_switches_and_sets_env_and_pytest_args():
     assert "--html=reports/myreport.html" in pytest_args
     assert "--alluredir=allure-results/myreport.html" in pytest_args
     assert "--basetemp=.pytest_tmp" in pytest_args
+
+
+def test_cli_handles_no_suites_gracefully(tmp_path: Path):
+    # Setup temporary settings dir
+    settings.SUITES_DIR = tmp_path / "suites"
+    settings.TESTS_DIR = tmp_path / "tests"
+
+    settings.SUITES_DIR.mkdir(parents=True, exist_ok=True)
+    settings.TESTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    # No suite files are created
+    test_argv = ["nrobo"]
+    with mock.patch.object(sys, "argv", test_argv):
+        suites, browser, args, pytest_args = get_nrobo_arg_parser()
+
+        # Attempting to resolve suites should raise NoTestsFoundException
+        with pytest.raises(
+            NoTestsFoundException,
+            match=f"❌ No test suites or pytest test files were detected."
+            f"\n   🔍 Searched in: {tmp_path}/tests",
+        ):
+            detect_or_validate_suites(suites)
