@@ -1,5 +1,12 @@
+import json
+import os
+import subprocess
+import tempfile
+
 from _pytest.config import ExitCode
 from _pytest.nodes import Item
+
+from nrobo.utils.common_utils import deduplicate_preserve_order
 
 
 def extract_test_name(item: Item) -> str:
@@ -41,3 +48,27 @@ def should_proceed(exit_code) -> bool:
 
 def no_execution_key_found(args: list):
     return any("--co" == arg for arg in args)
+
+
+def detect_fixture_usage(fixture_name, test_paths, pytest_args: list[str]):
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as tmp:
+        path = tmp.name
+    os.environ["FIXTURE_REPORT_PATH"] = path
+
+    cmd = (
+        ["pytest", "--collect-only", "-p", "nrobo.plugins.detect_fixtures_plugin"]
+        + pytest_args
+        + test_paths
+    )
+
+    # Redirect subprocess output to subprocess.DEVNULL
+    subprocess.run(
+        deduplicate_preserve_order(cmd),
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+    with open(path) as f:
+        data = json.load(f)
+    return any(fixture_name in entry["fixtures"] for entry in data)

@@ -24,7 +24,7 @@ def test_nrobo_installation_and_cli(tmp_path: Path):
 
     # Install nrobo locally in the venv
     subprocess.run(
-        [bin_dir / "pip", "install", "nrobo"],
+        [bin_dir / "pip", "install", "-e", "."],
         cwd=Path(__file__).parent.parent.parent,  # Root of nrobo project
         check=True,
     )
@@ -38,4 +38,4 @@ def test_nrobo_installation_and_cli(tmp_path: Path):
     )
 
     assert f"{settings.APP} - Smart Test Runner built on Pytest" in result.stdout
-    assert "Usage" in result.stdout
+    assert "usage" in result.stdout

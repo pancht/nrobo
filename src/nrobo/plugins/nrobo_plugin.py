@@ -10,14 +10,13 @@ from _pytest.fixtures import FixtureRequest
 from colorlog import ColoredFormatter
 from selenium.webdriver.remote.webdriver import WebDriver
 
+from nrobo.core import settings
+from nrobo.drivers.driver_factory import get_driver
+from nrobo.helpers._pytest_helper import extract_test_name
+from nrobo.helpers._pytest_xdist import grab_worker_id, is_running_with_xdist
 from nrobo.selenium_wrappers.nrobo_selenium_wrapper import (  # noqa: E501
     NRoboSeleniumWrapperClass,
 )
-
-from .core import settings
-from .drivers.driver_factory import get_driver
-from .helpers._pytest import extract_test_name
-from .helpers._pytest_xdist import grab_worker_id, is_running_with_xdist
 
 
 class nRoboWebDriverPlugin:

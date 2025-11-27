@@ -25,7 +25,6 @@ def detect_or_validate_suites(
     if suites is None:
         suites_dir = Path.cwd() / settings.SUITES_DIR
         yml_files = list(suites_dir.glob("*.yml"))
-        print(f"yml files=>{yml_files}")
 
         if yml_files:
             logger.info(
