@@ -96,7 +96,7 @@ class SeleniumWrapperBase(ABC):  # pylint: disable=R0904
 
             # Custom page load timeout
             WebDriverWait(self.driver, PAGE_LOAD_TIMEOUT).until(  # noqa: E501
-                lambda driver: driver.execute_script("return document.readyState")  # noqa: E501
+                lambda driver: driver.execute_script("return document.readyState")
                 == "complete"  # noqa: E501
             )
         except TimeoutException as te:

@@ -44,8 +44,7 @@ class WaitsClassWrapper(WebElementWrapper, ABC):
 
             # Custom page load timeout
             WebDriverWait(self.driver, PAGE_LOAD_TIMEOUT).until(
-                lambda driver: driver.execute_script("return document.readyState")  # noqa: E501
-                == "complete"
+                lambda driver: driver.execute_script("return document.readyState") == "complete"
             )
         except TimeoutException as te:
             self.logger.info(f"Exception: {te}")

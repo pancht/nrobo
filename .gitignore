@@ -213,3 +213,4 @@ screenshots
 allure-reports
 allure-results
 ./backup
+.pytest_tmp

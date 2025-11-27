@@ -45,3 +45,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+
+[flake8]
+ignore = ["E501"]
+max-line-length = 120   # optional: bump limit instead of ignoring

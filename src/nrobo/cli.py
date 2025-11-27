@@ -39,6 +39,9 @@ def main():
     logger.info(f"Suites to execute: {suites}")
     logger.debug(f"PyTest args: {pytest_args}")
 
+    # always change temp dir under project dir
+    pytest_args.extend(["--basetemp=.pytest_tmp"])
+
     pytest_options = prepare_pytest_cli_options(
         suites=suites, pytest_args=pytest_args
     )  # noqa: E501
