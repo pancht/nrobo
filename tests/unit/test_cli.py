@@ -3,14 +3,15 @@ import sys
 from logging import Logger
 from pathlib import Path
 from unittest import mock
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from nrobo import cli
 from nrobo.core import settings
 from nrobo.core.constants import ExitCodes
-from nrobo.core.exceptions import NoTestsFoundException
+from nrobo.core.exceptions import NoTestsFoundException, NRoboError
+from nrobo.helpers.test_data_helper import _create_passing_test
 from nrobo.utils.suite_utils import detect_or_validate_suites
 
 
@@ -169,3 +170,94 @@ def test_cli_returns_no_tests_found_when_no_suites_or_tests_exist(
 
     # ✅ Confirm proper exit code
     assert exit_code == ExitCodes.NO_TESTS_FOUND
+
+
+def test_cli_handles_pytest_main_exception():
+    with patch.object(sys, "argv", ["nrobo"]), patch("pytest.main", side_effect=Exception):
+        exit_code = cli.run()
+
+    # Check correct exit code is returned for internal error
+    assert exit_code == pytest.ExitCode.INTERNAL_ERROR
+
+
+def test_cli_skips_allure_report_when_results_dir_is_empty(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+):
+    """✅ Runs cli.run() with real test file and checks CLI output and exit code."""
+
+    fake_tests = tmp_path / "tests"
+    fake_suites = tmp_path / "suites"
+    fake_suites.mkdir(parents=True)
+    fake_tests.mkdir(parents=True)
+
+    _create_passing_test(fake_tests)
+
+    with (
+        patch.object(settings, "TESTS_DIR", fake_tests),
+        patch.object(settings, "SUITES_DIR", fake_suites),
+        patch.object(settings, "ALLURE_RESULTS_DIR", "abc"),
+        patch.object(
+            sys,
+            "argv",
+            [
+                "nrobo",
+                str(fake_tests),
+                "--quiet",
+                "--tb=short",
+                "--disable-warnings",
+            ],
+        ),
+        patch("nrobo.cli.Path") as mock_path_cls,
+        caplog.at_level("INFO"),
+    ):
+        # Setup mock Path instance for `allure_dir`
+        mock_allure_path = MagicMock(spec=Path)
+        mock_allure_path.exists.return_value = True
+        mock_allure_path.iterdir.return_value = iter([])
+
+        mock_path_cls.return_value = mock_allure_path
+
+        exit_code = cli.run()
+
+    assert exit_code == 0
+
+    assert "⚠️ Skipping Allure report — no results found." in caplog.text
+
+
+def test_main_exits_normally_via_run():
+    with patch("nrobo.cli.run", side_effect=SystemExit(0)) as mock_run:
+        with pytest.raises(SystemExit) as exc:
+            cli.main()
+
+        assert exc.value.code == ExitCodes.SUCCESS
+        mock_run.assert_called_once()
+
+
+def test_main_exits_on_nrobo_error():
+    mock_error = NRoboError("something went wrong")
+
+    with patch("nrobo.cli.run", side_effect=mock_error):
+        with pytest.raises(SystemExit) as exc:
+            cli.main()
+
+        assert exc.value.code == ExitCodes.INTERNAL_ERROR
+
+
+def test_main_exits_on_keyboard_interrupt_error():
+    mock_error = KeyboardInterrupt("something went wrong")
+
+    with patch("nrobo.cli.run", side_effect=mock_error):
+        with pytest.raises(SystemExit) as exc:
+            cli.main()
+
+        assert exc.value.code == ExitCodes.INTERRUPTED
+
+
+def test_main_exits_on_exception():
+    mock_error = Exception("something went wrong")
+
+    with patch("nrobo.cli.run", side_effect=mock_error):
+        with pytest.raises(SystemExit) as exc:
+            cli.main()
+
+        assert exc.value.code == ExitCodes.INTERNAL_ERROR

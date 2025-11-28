@@ -3,7 +3,6 @@ branch = True
 source = nrobo
 omit =
     */__init__.py
-    */tests/*
     */venv/*
     */.venv/*
     */node_modules/*

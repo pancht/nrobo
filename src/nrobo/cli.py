@@ -54,7 +54,7 @@ def run() -> int:
         exit_code = pytest.main(args=pytest_options)
     except Exception as e:
         logger.exception(f"❌ Exception occurred during test execution: {e}")
-        return 2  # distinct non-success code for internal failure
+        return pytest.ExitCode.INTERNAL_ERROR  # distinct non-success code for internal failure
 
     if should_proceed(exit_code) and not no_execution_key_found(pytest_options):
         logger.info("✅ All suites/tests executed successfully.")
@@ -98,11 +98,11 @@ def main() -> None:
 
     except KeyboardInterrupt:
         logger.warning("❌ Execution interrupted by user.")
-        sys.exit(130)  # Conventional SIGINT exit code
+        sys.exit(ExitCodes.INTERRUPTED)  # Conventional SIGINT exit code
 
     except Exception as e:
         logger.exception(f"Unexpected internal error: {e}")
-        sys.exit(99)  # Generic fatal error
+        sys.exit(ExitCodes.INTERNAL_ERROR)  # Generic fatal error
 
 
 if __name__ == "__main__":
