@@ -60,8 +60,7 @@ def run() -> int:
         logger.warning(
             "⚠️ Skipped report generation:\n"
             "   • Required execution keys were not found in the pytest options.\n"
-            "   • This may happen if options like '--collect-only' were used, which prevent test execution.\n"
-            "   • Ensure your test run includes actual execution flags (e.g. '--html', '--alluredir')."
+            "   • This may happen if options like '--collect-only' were used, which prevent test execution."
         )
         return ExitCodes.SUCCESS
 
