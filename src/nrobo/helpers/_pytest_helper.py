@@ -60,7 +60,7 @@ def detect_fixture_usage(fixture_name, test_paths, pytest_args: list[str]) -> bo
         + pytest_args
         + test_paths
     )
-    print(deduplicate_preserve_order(cmd))
+
     # Redirect subprocess output to subprocess.DEVNULL
     subprocess.run(
         deduplicate_preserve_order(cmd),
