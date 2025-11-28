@@ -148,7 +148,9 @@ def test_no_execution_key_used(caplog: pytest.LogCaptureFixture):
     )
 
 
-def test_no_tests_found_exception_in_cli(tmp_path: Path, caplog: pytest.LogCaptureFixture):
+def test_cli_returns_no_tests_found_when_no_suites_or_tests_exist(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+):
     """Verify CLI returns correct exit code when no tests or suites are found."""
 
     fake_suites_dir = tmp_path / "suites"
