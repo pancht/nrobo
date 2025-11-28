@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from nrobo.core import settings
-from nrobo.exceptions import NoTestsFoundException
+from nrobo.core.exceptions import NoTestsFoundException
 from nrobo.helpers.logging import get_logger
 from nrobo.helpers.validations import validate_suite_paths
 from nrobo.utils.common_utils import deduplicate_preserve_order

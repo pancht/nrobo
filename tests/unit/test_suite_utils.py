@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from nrobo.core import settings
-from nrobo.exceptions import SuiteNotFoundError
+from nrobo.core.exceptions import SuiteNotFoundError
 from nrobo.utils.suite_utils import detect_or_validate_suites
 
 

@@ -1,14 +1,23 @@
 from pathlib import Path
 
+from nrobo.core.constants import ExitCodes
+
 
 class NRoboError(Exception):
     """Base class for all nRoBo-related exceptions."""
 
-    pass
+    return_code: int = ExitCodes.INTERNAL_ERROR  # Default non-zero (generic failure)
+
+    def __init__(self, message: str, return_code: int | None = None):
+        super().__init__(message)
+        if return_code is not None:
+            self.return_code = return_code
 
 
 class SuiteNotFoundError(NRoboError, FileNotFoundError):
     """Raised when the specified suite YAML file cannot be found."""
+
+    return_code = ExitCodes.SUITE_NOT_FOUND
 
     def __init__(self, suite_path: Path):
         self.suite_path = suite_path
@@ -19,7 +28,9 @@ class SuiteNotFoundError(NRoboError, FileNotFoundError):
 class ReadSuiteFailed(NRoboError):
     """Raised when reading or parsing a suite file fails."""
 
-    def __init__(self, suite_path: Path, reason: str | Exception | None = None):  # noqa: E501
+    return_code = ExitCodes.READ_SUITE_FAILED
+
+    def __init__(self, suite_path: Path, reason: str | Exception | None = None):
         self.suite_path = suite_path
         self.reason = reason
         msg = f"⚠️ Failed to read suite: {suite_path}"
@@ -30,6 +41,8 @@ class ReadSuiteFailed(NRoboError):
 
 class DependencyNotFoundError(NRoboError):
     """Raised when a required CLI or system dependency is not available."""
+
+    return_code = ExitCodes.DEP_NOT_FOUND
 
     def __init__(self, dependency: str, install_hint: str | None = None):
         self.dependency = dependency
@@ -43,10 +56,9 @@ class DependencyNotFoundError(NRoboError):
 class NoTestsFoundException(NRoboError):
     """Raised when no test suites or pytest tests are found."""
 
-    def __init__(
-        self, reason: str | None = None, search_path: str | Path | None = None
-    ):  # noqa: E501
-        self.return_code = 5
+    return_code = ExitCodes.NO_TESTS_FOUND
+
+    def __init__(self, reason: str | None = None, search_path: str | Path | None = None):
         self.reason = reason or "No test suites or pytest test files were detected."
         self.search_path = Path(search_path) if search_path else None
 

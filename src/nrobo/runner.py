@@ -4,7 +4,7 @@ from typing import List, Optional, Union
 import yaml
 
 from nrobo.core import settings
-from nrobo.exceptions import ReadSuiteFailed, SuiteNotFoundError
+from nrobo.core.exceptions import ReadSuiteFailed, SuiteNotFoundError
 from nrobo.helpers.logging import get_logger
 
 logger = get_logger(settings.APP)

@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from nrobo.core import settings
-from nrobo.exceptions import SuiteNotFoundError
+from nrobo.core.exceptions import SuiteNotFoundError
 
 
 def validate_suite_paths(

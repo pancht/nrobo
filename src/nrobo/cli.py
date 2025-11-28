@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from nrobo.core import settings
-from nrobo.exceptions import NoTestsFoundException
+from nrobo.core.exceptions import NoTestsFoundException, NRoboError
 from nrobo.helpers.logging import get_logger
 from nrobo.helpers.reporting_helper import generate_allure_report
 from nrobo.utils.suite_utils import detect_or_validate_suites
@@ -79,8 +79,21 @@ def run() -> int:
 
 def main() -> None:
     """CLI entrypoint wrapper for nRoBo."""
-    exit_status = run()
-    sys.exit(exit_status)
+    try:
+        exit_code = run()
+        sys.exit(exit_code)
+
+    except NRoboError as e:
+        logger.error(str(e))
+        sys.exit(e.return_code)
+
+    except KeyboardInterrupt:
+        logger.warning("❌ Execution interrupted by user.")
+        sys.exit(130)  # Conventional SIGINT exit code
+
+    except Exception as e:
+        logger.exception(f"Unexpected internal error: {e}")
+        sys.exit(99)  # Generic fatal error
 
 
 if __name__ == "__main__":

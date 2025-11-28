@@ -10,7 +10,7 @@ from _pytest.config import ExitCode
 from _pytest.nodes import Item
 
 from nrobo.core import settings
-from nrobo.exceptions import NoTestsFoundException
+from nrobo.core.exceptions import NoTestsFoundException
 from nrobo.helpers.logging import get_logger
 from nrobo.utils.common_utils import deduplicate_preserve_order
 

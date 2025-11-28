@@ -2,7 +2,7 @@ import subprocess  # nosec B404
 from pathlib import Path
 
 from nrobo.core import settings
-from nrobo.exceptions import DependencyNotFoundError
+from nrobo.core.exceptions import DependencyNotFoundError
 from nrobo.helpers.arg_parsing import (
     standardize_allure_reoprt_path,
     standardize_html_reoprt_path,
