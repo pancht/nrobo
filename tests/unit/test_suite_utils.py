@@ -1,4 +1,5 @@
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -27,24 +28,24 @@ from nrobo.utils.suite_utils import detect_or_validate_suites
     ],
 )
 def test_detect_or_validate_returns_suites(arg_suite, expected, tmp_path: Path):
-    # create fake suites dir and tests dir
-    settings.SUITES_DIR = tmp_path / "suites"
-    settings.TESTS_DIR = tmp_path / "tests"
+    fake_suites_dir = tmp_path / "suites"
+    fake_tests_dir = tmp_path / "tests"
 
-    settings.SUITES_DIR.mkdir(parents=True, exist_ok=True)
-    settings.TESTS_DIR.mkdir(parents=True, exist_ok=True)
+    fake_suites_dir.mkdir(parents=True, exist_ok=True)
+    fake_tests_dir.mkdir(parents=True, exist_ok=True)
 
-    # Create fake suite files if needed
-    filenames = ["a.yml", "b.yml"]
-    created_files = []
-    for name in filenames:
-        file = settings.SUITES_DIR / name
-        file.write_text("robot_suite: true\n")
-        created_files.append(str(file))
+    # Create dummy .yml suite files
+    for name in ["a.yml", "b.yml"]:
+        (fake_suites_dir / name).write_text("robot_suite: true\n")
 
-    if hasattr(expected, "__enter__"):  # pytest.raises is a context manager
-        with pytest.raises(SuiteNotFoundError):
-            detect_or_validate_suites(arg_suite)
-    else:
-        result = detect_or_validate_suites(arg_suite)
-        assert result == expected
+    with (
+        patch.object(settings, "SUITES_DIR", fake_suites_dir),
+        patch.object(settings, "TESTS_DIR", fake_tests_dir),
+    ):
+
+        if hasattr(expected, "__enter__"):  # e.g. if expected is pytest.raises(...)
+            with expected:
+                detect_or_validate_suites(arg_suite)
+        else:
+            result = detect_or_validate_suites(arg_suite)
+            assert result == expected

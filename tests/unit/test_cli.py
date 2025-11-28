@@ -3,6 +3,7 @@ import sys
 from logging import Logger
 from pathlib import Path
 from unittest import mock
+from unittest.mock import patch
 
 import pytest
 
@@ -106,26 +107,25 @@ def test_nrobo_cli_argument_parsing(argv, expected, logger: Logger):
 
 
 def test_cli_handles_no_suites_gracefully(tmp_path: Path):
-    # Setup temporary settings dir
-    settings.SUITES_DIR = tmp_path / "suites"
-    settings.TESTS_DIR = tmp_path / "tests"
+    fake_suites_dir = tmp_path / "suites"
+    fake_tests_dir = tmp_path / "tests"
 
-    settings.SUITES_DIR.mkdir(parents=True, exist_ok=True)
-    settings.TESTS_DIR.mkdir(parents=True, exist_ok=True)
+    fake_suites_dir.mkdir(parents=True, exist_ok=True)
+    fake_tests_dir.mkdir(parents=True, exist_ok=True)
 
-    # No suite files are created
-    test_argv = ["nrobo"]
-    with mock.patch.object(sys, "argv", test_argv):
-        from nrobo.helpers.cli_parser import (
-            get_nrobo_arg_parser,  # handle circular import
-        )
+    with (
+        patch.object(settings, "SUITES_DIR", fake_suites_dir),
+        patch.object(settings, "TESTS_DIR", fake_tests_dir),
+        patch.object(sys, "argv", ["nrobo"]),
+    ):
+
+        # Import after patching to handle circular import safely
+        from nrobo.helpers.cli_parser import get_nrobo_arg_parser
 
         suites, browser, args, pytest_args = get_nrobo_arg_parser()
 
-        # Attempting to resolve suites should raise NoTestsFoundException
         with pytest.raises(
             NoTestsFoundException,
-            match=f"❌ No test suites or pytest test files were detected."
-            f"\n   🔍 Searched in: {tmp_path}/tests",
+            match=rf"❌ No test suites or pytest test files were detected.\n   🔍 Searched in: {fake_tests_dir}",
         ):
             detect_or_validate_suites(suites)
