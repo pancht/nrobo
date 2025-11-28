@@ -7,7 +7,9 @@ from unittest.mock import patch
 
 import pytest
 
+from nrobo import cli
 from nrobo.core import settings
+from nrobo.core.constants import ExitCodes
 from nrobo.core.exceptions import NoTestsFoundException
 from nrobo.utils.suite_utils import detect_or_validate_suites
 
@@ -129,3 +131,39 @@ def test_cli_handles_no_suites_gracefully(tmp_path: Path):
             match=rf"❌ No test suites or pytest test files were detected.\n   🔍 Searched in: {fake_tests_dir}",
         ):
             detect_or_validate_suites(suites)
+
+
+def test_no_execution_key_used(caplog: pytest.LogCaptureFixture):
+    with (patch.object(sys, "argv", ["nrobo", "--co"]),):
+        with caplog.at_level("INFO"):
+            exit_code = cli.run()
+
+        assert exit_code == 0
+
+    assert "⚠️ Skipped report generation:" in caplog.text
+    assert "• Required execution keys were not found in the pytest options." in caplog.text
+    assert (
+        "• This may happen if options like '--collect-only' were used, which prevent test execution."
+        in caplog.text
+    )
+
+
+def test_no_tests_found_exception_in_cli(tmp_path: Path, caplog: pytest.LogCaptureFixture):
+    """Verify CLI returns correct exit code when no tests or suites are found."""
+
+    fake_suites_dir = tmp_path / "suites"
+    fake_tests_dir = tmp_path / "tests"
+    fake_suites_dir.mkdir(parents=True)
+    fake_tests_dir.mkdir(parents=True)
+
+    argv = ["nrobo"]
+
+    with (
+        patch.object(settings, "SUITES_DIR", fake_suites_dir),
+        patch.object(settings, "TESTS_DIR", fake_tests_dir),
+        patch.object(sys, "argv", argv),
+    ):
+        exit_code = cli.run()
+
+    # ✅ Confirm proper exit code
+    assert exit_code == ExitCodes.NO_TESTS_FOUND

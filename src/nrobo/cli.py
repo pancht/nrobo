@@ -27,7 +27,11 @@ def run() -> int:
     """Main orchestration logic for nRoBo test execution."""
     suites, browser, args, pytest_args = get_nrobo_arg_parser()
 
-    suites = detect_or_validate_suites(suites=suites)
+    try:
+        suites = detect_or_validate_suites(suites=suites)
+    except NoTestsFoundException:
+        suites = None
+
     try:
         is_ui_test = detect_fixture_usage("nrobo", [settings.TESTS_DIR], pytest_args=pytest_args)
     except NoTestsFoundException as e:
@@ -52,7 +56,7 @@ def run() -> int:
         logger.exception(f"❌ Exception occurred during test execution: {e}")
         return 2  # distinct non-success code for internal failure
 
-    if should_proceed(exit_code):
+    if should_proceed(exit_code) and not no_execution_key_found(pytest_options):
         logger.info("✅ All suites/tests executed successfully.")
 
     # Skip further reporting if test run was not successful or not valid
