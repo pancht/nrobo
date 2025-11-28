@@ -35,7 +35,6 @@ def test_cli_run_executes_tests_and_returns_correct_exit_code(
     with (
         patch.object(settings, "TESTS_DIR", fake_tests_dir),
         patch.object(settings, "SUITES_DIR", fake_suites_dir),
-        patch("nrobo.cli.detect_fixture_usage", return_value=True),
         mock.patch.object(sys, "argv", ["nrobo", str(fake_tests_dir)]),
     ):
 
