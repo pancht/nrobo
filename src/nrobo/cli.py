@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 from nrobo.core import settings
+from nrobo.exceptions import NoTestsFoundException
 from nrobo.helpers.logging import get_logger
 from nrobo.helpers.reporting_helper import generate_allure_report
 from nrobo.utils.suite_utils import detect_or_validate_suites
@@ -26,7 +27,10 @@ def run() -> int:
     suites, browser, args, pytest_args = get_nrobo_arg_parser()
 
     suites = detect_or_validate_suites(suites=suites)
-    is_ui_test = detect_fixture_usage("nrobo", [settings.TESTS_DIR], pytest_args=pytest_args)
+    try:
+        is_ui_test = detect_fixture_usage("nrobo", [settings.TESTS_DIR], pytest_args=pytest_args)
+    except NoTestsFoundException as e:
+        return e.return_code
 
     # Execution banner
     if is_ui_test:

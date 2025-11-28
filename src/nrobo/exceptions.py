@@ -46,6 +46,7 @@ class NoTestsFoundException(NRoboError):
     def __init__(
         self, reason: str | None = None, search_path: str | Path | None = None
     ):  # noqa: E501
+        self.return_code = 5
         self.reason = reason or "No test suites or pytest test files were detected."
         self.search_path = Path(search_path) if search_path else None
 

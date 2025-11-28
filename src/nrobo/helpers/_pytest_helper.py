@@ -1,7 +1,6 @@
 import json
 import os
 import subprocess
-import sys
 import tempfile
 from pathlib import Path
 from subprocess import CalledProcessError
@@ -11,6 +10,7 @@ from _pytest.config import ExitCode
 from _pytest.nodes import Item
 
 from nrobo.core import settings
+from nrobo.exceptions import NoTestsFoundException
 from nrobo.helpers.logging import get_logger
 from nrobo.utils.common_utils import deduplicate_preserve_order
 
@@ -105,7 +105,7 @@ def detect_fixture_usage(fixture_name: str, test_paths: List[str], pytest_args: 
                     "  - Confirm your environment is properly configured and test paths exist."
                 )
 
-                sys.exit(5)
+                raise NoTestsFoundException()
 
         with report_path.open("r", encoding="utf-8") as f:
             data = json.load(f)
