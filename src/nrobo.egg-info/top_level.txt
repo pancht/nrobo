@@ -1,4 +1,0 @@
-allure-results
-logs
-nrobo
-reports
