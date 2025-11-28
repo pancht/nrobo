@@ -48,11 +48,3 @@ def test_detect_or_validate_returns_suites(arg_suite, expected, tmp_path: Path):
     else:
         result = detect_or_validate_suites(arg_suite)
         assert result == expected
-
-
-#
-#
-# @patch("nrobo.utils.suite_utils.resolve_suites", return_value=[])
-# def test_detect_or_validate_raises_exception_when_none_found(mock_resolve):
-#     with pytest.raises(NoTestsFoundException, match="No test suites"):
-#         detect_or_validate_suites([])
