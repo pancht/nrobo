@@ -89,7 +89,22 @@ def detect_fixture_usage(fixture_name: str, test_paths: List[str], pytest_args: 
             )
         except CalledProcessError as cpe:
             if cpe.returncode == 5:
-                logger.error("No tests are collected!")
+                logger.error("❌ No tests were collected by pytest.")
+                logger.warning("ℹ️ Troubleshooting Tips:")
+                logger.warning(
+                    "  - Check that your test files follow naming conventions (e.g. `test_*.py`)."
+                )
+                logger.warning(
+                    "  - Ensure there are actual test functions/classes inside those files."
+                )
+                logger.warning("  - Ensure correct `test-file`/`suite-file` is provided.")
+                logger.warning(
+                    "  - Verify that `pytest_args` and `test_paths` point to valid test files or directories."
+                )
+                logger.warning(
+                    "  - Confirm your environment is properly configured and test paths exist."
+                )
+
                 sys.exit(5)
 
         with report_path.open("r", encoding="utf-8") as f:
