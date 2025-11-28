@@ -23,7 +23,7 @@ def detect_or_validate_suites(
         SuiteNotFoundError: If no suites found.
     """
     if suites is None:
-        suites_dir = Path.cwd() / settings.SUITES_DIR
+        suites_dir = Path(settings.SUITES_DIR).resolve()
         yml_files = list(suites_dir.glob("*.yml"))
 
         if yml_files:
