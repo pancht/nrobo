@@ -8,7 +8,6 @@ import pytest
 
 from nrobo.core import settings
 from nrobo.exceptions import NoTestsFoundException
-from nrobo.helpers.cli_parser import get_nrobo_arg_parser
 from nrobo.utils.suite_utils import detect_or_validate_suites
 
 
@@ -82,6 +81,8 @@ from nrobo.utils.suite_utils import detect_or_validate_suites
     ids=["with_zero_args", "all_nrobo_args_with_default_reporting_and_pytest_args"],
 )
 def test_nrobo_cli_argument_parsing(argv, expected, logger: Logger):
+    from nrobo.helpers.cli_parser import get_nrobo_arg_parser  # handle circular import
+
     with mock.patch.object(sys, "argv", argv):
         suites, browser, args, pytest_args = get_nrobo_arg_parser()
 
@@ -115,6 +116,10 @@ def test_cli_handles_no_suites_gracefully(tmp_path: Path):
     # No suite files are created
     test_argv = ["nrobo"]
     with mock.patch.object(sys, "argv", test_argv):
+        from nrobo.helpers.cli_parser import (
+            get_nrobo_arg_parser,  # handle circular import
+        )
+
         suites, browser, args, pytest_args = get_nrobo_arg_parser()
 
         # Attempting to resolve suites should raise NoTestsFoundException

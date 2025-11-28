@@ -1,9 +1,11 @@
 import argparse
 import os
 import sys
+from unittest import mock
 
 import pytest
 
+from nrobo import cli
 from nrobo.core import settings
 from nrobo.helpers.logging import get_logger, set_logger_level
 from nrobo.helpers.reporting_helper import prepare_reporting_args
@@ -118,3 +120,38 @@ def get_nrobo_arg_parser():
     unknown_args = prepare_reporting_args(pytest_args=unknown_args)
     logger.debug(f"Final PyTest Options=>{unknown_args}")
     return suites, browser, args, unknown_args
+
+
+def test_cli_executes_pytest_main_and_returns_exit_code():
+    test_argv = [
+        "nrobo",
+        "--suite",
+        "suite1.yml",
+        "--browser",
+        "chrome",
+    ]
+
+    with (
+        mock.patch.object(sys, "argv", test_argv),
+        mock.patch("nrobo.cli.pytest.main", return_value=0) as mock_pytest_main,
+        mock.patch("nrobo.cli.detect_or_validate_suites", return_value=["suite1.yml"]),
+        mock.patch("nrobo.cli.get_nrobo_arg_parser") as mock_parser,
+        mock.patch("nrobo.cli.should_proceed", return_value=False),
+        mock.patch("nrobo.cli.no_execution_key_found", return_value=False),
+    ):
+        # Mock parser return: (suites, browser, args, pytest_args)
+        mock_args = mock.Mock()
+        mock_args.no_headless = True
+        mock_args.cov = False
+        mock_args.debug = False
+        mock_parser.return_value = (
+            ["suite1.yml"],
+            "chrome",
+            mock_args,
+            ["--html=reports/report.html"],
+        )
+
+        result = cli.main()
+
+    mock_pytest_main.assert_called_once_with(args=["--html=reports/report.html"])
+    assert result == 0

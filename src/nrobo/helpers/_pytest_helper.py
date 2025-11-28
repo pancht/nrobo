@@ -50,7 +50,7 @@ def no_execution_key_found(args: list):
     return any("--co" == arg for arg in args)
 
 
-def detect_fixture_usage(fixture_name, test_paths, pytest_args: list[str]):
+def detect_fixture_usage(fixture_name, test_paths, pytest_args: list[str]) -> bool:
     with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as tmp:
         path = tmp.name
     os.environ["FIXTURE_REPORT_PATH"] = path
@@ -60,7 +60,7 @@ def detect_fixture_usage(fixture_name, test_paths, pytest_args: list[str]):
         + pytest_args
         + test_paths
     )
-
+    print(deduplicate_preserve_order(cmd))
     # Redirect subprocess output to subprocess.DEVNULL
     subprocess.run(
         deduplicate_preserve_order(cmd),
