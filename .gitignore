@@ -214,3 +214,5 @@ allure-reports
 allure-results
 ./backup
 .pytest_tmp
+src/nrobo.egg-info
+**/__pycache__/
