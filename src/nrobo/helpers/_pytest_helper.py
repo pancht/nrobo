@@ -55,7 +55,7 @@ def should_proceed(exit_code) -> bool:
 
 
 def no_execution_key_found(args: list):
-    return any("--co" == arg for arg in args)
+    return any(arg in ["--co", "--collect-only"] for arg in args)
 
 
 def detect_fixture_usage(fixture_name: str, test_paths: List[str], pytest_args: List[str]):
@@ -105,8 +105,14 @@ def detect_fixture_usage(fixture_name: str, test_paths: List[str], pytest_args: 
                 logger.warning(
                     "  - Confirm your environment is properly configured and test paths exist."
                 )
+            if cpe.returncode == 4:
+                logger.error("❌ pytest command line usage error")
+                logger.warning("ℹ️ Troubleshooting Tips:")
+                logger.warning(
+                    "  - Check if arguments passed are correct pytest args. Check following link: https://docs.pytest.org/en/stable/reference/reference.html?utm_source=chatgpt.com#command-line-flags"
+                )
 
-                raise NoTestsFoundException()
+            raise NoTestsFoundException()
 
         with report_path.open("r", encoding="utf-8") as f:
             data = json.load(f)

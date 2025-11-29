@@ -44,7 +44,8 @@ from nrobo.utils.suite_utils import detect_or_validate_suites
                 "pytest_args": {
                     "--html=reports/report.html",
                     "--self-contained-html",
-                    "--alluredir=allure-results",
+                    "--alluredir",
+                    "allure-results",
                     "--basetemp=.pytest_tmp",
                 },
             },
@@ -61,7 +62,8 @@ from nrobo.utils.suite_utils import detect_or_validate_suites
                 "--no-headless",
                 "--coverage",
                 "--html=xyz/abc/myreport.html",
-                "--alluredir=abc/myreport.html",
+                "--alluredir",
+                "abc/myreport.html",
             ],
             {
                 "suites": ["suite1.yml", "suite2.yml"],
@@ -83,7 +85,8 @@ from nrobo.utils.suite_utils import detect_or_validate_suites
                     "--cov-report=term-missing",
                     "--cov-fail-under=90",
                     "--html=reports/myreport.html",
-                    "--alluredir=allure-results/myreport.html",
+                    "--alluredir",
+                    "allure-results",
                     "--basetemp=.pytest_tmp",
                 },
             },
@@ -305,7 +308,7 @@ def test_detect_fixture_usage_raises_no_tests_found_exception():
     """Should raise NoTestsFoundException when pytest collects no tests (exit code 5)."""
 
     mock_called_process_error = subprocess.CalledProcessError(
-        returncode=5, cmd=["pytest", "--collect-only"]
+        returncode=5, cmd=["nrobo", "--collect-only"]
     )
 
     with patch(

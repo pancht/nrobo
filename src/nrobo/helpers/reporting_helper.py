@@ -41,7 +41,7 @@ def prepare_reporting_args(pytest_args: list[str]) -> list[str]:
     if any(f"--{settings.REPORT_TYPE_ALLURE}" in arg for arg in pytest_args):
         pytest_args = standardize_allure_reoprt_path(pytest_args)
     else:
-        pytest_args.extend([f"--alluredir={settings.ALLURE_RESULTS_DIR}"])
+        pytest_args.extend(["--alluredir", settings.ALLURE_RESULTS_DIR])
 
     return pytest_args
 

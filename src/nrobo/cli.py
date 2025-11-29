@@ -33,7 +33,9 @@ def run() -> int:
         suites = None
 
     try:
-        is_ui_test = detect_fixture_usage("nrobo", [settings.TESTS_DIR], pytest_args=pytest_args)
+        is_ui_test = detect_fixture_usage(
+            "nrobo", [str(settings.TESTS_DIR)], pytest_args=pytest_args
+        )
     except NoTestsFoundException as e:
         return e.return_code
 
