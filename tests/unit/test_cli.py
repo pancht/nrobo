@@ -12,6 +12,7 @@ from nrobo import cli
 from nrobo.core import settings
 from nrobo.core.constants import ExitCodes
 from nrobo.core.exceptions import NoTestsFoundException, NRoboError
+from nrobo.helpers._pytest_helper import detect_fixture_usage
 from nrobo.helpers.test_data_helper import _create_passing_test
 from nrobo.helpers.test_helper import _create_coveragerc_tmp_file
 from nrobo.utils.suite_utils import detect_or_validate_suites
@@ -265,7 +266,7 @@ def test_main_exits_on_exception():
         assert exc.value.code == ExitCodes.INTERNAL_ERROR
 
 
-def test_run_with_mocked_args_to_prepare_pytest_cli_options_subprocess(tmp_path: Path):
+def test_cli_runs_with_coverage_config_and_suppresses_warnings(tmp_path: Path):
     fake_tests = tmp_path / "tests"
     fake_suites = tmp_path / "suites"
     fake_tests.mkdir()
@@ -295,3 +296,17 @@ def test_run_with_mocked_args_to_prepare_pytest_cli_options_subprocess(tmp_path:
     )
 
     assert result.returncode == 4, f"Test failed:\n{result.stdout}"
+
+
+def test_detect_fixture_usage_raises_no_tests_found_exception():
+    """Should raise NoTestsFoundException when pytest collects no tests (exit code 5)."""
+
+    mock_called_process_error = subprocess.CalledProcessError(
+        returncode=5, cmd=["pytest", "--collect-only"]
+    )
+
+    with patch(
+        "nrobo.helpers._pytest_helper.subprocess.run", side_effect=mock_called_process_error
+    ):
+        with pytest.raises(NoTestsFoundException):
+            detect_fixture_usage(fixture_name="nrobo", test_paths=["tests"], pytest_args=[])

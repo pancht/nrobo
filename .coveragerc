@@ -10,6 +10,7 @@ omit =
     */node_modules/*
     */backup/*
     */selenium_wrappers/*
+    build_and_publish.py
 
 [report]
 show_missing = True
