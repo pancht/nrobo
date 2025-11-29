@@ -76,7 +76,7 @@ def run() -> int:
         logger.warning("⚠️ Skipping Allure report — no results found.")
 
     # Handle coverage report path if requested
-    if getattr(args, "cov", False):
+    if getattr(args, "coverage", False):
         coverage_path = Path("htmlcov/index.html")
         if coverage_path.exists():
             logger.info(f"📈 Coverage report available → file://{coverage_path.resolve()}")

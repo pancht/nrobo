@@ -1,22 +1,10 @@
 import subprocess
 import sys
-import textwrap
 from pathlib import Path
 from unittest.mock import patch
 
 from nrobo.core import settings
-
-
-def _create_sample_test(test_dir: Path):
-    test_dir.mkdir(parents=True, exist_ok=True)
-    (test_dir / "test_sample.py").write_text(
-        textwrap.dedent(
-            """
-        def test_addition():
-            assert 1 + 1 == 2
-    """
-        )
-    )
+from nrobo.helpers.test_helper import _create_sample_test
 
 
 def test___main___invokes_cli_main(tmp_path: Path):

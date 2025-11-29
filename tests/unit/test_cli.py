@@ -1,4 +1,5 @@
 import os
+import subprocess
 import sys
 from logging import Logger
 from pathlib import Path
@@ -12,6 +13,7 @@ from nrobo.core import settings
 from nrobo.core.constants import ExitCodes
 from nrobo.core.exceptions import NoTestsFoundException, NRoboError
 from nrobo.helpers.test_data_helper import _create_passing_test
+from nrobo.helpers.test_helper import _create_coveragerc_tmp_file
 from nrobo.utils.suite_utils import detect_or_validate_suites
 
 
@@ -31,7 +33,7 @@ from nrobo.utils.suite_utils import detect_or_validate_suites
                 "args": {
                     "debug": False,
                     "init": False,
-                    "cov": False,
+                    "coverage": False,
                     "no_headless": False,
                 },
                 "pytest_args": {
@@ -52,7 +54,7 @@ from nrobo.utils.suite_utils import detect_or_validate_suites
                 "--browser",
                 "chrome",
                 "--no-headless",
-                "--cov",
+                "--coverage",
                 "--html=xyz/abc/myreport.html",
                 "--alluredir=abc/myreport.html",
             ],
@@ -67,7 +69,7 @@ from nrobo.utils.suite_utils import detect_or_validate_suites
                 "args": {
                     "debug": True,
                     "init": False,
-                    "cov": True,
+                    "coverage": True,
                     "no_headless": True,
                 },
                 "pytest_args": {
@@ -261,3 +263,35 @@ def test_main_exits_on_exception():
             cli.main()
 
         assert exc.value.code == ExitCodes.INTERNAL_ERROR
+
+
+def test_run_with_mocked_args_to_prepare_pytest_cli_options_subprocess(tmp_path: Path):
+    fake_tests = tmp_path / "tests"
+    fake_suites = tmp_path / "suites"
+    fake_tests.mkdir()
+    fake_suites.mkdir()
+
+    _create_passing_test(fake_tests)
+    coveragerc_file = _create_coveragerc_tmp_file(tmp_path)
+
+    # Build the pytest command with filterwarnings
+    cmd = [
+        sys.executable,
+        "-m",
+        "pytest",
+        str(fake_tests),
+        "--coverage",
+        str(fake_tests),
+        "--cov-report=html",
+        "--cov-report=term-missing",
+        "--cov-fail-under=90",
+        f"--cov-config={str(coveragerc_file)}",
+        "-W",
+        "ignore::CoverageWarning",  # 👈 suppress the coverage warning
+    ]
+
+    result = subprocess.run(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, check=False
+    )
+
+    assert result.returncode == 4, f"Test failed:\n{result.stdout}"
