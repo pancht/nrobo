@@ -6,7 +6,7 @@ import pytest
 from nrobo.core import settings
 from nrobo.core.constants import ExitCodes
 from nrobo.core.exceptions import NoTestsFoundException, NRoboError
-from nrobo.helpers.logging import get_logger
+from nrobo.helpers.logging_helper import get_logger
 from nrobo.helpers.reporting_helper import generate_allure_report
 from nrobo.utils.suite_utils import detect_or_validate_suites
 

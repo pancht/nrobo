@@ -2,7 +2,7 @@ import importlib.resources as res
 from pathlib import Path
 
 from nrobo.core import settings
-from nrobo.helpers.logging import get_logger
+from nrobo.helpers.logging_helper import get_logger
 
 logger = get_logger(name=settings.APP)
 

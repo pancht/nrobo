@@ -7,7 +7,7 @@ from nrobo.helpers.arg_parsing import (
     standardize_allure_reoprt_path,
     standardize_html_reoprt_path,
 )
-from nrobo.helpers.logging import get_logger
+from nrobo.helpers.logging_helper import get_logger
 
 logger = get_logger(name=settings.APP)
 

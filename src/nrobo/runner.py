@@ -5,7 +5,7 @@ import yaml
 
 from nrobo.core import settings
 from nrobo.core.exceptions import ReadSuiteFailed, SuiteNotFoundError
-from nrobo.helpers.logging import get_logger
+from nrobo.helpers.logging_helper import get_logger
 
 logger = get_logger(settings.APP)
 

@@ -5,7 +5,7 @@ import sys
 import pytest
 
 from nrobo.core import settings
-from nrobo.helpers.logging import get_logger, set_logger_level
+from nrobo.helpers.logging_helper import get_logger, set_logger_level
 from nrobo.helpers.reporting_helper import prepare_reporting_args
 from nrobo.utils.command_utils import initialize_project
 

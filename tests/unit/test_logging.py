@@ -2,7 +2,7 @@ import logging
 
 from colorlog import ColoredFormatter
 
-from nrobo.helpers.logging import get_logger, set_logger_level
+from nrobo.helpers.logging_helper import get_logger, set_logger_level
 
 
 def test_logger_level_change_is_isolated(caplog):
@@ -41,3 +41,34 @@ def test_get_logger_returns_configured_logger(caplog):
         logger.info("🔥 Test log message")
 
     assert "🔥 Test log message" in caplog.text
+
+
+def test_set_logger_level_updates_handlers_and_logger_level():
+    # Create a logger with both stream and file handlers
+    logger = logging.getLogger("test_logger_nrobo")
+    logger.handlers = []  # clear existing handlers
+    logger.propagate = False
+
+    stream_handler = logging.StreamHandler()
+    file_handler = logging.FileHandler(filename="dummy.log", mode="w")
+    logger.addHandler(stream_handler)
+    logger.addHandler(file_handler)
+
+    # Initially set both to WARNING
+    stream_handler.setLevel(logging.WARNING)
+    file_handler.setLevel(logging.WARNING)
+
+    # Change levels via the function
+    set_logger_level(logger, stream_level=logging.DEBUG, file_level=logging.ERROR)
+
+    # Assert the new levels
+    assert stream_handler.level == logging.DEBUG
+    assert file_handler.level == logging.ERROR
+    # Logger's level should be the minimum of all handler levels
+    assert logger.level == min(h.level for h in logger.handlers)
+
+    # Cleanup dummy file
+    file_handler.close()
+    import os
+
+    os.remove("dummy.log")
