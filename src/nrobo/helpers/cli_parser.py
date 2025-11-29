@@ -5,7 +5,8 @@ import sys
 import pytest
 
 from nrobo.core import settings
-from nrobo.helpers.logging import get_logger, set_logger_level
+from nrobo.helpers.logging_helper import get_logger, set_logger_level
+from nrobo.helpers.reporting_helper import prepare_reporting_args
 from nrobo.utils.command_utils import initialize_project
 
 logger = get_logger(name=settings.APP)
@@ -15,6 +16,7 @@ def get_nrobo_arg_parser():
     parser = argparse.ArgumentParser(
         description=f"{settings.APP} - Smart Test Runner built on Pytest",
         add_help=True,
+        allow_abbrev=False,  # ⛔ Prevents "--co" from resolving to "--cov"
     )
 
     parser.add_argument(
@@ -49,7 +51,7 @@ def get_nrobo_arg_parser():
         help=f"Initialize a new {settings.APP} project with sample suite and tests.",  # noqa: E501
     )
     parser.add_argument(
-        "--cov",
+        "--coverage",
         action="store_true",
         default=False,
         help="Enable coverage reporting for the nRoBo framework. Used for nRobo framework coverage report!",  # noqa: E501
@@ -91,13 +93,16 @@ def get_nrobo_arg_parser():
         os.environ["NROBO_DEBUG"] = "True"
         settings.DEBUG = True
         set_logger_level(logger=logger, stream_level=10, file_level=10)
+    else:
+        os.environ["NROBO_DEBUG"] = "False"
+        settings.DEBUG = False
 
     # update args
     os.environ["NROBO_BROWSER"] = browser
 
     os.environ["NROBO_HEADLESS"] = str(not args.no_headless)
 
-    if args.cov:
+    if args.coverage:
         unknown_args.extend(
             [
                 "--cov=nrobo",  # measure coverage for your framework package
@@ -110,5 +115,6 @@ def get_nrobo_arg_parser():
     # always change temp dir under project dir
     unknown_args.extend(["--basetemp=.pytest_tmp"])
 
-    # e.g., ['-v', '-s', '--maxfail=1']
+    unknown_args = prepare_reporting_args(pytest_args=unknown_args)
+    logger.debug(f"Final PyTest Options=>{unknown_args}")
     return suites, browser, args, unknown_args

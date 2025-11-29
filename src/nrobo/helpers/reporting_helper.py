@@ -2,12 +2,12 @@ import subprocess  # nosec B404
 from pathlib import Path
 
 from nrobo.core import settings
-from nrobo.exceptions import DependencyNotFoundError
+from nrobo.core.exceptions import DependencyNotFoundError
 from nrobo.helpers.arg_parsing import (
     standardize_allure_reoprt_path,
     standardize_html_reoprt_path,
 )
-from nrobo.helpers.logging import get_logger
+from nrobo.helpers.logging_helper import get_logger
 
 logger = get_logger(name=settings.APP)
 
@@ -41,7 +41,7 @@ def prepare_reporting_args(pytest_args: list[str]) -> list[str]:
     if any(f"--{settings.REPORT_TYPE_ALLURE}" in arg for arg in pytest_args):
         pytest_args = standardize_allure_reoprt_path(pytest_args)
     else:
-        pytest_args.extend([f"--alluredir={settings.ALLURE_RESULTS_DIR}"])
+        pytest_args.extend(["--alluredir", settings.ALLURE_RESULTS_DIR])
 
     return pytest_args
 

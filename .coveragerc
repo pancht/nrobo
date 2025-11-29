@@ -1,13 +1,16 @@
 [run]
+patch = subprocess
 branch = True
-source = nrobo
+source = src/nrobo
+disable_warnings = no-data-collected
 omit =
     */__init__.py
-    */tests/*
     */venv/*
     */.venv/*
     */node_modules/*
     */backup/*
+    */selenium_wrappers/*
+    build_and_publish.py
 
 [report]
 show_missing = True

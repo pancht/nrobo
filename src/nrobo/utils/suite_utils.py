@@ -1,8 +1,8 @@
 from pathlib import Path
 
 from nrobo.core import settings
-from nrobo.exceptions import NoTestsFoundException
-from nrobo.helpers.logging import get_logger
+from nrobo.core.exceptions import NoTestsFoundException
+from nrobo.helpers.logging_helper import get_logger
 from nrobo.helpers.validations import validate_suite_paths
 from nrobo.utils.common_utils import deduplicate_preserve_order
 from nrobo.utils.tests_discovery_utils import has_pytest_tests
@@ -23,7 +23,7 @@ def detect_or_validate_suites(
         SuiteNotFoundError: If no suites found.
     """
     if suites is None:
-        suites_dir = Path.cwd() / settings.SUITES_DIR
+        suites_dir = Path(settings.SUITES_DIR).resolve()
         yml_files = list(suites_dir.glob("*.yml"))
 
         if yml_files:

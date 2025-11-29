@@ -137,15 +137,20 @@ class nRoboWebDriverPlugin:
             logger.info(f"Test Status: {report.outcome.upper()}")
             logger.info(f"Duration: {duration:.2f} seconds")
 
-        # Example: Attach screenshot if Selenium driver present and failure
-        # Get driver from item
         wrapper: NRoboSeleniumWrapperClass = getattr(item, "_driver_wrapper", None)  # noqa: E501
         if wrapper is not None and report.outcome == "failed":
             screenshots_dir = os.path.join("screenshots")
             os.makedirs(screenshots_dir, exist_ok=True)
-            screenshot_file = os.path.join(  # noqa: F841
-                screenshots_dir, f"{final_test_name}.png"
-            )  # noqa: E841, E501
+            try:
+                screenshot_file = os.path.join(  # noqa: F841
+                    screenshots_dir, f"{final_test_name}.png"
+                )
+            except UnboundLocalError:  # noqa: E841, E501
+                final_test_name = test_name = "unbounded_local_filename"
+                screenshot_file = os.path.join(  # noqa: F841
+                    screenshots_dir, f"{final_test_name}.png"
+                )
+
             try:
                 screenshot_bytes = wrapper.driver.get_screenshot_as_base64()
                 screenshot_as_png = wrapper.driver.get_screenshot_as_png()
@@ -171,13 +176,16 @@ class nRoboWebDriverPlugin:
                 logging.getLogger(f"{settings.APP}.{test_name}").warning(
                     f"Could not save screenshot: {e}"
                 )  # noqa: E501
+            except KeyError:
+                pass
 
     def pytest_configure(self, config: Config):
         # Ensure default alluredir is used if not set
-        alluredir = getattr(config.option, "alluredir", None)
-        if not alluredir:
-            config.option.alluredir = "allure-results"
-        os.makedirs(config.option.alluredir, exist_ok=True)
+        # alluredir = getattr(config.option, "alluredir", None)
+        # if not alluredir:
+        #     config.option.alluredir = "allure-results"
+        # os.makedirs(config.option.alluredir, exist_ok=True)
+        pass
 
 
 def pytest_configure(config):

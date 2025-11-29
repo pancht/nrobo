@@ -5,7 +5,17 @@ from nrobo.core import settings
 
 def standardize_reoprt_path(report_type: str, report_dir: str, args: list):
     for i, arg in enumerate(args):
-        if arg.startswith(f"--{report_type}="):
+        if (
+            arg.startswith(f"--{settings.REPORT_TYPE_ALLURE}")
+            and report_type == settings.REPORT_TYPE_ALLURE
+        ):
+            args[i + 1] = settings.ALLURE_RESULTS_DIR
+            break  # no transformation needed
+
+        if (
+            arg.startswith(f"--{settings.REPORT_TYPE_HTML}")
+            and report_type == settings.REPORT_TYPE_HTML
+        ):
             path = arg.split("=", 1)[1]  # e.g. "report3/report.html"
             file_name = os.path.basename(path)  # -> "report.html"
             new_path = os.path.join(report_dir, file_name)  # -> "reports/report.html" # noqa: E501
