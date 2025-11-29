@@ -40,7 +40,7 @@ jobs:
         run: python -m flake8 src/nrobo
 
       - name: Run tests
-        run: nrobo --cov
+        run: nrobo --cov -n auto
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
