@@ -137,8 +137,6 @@ class nRoboWebDriverPlugin:
             logger.info(f"Test Status: {report.outcome.upper()}")
             logger.info(f"Duration: {duration:.2f} seconds")
 
-        # Example: Attach screenshot if Selenium driver present and failure
-        # Get driver from item
         wrapper: NRoboSeleniumWrapperClass = getattr(item, "_driver_wrapper", None)  # noqa: E501
         if wrapper is not None and report.outcome == "failed":
             screenshots_dir = os.path.join("screenshots")

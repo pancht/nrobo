@@ -57,7 +57,7 @@ def _create_a_failing_ui_test(test_dir: Path) -> Path:
     return fake_test_py_file
 
 
-def _create_a_coveragerc_tmp_file(root_path: Path):
+def _create_coveragerc_tmp_file(root_path: Path):
     root_path.mkdir(parents=True, exist_ok=True)
     (root_path / ".coveragerc").write_text(
         textwrap.dedent(

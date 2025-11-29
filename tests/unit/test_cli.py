@@ -15,9 +15,9 @@ from nrobo.core.constants import ExitCodes
 from nrobo.core.exceptions import NoTestsFoundException, NRoboError
 from nrobo.helpers._pytest_helper import detect_fixture_usage, should_proceed
 from nrobo.helpers.test_helper import (
-    _create_a_coveragerc_tmp_file,
     _create_a_failing_test,
     _create_a_passing_test,
+    _create_coveragerc_tmp_file,
 )
 from nrobo.utils.suite_utils import detect_or_validate_suites
 
@@ -276,7 +276,7 @@ def test_cli_runs_with_coverage_config_and_suppresses_warnings(tmp_path: Path):
     fake_suites.mkdir()
 
     _create_a_passing_test(fake_tests)
-    coveragerc_file = _create_a_coveragerc_tmp_file(tmp_path)
+    coveragerc_file = _create_coveragerc_tmp_file(tmp_path)
 
     # Build the pytest command with filterwarnings
     cmd = [
