@@ -19,7 +19,7 @@ def deduplicate_preserve_order(items: list[str]) -> list[str]:
 def generate_custom_id():
     timestamp = int(time.time() * 1000)
     random_part = secrets.token_hex(4)
-    return f"id-{timestamp}-{random_part}"
+    return f"id_{timestamp}_{random_part}"
 
 
 def normalize_cli_output(output: str) -> str:
