@@ -36,8 +36,8 @@ def test_nrobo_settings_default_constants_are_valid():
     assert settings.LOG_FORMAT_FILE == "%(asctime)s - %(levelname)s - %(message)s"
 
     assert settings.LOG_DIR == "logs"
-    assert settings.SUITES_DIR == "suites"
-    assert settings.TESTS_DIR == "tests"
+    assert str(settings.SUITES_DIR) == "suites"
+    assert str(settings.TESTS_DIR) == "tests"
     assert settings.UI_DIR == "ui"
     assert settings.MOBILE_DIR == "mobile"
     assert settings.API_DIR == "api"
