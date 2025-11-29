@@ -1,11 +1,10 @@
 import importlib.resources as res
 from pathlib import Path
 
-from rich.console import Console
-
 from nrobo.core import settings
+from nrobo.helpers.logging import get_logger
 
-console = Console()
+logger = get_logger(name=settings.APP)
 
 
 def initialize_project():
@@ -22,36 +21,34 @@ def initialize_project():
     page_dir = base_dir / settings.PAGE_OBJECT_DIR
     test_data_dir = base_dir / settings.TEST_DATA_DIR
 
-    suites_dir.mkdir(exist_ok=True)
-    tests_dir.mkdir(exist_ok=True)
-    ui_dir.mkdir(exist_ok=True)
-    api_dir.mkdir(exist_ok=True)
-    mobile_dir.mkdir(exist_ok=True)
-    reports_dir.mkdir(exist_ok=True)
-    allure_reports_dir.mkdir(exist_ok=True)
-    allure_results_dir.mkdir(exist_ok=True)
-    logs_dir.mkdir(exist_ok=True)
-    page_dir.mkdir(exist_ok=True)
-    test_data_dir.mkdir(exist_ok=True)
+    suites_dir.mkdir(parents=True, exist_ok=True)
+    tests_dir.mkdir(parents=True, exist_ok=True)
+    ui_dir.mkdir(parents=True, exist_ok=True)
+    api_dir.mkdir(parents=True, exist_ok=True)
+    mobile_dir.mkdir(parents=True, exist_ok=True)
+    reports_dir.mkdir(parents=True, exist_ok=True)
+    allure_reports_dir.mkdir(parents=True, exist_ok=True)
+    allure_results_dir.mkdir(parents=True, exist_ok=True)
+    logs_dir.mkdir(parents=True, exist_ok=True)
+    page_dir.mkdir(parents=True, exist_ok=True)
+    test_data_dir.mkdir(parents=True, exist_ok=True)
 
     # Copy template files from package templates
-    with res.files("nrobo.templates").joinpath("google_test_suite.yml").open(
-        "rb"
-    ) as src:  # noqa: E501
-        (suites_dir / "google_test_suite.yml").write_bytes(src.read())
+    with res.files("nrobo.templates").joinpath("sample_suite.yml").open("rb") as src:  # noqa: E501
+        (suites_dir / "sample_suite.yml").write_bytes(src.read())
 
     with res.files("nrobo.templates").joinpath("test_sample.py").open("rb") as src:  # noqa: E501
         (ui_dir / "test_sample.py").write_bytes(src.read())
 
-    with res.files("nrobo.templates").joinpath("test_sample_another.py").open(
-        "rb"
-    ) as src:  # noqa: E501
+    with (
+        res.files("nrobo.templates").joinpath("test_sample_another.py").open("rb") as src
+    ):  # noqa: E501
         (ui_dir / "test_sample_another.py").write_bytes(src.read())
 
     #
 
-    console.print(f"✨ [bold green]{settings.APP} project initialized![/]")
-    console.print("📂 Created: suites/, tests/")
-    console.print(
+    logger.info(f"✨ [bold green]{settings.APP} project initialized![/]")
+    logger.info("📂 Created: suites/, tests/")
+    logger.info(
         "🧩 Added: sample_suite.yml + test_sample.py + test_sample_another.py"  # noqa: E501
     )  # noqa: E501
