@@ -183,10 +183,11 @@ class nRoboWebDriverPlugin:
 
     def pytest_configure(self, config: Config):
         # Ensure default alluredir is used if not set
-        alluredir = getattr(config.option, "alluredir", None)
-        if not alluredir:
-            config.option.alluredir = "allure-results"
-        os.makedirs(config.option.alluredir, exist_ok=True)
+        # alluredir = getattr(config.option, "alluredir", None)
+        # if not alluredir:
+        #     config.option.alluredir = "allure-results"
+        # os.makedirs(config.option.alluredir, exist_ok=True)
+        pass
 
 
 def pytest_configure(config):
