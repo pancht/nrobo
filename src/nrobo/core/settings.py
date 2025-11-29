@@ -38,8 +38,8 @@ LOG_FORMAT_FILE = "%(asctime)s - %(levelname)s - %(message)s"
 
 # standard directories
 LOG_DIR = "logs"
-SUITES_DIR = "suites"
-TESTS_DIR = "tests"
+SUITES_DIR = Path(os.getenv("NROBO_SUITES_DIR", "suites"))
+TESTS_DIR = Path(os.getenv("NROBO_TESTS_DIR", "tests"))
 UI_DIR = "ui"
 MOBILE_DIR = "mobile"
 API_DIR = "api"
