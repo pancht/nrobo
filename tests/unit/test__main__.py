@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from nrobo.core import settings
-from nrobo.helpers.test_helper import _create_sample_test
+from nrobo.helpers.test_helper import _create_a_passing_test
 
 
 def test___main___invokes_cli_main(tmp_path: Path):
@@ -13,7 +13,7 @@ def test___main___invokes_cli_main(tmp_path: Path):
     fake_tests = tmp_path / "tests"
     fake_suites = tmp_path / "suites"
 
-    _create_sample_test(fake_tests)
+    _create_a_passing_test(fake_tests)
     fake_suites.mkdir()
 
     with (

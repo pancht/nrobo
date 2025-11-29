@@ -6,8 +6,7 @@ import pytest
 
 from nrobo import cli
 from nrobo.core import settings
-from nrobo.helpers.test_data_helper import _create_passing_test
-from nrobo.helpers.test_helper import _create_sample_failing_ui_test
+from nrobo.helpers.test_helper import _create_a_failing_ui_test, _create_a_passing_test
 
 
 @patch(
@@ -55,8 +54,8 @@ def test_cli_run_executes_tests_and_returns_correct_exit_code(
     for each_project_item in project_struct:
         assert each_project_item.exists()
 
-    _create_passing_test(fake_tests)
-    _create_sample_failing_ui_test(fake_tests)
+    _create_a_passing_test(fake_tests)
+    _create_a_failing_ui_test(fake_tests)
 
     with (
         patch.object(settings, "TESTS_DIR", fake_tests),

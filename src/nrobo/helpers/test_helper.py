@@ -4,7 +4,7 @@ from pathlib import Path
 from nrobo.utils.common_utils import generate_custom_id
 
 
-def _create_sample_test(test_dir: Path) -> Path:
+def _create_a_passing_test(test_dir: Path) -> Path:
     test_dir.mkdir(parents=True, exist_ok=True)
     fake_test_py_file = test_dir / f"test_passing_unit_test_{generate_custom_id()}.py"
     fake_test_py_file.write_text(
@@ -18,7 +18,7 @@ def _create_sample_test(test_dir: Path) -> Path:
     return fake_test_py_file
 
 
-def _create_sample_failing_test(test_dir: Path) -> Path:
+def _create_a_failing_test(test_dir: Path) -> Path:
     test_dir.mkdir(parents=True, exist_ok=True)
     fake_test_py_file = test_dir / f"test_failing_unit_test_{generate_custom_id()}.py"
     fake_test_py_file.write_text(
@@ -32,7 +32,7 @@ def _create_sample_failing_test(test_dir: Path) -> Path:
     return fake_test_py_file
 
 
-def _create_sample_failing_ui_test(test_dir: Path) -> Path:
+def _create_a_failing_ui_test(test_dir: Path) -> Path:
     test_dir.mkdir(parents=True, exist_ok=True)
     fake_test_py_file = test_dir / f"test_failing_ui_test_{generate_custom_id()}.py"
     fake_test_py_file.write_text(
@@ -57,7 +57,7 @@ def _create_sample_failing_ui_test(test_dir: Path) -> Path:
     return fake_test_py_file
 
 
-def _create_coveragerc_tmp_file(root_path: Path):
+def _create_a_coveragerc_tmp_file(root_path: Path):
     root_path.mkdir(parents=True, exist_ok=True)
     (root_path / ".coveragerc").write_text(
         textwrap.dedent(

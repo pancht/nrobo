@@ -14,10 +14,10 @@ from nrobo.core import settings
 from nrobo.core.constants import ExitCodes
 from nrobo.core.exceptions import NoTestsFoundException, NRoboError
 from nrobo.helpers._pytest_helper import detect_fixture_usage, should_proceed
-from nrobo.helpers.test_data_helper import _create_passing_test
 from nrobo.helpers.test_helper import (
-    _create_coveragerc_tmp_file,
-    _create_sample_failing_test,
+    _create_a_coveragerc_tmp_file,
+    _create_a_failing_test,
+    _create_a_passing_test,
 )
 from nrobo.utils.suite_utils import detect_or_validate_suites
 
@@ -197,7 +197,7 @@ def test_cli_skips_allure_report_when_results_dir_is_empty(
     fake_suites.mkdir(parents=True)
     fake_tests.mkdir(parents=True)
 
-    _create_passing_test(fake_tests)
+    _create_a_passing_test(fake_tests)
 
     with (
         patch.object(settings, "TESTS_DIR", fake_tests),
@@ -275,8 +275,8 @@ def test_cli_runs_with_coverage_config_and_suppresses_warnings(tmp_path: Path):
     fake_tests.mkdir()
     fake_suites.mkdir()
 
-    _create_passing_test(fake_tests)
-    coveragerc_file = _create_coveragerc_tmp_file(tmp_path)
+    _create_a_passing_test(fake_tests)
+    coveragerc_file = _create_a_coveragerc_tmp_file(tmp_path)
 
     # Build the pytest command with filterwarnings
     cmd = [
@@ -338,7 +338,7 @@ def test_cli_outputs_assertion_for_failing_test(tmp_path: Path, caplog: pytest.L
     fake_suites = tmp_path / "suites"
 
     fake_tests.mkdir(parents=True, exist_ok=True)
-    _create_sample_failing_test(fake_tests)
+    _create_a_failing_test(fake_tests)
     fake_suites.mkdir(parents=True, exist_ok=True)
 
     env = os.environ.copy()
