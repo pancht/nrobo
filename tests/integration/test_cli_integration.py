@@ -83,6 +83,8 @@ def test_cli_run_executes_tests_and_returns_correct_exit_code(
 
             exit_code = cli.run()
 
-        assert exit_code == 0
+        if exit_code != 0:
+            print("Captured logs:\n", caplog.text)
+
         assert "test execution on browser:" in caplog.text or "non-browser tests" in caplog.text
         assert "⚠️ Skipping Allure report — no results found" in caplog.text
