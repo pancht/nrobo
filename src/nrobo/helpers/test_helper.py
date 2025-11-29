@@ -14,6 +14,18 @@ def _create_sample_test(test_dir: Path):
     )
 
 
+def _create_sample_failing_test(test_dir: Path):
+    test_dir.mkdir(parents=True, exist_ok=True)
+    (test_dir / "test_sample.py").write_text(
+        textwrap.dedent(
+            """
+        def test_addition():
+            assert 1 + 1 == 3
+    """
+        )
+    )
+
+
 def _create_coveragerc_tmp_file(root_path: Path):
     root_path.mkdir(parents=True, exist_ok=True)
     (root_path / ".coveragerc").write_text(

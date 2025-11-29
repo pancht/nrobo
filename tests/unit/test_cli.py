@@ -15,7 +15,10 @@ from nrobo.core.constants import ExitCodes
 from nrobo.core.exceptions import NoTestsFoundException, NRoboError
 from nrobo.helpers._pytest_helper import detect_fixture_usage, should_proceed
 from nrobo.helpers.test_data_helper import _create_passing_test
-from nrobo.helpers.test_helper import _create_coveragerc_tmp_file
+from nrobo.helpers.test_helper import (
+    _create_coveragerc_tmp_file,
+    _create_sample_failing_test,
+)
 from nrobo.utils.suite_utils import detect_or_validate_suites
 
 
@@ -327,3 +330,28 @@ def test_detect_fixture_usage_raises_no_tests_found_exception():
 )
 def test_should_proceed_behavior(exit_code, expected):
     assert should_proceed(exit_code) is expected
+
+
+def test__failing_test(tmp_path: Path, caplog: pytest.LogCaptureFixture):
+    """Covers src/nrobo/__main__.py via subprocess call."""
+
+    fake_tests = tmp_path / "tests"
+    fake_suites = tmp_path / "suites"
+
+    _create_sample_failing_test(fake_tests)
+    fake_suites.mkdir()
+
+    with (
+        patch.object(settings, "TESTS_DIR", fake_tests),
+        patch.object(settings, "SUITES_DIR", fake_suites),
+    ):
+        result = subprocess.run(
+            [sys.executable, "-m", "nrobo", str(fake_tests)],
+            cwd=f"{tmp_path}",  # 👈 critical to run from correct package root
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+
+    assert "assert (1 + 1) == 3" in result.stdout
+    assert "AssertionError" in result.stdout
