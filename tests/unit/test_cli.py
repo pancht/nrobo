@@ -7,12 +7,13 @@ from unittest import mock
 from unittest.mock import MagicMock, patch
 
 import pytest
+from _pytest.config import ExitCode
 
 from nrobo import cli
 from nrobo.core import settings
 from nrobo.core.constants import ExitCodes
 from nrobo.core.exceptions import NoTestsFoundException, NRoboError
-from nrobo.helpers._pytest_helper import detect_fixture_usage
+from nrobo.helpers._pytest_helper import detect_fixture_usage, should_proceed
 from nrobo.helpers.test_data_helper import _create_passing_test
 from nrobo.helpers.test_helper import _create_coveragerc_tmp_file
 from nrobo.utils.suite_utils import detect_or_validate_suites
@@ -310,3 +311,19 @@ def test_detect_fixture_usage_raises_no_tests_found_exception():
     ):
         with pytest.raises(NoTestsFoundException):
             detect_fixture_usage(fixture_name="nrobo", test_paths=["tests"], pytest_args=[])
+
+
+@pytest.mark.parametrize(
+    "exit_code, expected",
+    [
+        (ExitCode.OK, True),
+        (ExitCode.NO_TESTS_COLLECTED, True),
+        (ExitCode.TESTS_FAILED, True),
+        (ExitCode.INTERRUPTED, False),
+        (ExitCode.INTERNAL_ERROR, False),
+        (99, False),  # unknown exit code as int
+        ("invalid", False),  # invalid type
+    ],
+)
+def test_should_proceed_behavior(exit_code, expected):
+    assert should_proceed(exit_code) is expected
