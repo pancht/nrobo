@@ -62,7 +62,7 @@ def test_nrobo_settings_default_constants_are_valid():
     assert settings.LOG_LEVEL_FILE == "DEBUG"
     assert settings.LOG_FORMAT_FILE == "%(asctime)s - %(levelname)s - %(message)s"
 
-    assert settings.LOG_DIR == "logs"
+    assert settings.LOG_DIR == str(Path(test_artifacts_dir) / "logs")
     assert str(settings.SUITES_DIR) == "test_suites"
     assert str(settings.TESTS_DIR) == "tests"
     assert settings.UI_DIR == "ui"
