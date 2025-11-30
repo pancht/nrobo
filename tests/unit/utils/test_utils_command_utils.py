@@ -74,6 +74,6 @@ def test_initialize_project_creates_structure_and_copies_templates(
         assert (tmp_path / "tests/ui/test_sample_another.py").read_bytes() == fake_template_content
 
         # Assert logs
-        assert f"{settings.APP} project initialized!" in caplog.text
+        assert f"{settings.NROBO_APP} project initialized!" in caplog.text
         assert "📂 Created: suites/, tests/" in caplog.text
         assert "🧩 Added: sample_suite.yml + test_sample.py + test_sample_another.py" in caplog.text

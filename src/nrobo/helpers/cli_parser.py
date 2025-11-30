@@ -9,12 +9,12 @@ from nrobo.helpers.logging_helper import get_logger, set_logger_level
 from nrobo.helpers.reporting_helper import prepare_reporting_args
 from nrobo.utils.command_utils import initialize_project
 
-logger = get_logger(name=settings.APP)
+logger = get_logger(name=settings.NROBO_APP)
 
 
 def get_nrobo_arg_parser():
     parser = argparse.ArgumentParser(
-        description=f"{settings.APP} - Smart Test Runner built on Pytest",
+        description=f"{settings.NROBO_APP} - Smart Test Runner built on Pytest",
         add_help=True,
         allow_abbrev=False,  # ⛔ Prevents "--co" from resolving to "--cov"
     )
@@ -48,7 +48,7 @@ def get_nrobo_arg_parser():
     parser.add_argument(
         "--init",
         action="store_true",
-        help=f"Initialize a new {settings.APP} project with sample suite and tests.",  # noqa: E501
+        help=f"Initialize a new {settings.NROBO_APP} project with sample suite and tests.",  # noqa: E501
     )
     parser.add_argument(
         "--coverage",
@@ -58,13 +58,13 @@ def get_nrobo_arg_parser():
     )
 
     if "--help" in sys.argv:
-        logger.info(f"\n📜 {settings.APP} Help Menu:")
+        logger.info(f"\n📜 {settings.NROBO_APP} Help Menu:")
         parser.print_help()
 
         try:
             user_input = (
                 input(
-                    f"\n❓ {settings.APP} is backed by PyTest. Show PyTest options too? (y/n): "  # noqa: E501
+                    f"\n❓ {settings.NROBO_APP} is backed by PyTest. Show PyTest options too? (y/n): "  # noqa: E501
                 )  # noqa: E501
                 .strip()
                 .lower()

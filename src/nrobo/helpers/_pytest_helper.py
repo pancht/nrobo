@@ -14,7 +14,7 @@ from nrobo.core.exceptions import NoTestsFoundException
 from nrobo.helpers.logging_helper import get_logger
 from nrobo.utils.common_utils import deduplicate_preserve_order
 
-logger = get_logger(name=settings.APP)
+logger = get_logger(name=settings.NROBO_APP)
 
 
 def extract_test_name(item: Item) -> str:

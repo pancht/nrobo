@@ -6,7 +6,7 @@ from nrobo.core import settings
 def test_nrobo_settings_default_constants_are_valid():
     """Ensure default settings paths are Path objects and resolve correctly."""
 
-    assert settings.APP == "nRobo"
+    assert settings.NROBO_APP == "nRobo"
     assert isinstance(settings.NROBO_VERSION, str)
     assert isinstance(settings.BASE_DIR, Path), "BASE_DIR should be a Path"
     assert isinstance(settings.DEBUG, bool), "DEBUG should be a bool"

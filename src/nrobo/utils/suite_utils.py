@@ -7,7 +7,7 @@ from nrobo.helpers.validations import validate_suite_paths
 from nrobo.utils.common_utils import deduplicate_preserve_order
 from nrobo.utils.tests_discovery_utils import has_pytest_tests
 
-logger = get_logger(name=settings.APP)
+logger = get_logger(name=settings.NROBO_APP)
 
 
 def detect_or_validate_suites(

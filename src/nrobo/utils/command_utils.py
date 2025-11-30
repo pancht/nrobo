@@ -4,7 +4,7 @@ from pathlib import Path
 from nrobo.core import settings
 from nrobo.helpers.logging_helper import get_logger
 
-logger = get_logger(name=settings.APP)
+logger = get_logger(name=settings.NROBO_APP)
 
 
 def initialize_project():
@@ -47,7 +47,7 @@ def initialize_project():
 
     #
 
-    logger.info(f"✨ [bold green]{settings.APP} project initialized![/]")
+    logger.info(f"✨ [bold green]{settings.NROBO_APP} project initialized![/]")
     logger.info("📂 Created: suites/, tests/")
     logger.info(
         "🧩 Added: sample_suite.yml + test_sample.py + test_sample_another.py"  # noqa: E501

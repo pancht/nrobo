@@ -17,7 +17,7 @@ from .helpers._pytest_helper import (
 )
 from .runner import prepare_pytest_cli_options
 
-logger = get_logger(name=settings.APP)
+logger = get_logger(name=settings.NROBO_APP)
 
 
 def run() -> int:
@@ -42,7 +42,9 @@ def run() -> int:
     # Execution banner
     if is_ui_test:
         mode = "headed" if args.no_headless else "headless"
-        logger.info(f"🚀 Starting {settings.APP} test execution on browser: {browser} ({mode})")
+        logger.info(
+            f"🚀 Starting {settings.NROBO_APP} test execution on browser: {browser} ({mode})"
+        )
     else:
         logger.info("🧪 Running non-browser tests...")
 

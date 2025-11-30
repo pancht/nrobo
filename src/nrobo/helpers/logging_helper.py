@@ -15,7 +15,7 @@ def get_logger(
     log_dir = os.path.join(settings.LOG_DIR)  # noqa: E501
     os.makedirs(log_dir, exist_ok=True)
 
-    unique_logger_name = f"{settings.APP}.log"
+    unique_logger_name = f"{settings.NROBO_APP}.log"
     log_path = os.path.join(log_dir, unique_logger_name)
 
     # Initialize logger

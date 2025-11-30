@@ -37,5 +37,5 @@ def test_nrobo_installation_and_cli(tmp_path: Path):
         check=True,
     )
 
-    assert f"{settings.APP} - Smart Test Runner built on Pytest" in result.stdout
+    assert f"{settings.NROBO_APP} - Smart Test Runner built on Pytest" in result.stdout
     assert "usage" in result.stdout

@@ -42,7 +42,7 @@ def test_cli_run_executes_tests_and_returns_correct_exit_code(
         except SystemExit:
             pass
 
-        assert f"{settings.APP} project initialized!" in caplog.text
+        assert f"{settings.NROBO_APP} project initialized!" in caplog.text
         assert "📂 Created: suites/, tests/" in caplog.text
         assert "🧩 Added: sample_suite.yml + test_sample.py + test_sample_another.py" in caplog.text
 
