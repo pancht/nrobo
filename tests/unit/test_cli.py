@@ -280,7 +280,8 @@ def test_cli_runs_with_coverage_config_and_suppresses_warnings(tmp_path: Path):
 
     _create_a_passing_test(fake_tests)
     coveragerc_file = _create_coveragerc_tmp_file(tmp_path)
-
+    a = b = c = "aa"
+    print(f"{a}{b}{c}")
     # Build the pytest command with filterwarnings
     cmd = [
         sys.executable,
