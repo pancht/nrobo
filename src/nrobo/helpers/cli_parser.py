@@ -5,6 +5,7 @@ import sys
 import pytest
 
 from nrobo.core import settings
+from nrobo.helpers.io_helper import copy_configs_if_updated
 from nrobo.helpers.logging_helper import get_logger, set_logger_level
 from nrobo.helpers.reporting_helper import prepare_reporting_args
 from nrobo.utils.command_utils import initialize_project
@@ -85,6 +86,11 @@ def get_nrobo_arg_parser():
         initialize_project()
         sys.exit(0)
 
+    try:
+        copy_configs_if_updated()
+    except FileNotFoundError:
+        pass
+
     # Handle test execution
     suites = args.suite
     browser = args.browser
@@ -113,7 +119,8 @@ def get_nrobo_arg_parser():
         )
 
     # always change temp dir under project dir
-    unknown_args.extend(["--basetemp=.pytest_tmp"])
+    if not any("--basetemp=" in arg for arg in unknown_args):
+        unknown_args.extend(["--basetemp=.pytest_tmp"])
 
     unknown_args = prepare_reporting_args(pytest_args=unknown_args)
     logger.debug(f"Final PyTest Options=>{unknown_args}")
