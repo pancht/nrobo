@@ -23,11 +23,16 @@ def test_initialize_project_creates_structure_and_copies_templates(
     mock_test_sample_another = MagicMock()
     mock_test_sample_another.open.return_value = io.BytesIO(fake_template_content)
 
+    mock_test_env = MagicMock()
+    mock_test_env.open.return_value = io.BytesIO(fake_template_content)
+
+
     mock_template_dir = MagicMock()
     mock_template_dir.joinpath.side_effect = lambda name: {
         "sample_suite.yml": mock_sample_suite,
         "test_sample.py": mock_test_sample,
         "test_sample_another.py": mock_test_sample_another,
+        ".env": mock_test_env,
     }[name]
 
     mock_files.return_value = mock_template_dir
@@ -72,6 +77,7 @@ def test_initialize_project_creates_structure_and_copies_templates(
         assert (tmp_path / "suites/sample_suite.yml").read_bytes() == fake_template_content
         assert (tmp_path / "tests/ui/test_sample.py").read_bytes() == fake_template_content
         assert (tmp_path / "tests/ui/test_sample_another.py").read_bytes() == fake_template_content
+        assert (tmp_path / "configs/.env").read_bytes() == fake_template_content
 
         # Assert logs
         assert f"{settings.NROBO_APP} project initialized!" in caplog.text

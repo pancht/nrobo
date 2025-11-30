@@ -51,6 +51,7 @@ def test_cli_run_executes_tests_and_returns_correct_exit_code(
             tmp_path / test_artifacts_dir / "html_report",
             tmp_path / "test_data",
             tmp_path / "logs",
+            tmp_path / "configs" / ".env"
         ]
 
         for each_project_item in project_struct:

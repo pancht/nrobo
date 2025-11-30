@@ -20,6 +20,7 @@ def initialize_project():
     logs_dir = base_dir / settings.LOG_DIR
     page_dir = base_dir / settings.PAGE_OBJECT_DIR
     test_data_dir = base_dir / settings.TEST_DATA_DIR
+    configs_dir = base_dir / "configs"
 
     suites_dir.mkdir(parents=True, exist_ok=True)
     tests_dir.mkdir(parents=True, exist_ok=True)
@@ -32,6 +33,7 @@ def initialize_project():
     logs_dir.mkdir(parents=True, exist_ok=True)
     page_dir.mkdir(parents=True, exist_ok=True)
     test_data_dir.mkdir(parents=True, exist_ok=True)
+    configs_dir.mkdir(parents=True, exist_ok=True)
 
     # Copy template files from package templates
     with res.files("nrobo.templates").joinpath("sample_suite.yml").open("rb") as src:  # noqa: E501
@@ -45,6 +47,10 @@ def initialize_project():
     ):  # noqa: E501
         (ui_dir / "test_sample_another.py").write_bytes(src.read())
 
+    with (
+        res.files("nrobo.templates.configs").joinpath(".env").open("rb") as src
+    ):  # noqa: E501
+        (configs_dir / ".env").write_bytes(src.read())
     #
 
     logger.info(f"✨ [bold green]{settings.NROBO_APP} project initialized![/]")
