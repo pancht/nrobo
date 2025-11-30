@@ -24,12 +24,22 @@ NROBO_BROWSER = os.getenv("NROBO_BROWSER", "chrome")
 NROBO_HEADLESS = os.getenv("NROBO_HEADLESS", "True").lower() in ("true", "1", "yes")  # noqa: E501
 
 # Reporting
+TEST_ARTIFACTS_DIR = "test_artifacts"
+COVERAGE_REPORTS_DIR = "coverage_reports"
+COVERAGE_REPORT_HTML = Path(TEST_ARTIFACTS_DIR) / COVERAGE_REPORTS_DIR / "html" / "index.html"
+COVERAGE_REPORT_XML = Path(TEST_ARTIFACTS_DIR) / COVERAGE_REPORTS_DIR / "xml" / "coverage.xml"
 REPORT_TYPE_HTML = os.getenv("NROBO_REPORT_TYPE_HTML", "html")
-HTML_REPORT_PATH = os.getenv("NROBO_HTML_REPORT_PATH", "reports")
+HTML_REPORT_PATH = str(
+    Path(TEST_ARTIFACTS_DIR) / os.getenv("NROBO_HTML_REPORT_PATH", "html_report")
+)
 HTML_DEFAULT_REPORT_NAME = os.getenv("NROBO_HTML_DEFAULT_REPORT_NAME", "report.html")
 REPORT_TYPE_ALLURE = os.getenv("NROBO_REPORT_TYPE_ALLURE", "alluredir")
-ALLURE_RESULTS_DIR = os.getenv("NROBO_ALLURE_RESULTS_DIR", "allure-results")
-ALLURE_REPORT_DIR = os.getenv("NROBO_ALLURE_REPORT_DIR", "allure-reports")
+ALLURE_RESULTS_DIR = str(
+    Path(TEST_ARTIFACTS_DIR) / os.getenv("NROBO_ALLURE_RESULTS_DIR", "allure-results")
+)
+ALLURE_REPORT_DIR = str(
+    Path(TEST_ARTIFACTS_DIR) / os.getenv("NROBO_ALLURE_REPORT_DIR", "allure-reports")
+)
 
 # Logging Stream handler
 LOG_LEVEL_STREAM = os.getenv("NROBO_LOG_LEVEL_STREAM", "INFO")
@@ -58,8 +68,3 @@ MOBILE_DIR = os.getenv("NROBO_MOBILE_DIR", "mobile")
 API_DIR = os.getenv("NROBO_API_DIR", "api")
 PAGE_OBJECT_DIR = os.getenv("NROBO_PAGE_OBJECT_DIR", "pages")
 TEST_DATA_DIR = os.getenv("NROBO_TEST_DATA_DIR", "test_data")
-
-TEST_ARTIFACTS_DIR = "test_artifacts"
-COVERAGE_REPORTS_DIR = "coverage_reports"
-COVERAGE_REPORT_HTML = Path(TEST_ARTIFACTS_DIR) / COVERAGE_REPORTS_DIR / "html" / "index.html"
-COVERAGE_REPORT_XML = Path(TEST_ARTIFACTS_DIR) / COVERAGE_REPORTS_DIR / "xml" / "coverage.xml"

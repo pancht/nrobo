@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from nrobo.core import settings
@@ -21,12 +22,32 @@ def test_nrobo_settings_default_constants_are_valid():
     assert settings.NROBO_BROWSER == "chrome"
     assert settings.NROBO_HEADLESS is True
 
+    test_artifacts_dir = "test_artifacts"
+    coverage_report_dir = "coverage_reports"
+    assert settings.TEST_ARTIFACTS_DIR == test_artifacts_dir
+    assert settings.COVERAGE_REPORTS_DIR == coverage_report_dir
+    assert (
+        settings.COVERAGE_REPORT_HTML
+        == Path(test_artifacts_dir) / coverage_report_dir / "html" / "index.html"
+    )
+    assert (
+        settings.COVERAGE_REPORT_XML
+        == Path(test_artifacts_dir) / coverage_report_dir / "xml" / "coverage.xml"
+    )
     assert settings.REPORT_TYPE_HTML == "html"
-    assert settings.HTML_REPORT_PATH == "reports"
+    assert settings.HTML_REPORT_PATH == str(
+        Path(test_artifacts_dir) / os.getenv("NROBO_HTML_REPORT_PATH", "html_report")
+    )
     assert settings.HTML_DEFAULT_REPORT_NAME == "report.html"
     assert settings.REPORT_TYPE_ALLURE == "alluredir"
-    assert settings.ALLURE_RESULTS_DIR == "allure-results"
-    assert settings.ALLURE_REPORT_DIR == "allure-reports"
+    assert (
+        settings.ALLURE_RESULTS_DIR
+        == f"{test_artifacts_dir}/{os.getenv("NROBO_ALLURE_RESULTS_DIR", "allure-results")}"
+    )
+    assert (
+        settings.ALLURE_REPORT_DIR
+        == f"{test_artifacts_dir}/{os.getenv("NROBO_ALLURE_REPORT_DIR", "allure-reports")}"
+    )
 
     assert settings.LOG_LEVEL_STREAM == "INFO"
     assert settings.LOG_FORMAT_STREAM == "%(log_color)s[%(levelname)s]%(reset)s %(message)s"
@@ -49,16 +70,3 @@ def test_nrobo_settings_default_constants_are_valid():
     assert settings.API_DIR == "api"
     assert settings.PAGE_OBJECT_DIR == "pages"
     assert settings.TEST_DATA_DIR == "test_data"
-
-    test_artifacts_dir = "test_artifacts"
-    coverage_report_dir = "coverage_reports"
-    assert settings.TEST_ARTIFACTS_DIR == test_artifacts_dir
-    assert settings.COVERAGE_REPORTS_DIR == coverage_report_dir
-    assert (
-        settings.COVERAGE_REPORT_HTML
-        == Path(test_artifacts_dir) / coverage_report_dir / "html" / "index.html"
-    )
-    assert (
-        settings.COVERAGE_REPORT_XML
-        == Path(test_artifacts_dir) / coverage_report_dir / "xml" / "coverage.xml"
-    )
