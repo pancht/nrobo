@@ -81,11 +81,13 @@ def run() -> int:
 
     # Handle coverage report path if requested
     if getattr(args, "coverage", False):
-        coverage_path = Path("htmlcov/index.html")
+        coverage_path = settings.COVERAGE_REPORT_HTML
         if coverage_path.exists():
             logger.info(f"📈 Coverage report available → file://{coverage_path.resolve()}")
         else:
-            logger.warning("⚠️ Coverage report path not found (htmlcov/index.html).")
+            logger.warning(
+                f"⚠️ Coverage report path not found ({str(settings.COVERAGE_REPORT_HTML)})."
+            )
 
     return 0
 

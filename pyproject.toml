@@ -101,7 +101,7 @@ exclude_lines = [
 ]
 
 [tool.coverage.html]
-directory = "test_artifacts/coverage_html"
+directory = "test_artifacts/coverage_reports/html"
 
 [tool.coverage.xml]
-output = "test_artifacts/coverage.xml"
+output = "test_artifacts/coverage_reports/xml/coverage.xml"
