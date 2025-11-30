@@ -61,7 +61,7 @@ LOG_FORMAT_FILE = os.getenv("NROBO_LOG_FORMAT_FILE", "%(asctime)s - %(levelname)
 
 # standard directories
 LOG_DIR = os.getenv("NROBO_LOG_DIR", "logs")
-SUITES_DIR = Path(os.getenv("NROBO_SUITES_DIR", "suites"))
+SUITES_DIR = Path(os.getenv("NROBO_SUITES_DIR", "test_suites"))
 TESTS_DIR = Path(os.getenv("NROBO_TESTS_DIR", "tests"))
 UI_DIR = os.getenv("NROBO_UI_DIR", "ui")
 MOBILE_DIR = os.getenv("NROBO_MOBILE_DIR", "mobile")

@@ -6,10 +6,11 @@ increment version, build, and ask confirmation before uploading.
 Usage:
   python build_and_publish.py [--level patch|minor|major] [--test]
 """
-from pathlib import Path
 import shutil
-import sys
 import subprocess
+import sys
+from pathlib import Path
+
 import requests
 import tomlkit
 
@@ -32,7 +33,11 @@ def bump_version(version: str, level: str = "patch") -> str:  # pylint: disable=
 
 def get_latest_pypi_version(package: str, test=False) -> str:
     """Fetch latest version from PyPI or TestPyPI API."""
-    url = f"https://test.pypi.org/pypi/{package}/json" if test else f"https://pypi.org/pypi/{package}/json"  # pylint: disable=C0301
+    url = (
+        f"https://test.pypi.org/pypi/{package}/json"
+        if test
+        else f"https://pypi.org/pypi/{package}/json"
+    )  # pylint: disable=C0301
     try:
         resp = requests.get(url, timeout=5)
         if resp.status_code == 200:
@@ -52,8 +57,10 @@ def clear_dist_folder():  # pylint: disable=C0116
 def main():  # pylint: disable=C0116
     level = "patch"
     test_mode = "--test" in sys.argv
-    if "--minor" in sys.argv: level = "minor"  # pylint: disable=C0321
-    if "--major" in sys.argv: level = "major"  # pylint: disable=C0321
+    if "--minor" in sys.argv:
+        level = "minor"  # pylint: disable=C0321
+    if "--major" in sys.argv:
+        level = "major"  # pylint: disable=C0321
 
     # Load local version
     doc = tomlkit.parse(PYPROJECT.read_text())  # pylint: disable=W1514
@@ -62,7 +69,8 @@ def main():  # pylint: disable=C0116
     # Fetch latest version
     latest_version = get_latest_pypi_version(PACKAGE_NAME, test=test_mode)
     print(
-        f"\n📦 Latest {PACKAGE_NAME} version on {'TestPyPI' if test_mode else 'PyPI'}: {latest_version}")  # pylint: disable=C0301
+        f"\n📦 Latest {PACKAGE_NAME} version on {'TestPyPI' if test_mode else 'PyPI'}: {latest_version}"
+    )  # pylint: disable=C0301
     print(f"🧩 Local pyproject version: {local_version}")
 
     # Decide bump
@@ -93,8 +101,9 @@ def main():  # pylint: disable=C0116
         return
 
     print(f"📤 Uploading to {repo}...")
-    subprocess.run([sys.executable, "-m", "twine", "upload", "--repository", repo, "dist/*"],
-                   check=True)  # pylint: disable=C0301
+    subprocess.run(
+        [sys.executable, "-m", "twine", "upload", "--repository", repo, "dist/*"], check=True
+    )  # pylint: disable=C0301
 
     print(f"\n✅ Version {new_version} successfully uploaded to {repo}!")
 
