@@ -35,6 +35,7 @@ jobs:
           allure --version
           pip install -r requirements.txt
           pip install -e .
+          nrobo --init
 
       - name: Run lint
         run: python -m flake8 --config=configs/.flake8 src/nrobo
