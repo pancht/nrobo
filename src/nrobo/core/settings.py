@@ -42,13 +42,8 @@ LOG_COLORS_STREAM = {
     "WARNING": "yellow",
     "ERROR": "red",
     "CRITICAL": "bold_red",
-}  # os.getenv("NROBO_LOG_COLORS_STREAM", {
-#     "DEBUG": "cyan",
-#     "INFO": "green",
-#     "WARNING": "yellow",
-#     "ERROR": "red",
-#     "CRITICAL": "bold_red",
-# })
+}
+
 # Logging File Handler
 LOG_FILE_FILE = os.getenv("NROBO_LOG_FILE_FILE", "")  # If set, use file logging
 LOG_LEVEL_FILE = os.getenv("NROBO_LOG_LEVEL_FILE", "DEBUG")
