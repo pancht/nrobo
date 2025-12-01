@@ -33,6 +33,9 @@ jobs:
           source ~/.bashrc
           sudo ln -s /opt/allure/bin/allure /usr/local/bin/allure
           allure --version
+          pip install virtualenv
+          virtualenv .venv
+          source .venv/bin/activate
           pip install -r requirements.txt
           pip install -e .
 
