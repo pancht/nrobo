@@ -115,7 +115,7 @@ def detect_fixture_usage(fixture_name: str, test_paths: List[str], pytest_args: 
                 )
             if cpe.returncode == 2:
                 logger.error(f"❌ {cpe}")
-            if cpe.returncode in [5,2]:
+            if cpe.returncode in [5, 2]:
                 raise NoTestsFoundException()
 
         with report_path.open("r", encoding="utf-8") as f:
