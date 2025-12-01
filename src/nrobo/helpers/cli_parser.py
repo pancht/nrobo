@@ -5,16 +5,17 @@ import sys
 import pytest
 
 from nrobo.core import settings
+from nrobo.helpers.io_helper import copy_configs_if_updated
 from nrobo.helpers.logging_helper import get_logger, set_logger_level
 from nrobo.helpers.reporting_helper import prepare_reporting_args
 from nrobo.utils.command_utils import initialize_project
 
-logger = get_logger(name=settings.APP)
+logger = get_logger(name=settings.NROBO_APP)
 
 
 def get_nrobo_arg_parser():
     parser = argparse.ArgumentParser(
-        description=f"{settings.APP} - Smart Test Runner built on Pytest",
+        description=f"{settings.NROBO_APP} - Smart Test Runner built on Pytest",
         add_help=True,
         allow_abbrev=False,  # ⛔ Prevents "--co" from resolving to "--cov"
     )
@@ -48,7 +49,7 @@ def get_nrobo_arg_parser():
     parser.add_argument(
         "--init",
         action="store_true",
-        help=f"Initialize a new {settings.APP} project with sample suite and tests.",  # noqa: E501
+        help=f"Initialize a new {settings.NROBO_APP} project with sample suite and tests.",  # noqa: E501
     )
     parser.add_argument(
         "--coverage",
@@ -58,13 +59,13 @@ def get_nrobo_arg_parser():
     )
 
     if "--help" in sys.argv:
-        logger.info(f"\n📜 {settings.APP} Help Menu:")
+        logger.info(f"\n📜 {settings.NROBO_APP} Help Menu:")
         parser.print_help()
 
         try:
             user_input = (
                 input(
-                    f"\n❓ {settings.APP} is backed by PyTest. Show PyTest options too? (y/n): "  # noqa: E501
+                    f"\n❓ {settings.NROBO_APP} is backed by PyTest. Show PyTest options too? (y/n): "  # noqa: E501
                 )  # noqa: E501
                 .strip()
                 .lower()
@@ -84,6 +85,11 @@ def get_nrobo_arg_parser():
     if args.init:
         initialize_project()
         sys.exit(0)
+
+    try:
+        copy_configs_if_updated()
+    except FileNotFoundError:
+        pass
 
     # Handle test execution
     suites = args.suite
@@ -113,7 +119,9 @@ def get_nrobo_arg_parser():
         )
 
     # always change temp dir under project dir
-    unknown_args.extend(["--basetemp=.pytest_tmp"])
+    if not any("--basetemp=" in arg for arg in unknown_args):
+        if settings.NROBO_BASENAME_TMP:
+            unknown_args.extend(["--basetemp=.pytest_tmp"])
 
     unknown_args = prepare_reporting_args(pytest_args=unknown_args)
     logger.debug(f"Final PyTest Options=>{unknown_args}")

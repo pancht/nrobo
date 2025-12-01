@@ -13,7 +13,7 @@ def standardize_reoprt_path(report_type: str, report_dir: str, args: list):
             break  # no transformation needed
 
         if (
-            arg.startswith(f"--{settings.REPORT_TYPE_HTML}")
+            arg.startswith(f"--{settings.REPORT_TYPE_HTML}=")
             and report_type == settings.REPORT_TYPE_HTML
         ):
             path = arg.split("=", 1)[1]  # e.g. "report3/report.html"

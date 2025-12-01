@@ -17,7 +17,7 @@ from .helpers._pytest_helper import (
 )
 from .runner import prepare_pytest_cli_options
 
-logger = get_logger(name=settings.APP)
+logger = get_logger(name=settings.NROBO_APP)
 
 
 def run() -> int:
@@ -42,7 +42,9 @@ def run() -> int:
     # Execution banner
     if is_ui_test:
         mode = "headed" if args.no_headless else "headless"
-        logger.info(f"🚀 Starting {settings.APP} test execution on browser: {browser} ({mode})")
+        logger.info(
+            f"🚀 Starting {settings.NROBO_APP} test execution on browser: {browser} ({mode})"
+        )
     else:
         logger.info("🧪 Running non-browser tests...")
 
@@ -79,11 +81,13 @@ def run() -> int:
 
     # Handle coverage report path if requested
     if getattr(args, "coverage", False):
-        coverage_path = Path("htmlcov/index.html")
+        coverage_path = settings.COVERAGE_REPORT_HTML
         if coverage_path.exists():
             logger.info(f"📈 Coverage report available → file://{coverage_path.resolve()}")
         else:
-            logger.warning("⚠️ Coverage report path not found (htmlcov/index.html).")
+            logger.warning(
+                f"⚠️ Coverage report path not found ({str(settings.COVERAGE_REPORT_HTML)})."
+            )
 
     return 0
 

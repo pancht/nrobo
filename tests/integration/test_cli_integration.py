@@ -19,21 +19,12 @@ def test_cli_run_executes_tests_and_returns_correct_exit_code(
     """✅ Runs cli.run() with real test file and checks CLI output and exit code."""
 
     fake_tests = tmp_path / "tests"
-    fake_suites = tmp_path / "suites"
-    fake_suites.mkdir(parents=True)
-    fake_allure_results_dir = tmp_path / "allure-results"
-    fake_allure_results_dir.mkdir(parents=True, exist_ok=True)
-    fake_allure_reports_dir = tmp_path / "allure-reports"
-    fake_allure_reports_dir.mkdir(parents=True, exist_ok=True)
-    fake_html_reports_dir = tmp_path / "reports"
-    fake_html_reports_dir.mkdir(parents=True, exist_ok=True)
+    fake_suites = tmp_path / "test_suites"
+    fake_allure_results_dir = tmp_path / "test_artifacts" / "allure-results"
+    tmp_path / "allure-reports"
 
     with (
-        patch.object(settings, "TESTS_DIR", fake_tests),
-        patch.object(settings, "SUITES_DIR", fake_suites),
-        patch.object(settings, "ALLURE_RESULTS_DIR", fake_allure_results_dir),
-        patch.object(settings, "ALLURE_REPORT_DIR", fake_allure_reports_dir),
-        patch.object(settings, "HTML_REPORT_PATH", fake_html_reports_dir),
+        patch("nrobo.utils.command_utils.Path.cwd", return_value=tmp_path),
         patch.object(sys, "argv", ["nrobo", "--init"]),
         caplog.at_level("INFO"),
     ):
@@ -42,9 +33,11 @@ def test_cli_run_executes_tests_and_returns_correct_exit_code(
         except SystemExit:
             pass
 
-        assert f"{settings.APP} project initialized!" in caplog.text
+        assert f"{settings.NROBO_APP} project initialized!" in caplog.text
         assert "📂 Created: suites/, tests/" in caplog.text
         assert "🧩 Added: sample_suite.yml + test_sample.py + test_sample_another.py" in caplog.text
+
+        test_artifacts_dir = "test_artifacts"
 
         project_struct = [
             fake_suites / "sample_suite.yml",
@@ -53,6 +46,12 @@ def test_cli_run_executes_tests_and_returns_correct_exit_code(
             fake_tests / "ui",
             fake_tests / "ui" / "test_sample.py",
             fake_tests / "ui" / "test_sample_another.py",
+            tmp_path / test_artifacts_dir / "allure-reports",
+            tmp_path / test_artifacts_dir / "allure-reports",
+            tmp_path / test_artifacts_dir / "html_report",
+            tmp_path / "test_data",
+            tmp_path / test_artifacts_dir / "logs",
+            tmp_path / "configs" / ".env"
         ]
 
         for each_project_item in project_struct:
@@ -62,14 +61,17 @@ def test_cli_run_executes_tests_and_returns_correct_exit_code(
         _create_a_failing_ui_test(fake_tests)
 
         with (
+            patch.object(settings, "ALLURE_RESULTS_DIR", fake_allure_results_dir),
             patch.object(
                 sys,
                 "argv",
                 [
                     "nrobo",
-                    str(settings.TESTS_DIR),
                     "--alluredir",
-                    str(settings.ALLURE_RESULTS_DIR),
+                    str(tmp_path / test_artifacts_dir / "allure-results"),
+                    f'--html={str(tmp_path / test_artifacts_dir / "html-report" / "report.html")}',
+                    f"--basetemp={tmp_path}/.pytest_tmp",
+                    str(tmp_path / "tests"),
                 ],
             ),
             patch("nrobo.cli.Path") as mock_path_cls,

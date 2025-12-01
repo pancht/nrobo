@@ -3,7 +3,7 @@ import os
 from nrobo.core import settings
 from nrobo.helpers.logging_helper import get_logger
 
-logger = get_logger(name=settings.APP)
+logger = get_logger(name=settings.NROBO_APP)
 
 
 def has_pytest_tests(test_dir="tests") -> bool:

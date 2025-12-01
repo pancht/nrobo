@@ -9,7 +9,7 @@ from nrobo.helpers.arg_parsing import (
 )
 from nrobo.helpers.logging_helper import get_logger
 
-logger = get_logger(name=settings.APP)
+logger = get_logger(name=settings.NROBO_APP)
 
 
 def check_dependency(name: str, install_hint: str | None = None):

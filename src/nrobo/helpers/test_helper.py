@@ -59,7 +59,10 @@ def _create_a_failing_ui_test(test_dir: Path) -> Path:
 
 def _create_coveragerc_tmp_file(root_path: Path):
     root_path.mkdir(parents=True, exist_ok=True)
-    (root_path / ".coveragerc").write_text(
+    configs_dir = root_path / "configs"
+    configs_dir.mkdir(parents=True, exist_ok=True)
+    coveragerc_path = configs_dir / ".coveragerc"
+    coveragerc_path.write_text(
         textwrap.dedent(
             f"""
             [run]
@@ -80,4 +83,4 @@ def _create_coveragerc_tmp_file(root_path: Path):
             """
         )
     )
-    return root_path / ".coveragerc"
+    return coveragerc_path
