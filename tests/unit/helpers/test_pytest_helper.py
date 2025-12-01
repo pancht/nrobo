@@ -1,12 +1,15 @@
 # 🧪 Pytest suite
+import subprocess
+from unittest.mock import patch
 
 import pytest
 from _pytest.config import ExitCode
 
+from nrobo.core.exceptions import NoTestsFoundException
 from nrobo.helpers._pytest_helper import (
     extract_test_name,
     no_execution_key_found,
-    should_proceed, extract_k_option,
+    should_proceed, extract_k_option, detect_fixture_usage,
 )
 
 
@@ -107,3 +110,31 @@ def test_no_execution_key_found(args, expected):
 )
 def test_extract_k_option(args, expected):
     assert extract_k_option(args) == expected
+
+@pytest.mark.parametrize("code", [5, 4, 2])
+def test_detect_fixture_usage_cpe_handling(tmp_path, code):
+    fake_report = tmp_path / "fixture_report.json"
+    fake_report.write_text("[]")
+
+    with patch("nrobo.helpers._pytest_helper.tempfile.NamedTemporaryFile") as mock_tmp, \
+         patch("nrobo.helpers._pytest_helper.subprocess.run") as mock_run, \
+         patch("nrobo.helpers._pytest_helper.Path.exists", return_value=True), \
+         patch("nrobo.helpers._pytest_helper.Path.unlink"), \
+         patch("nrobo.helpers._pytest_helper.Path.open", create=True) as mock_open:
+
+        # Simulate the temp file path
+        mock_tmp.return_value.__enter__.return_value.name = str(fake_report)
+        mock_open.return_value.__enter__.return_value.read.return_value = "[]"
+        mock_open.return_value.__enter__.return_value.__iter__.return_value = iter(["[]"])
+        mock_open.return_value.__enter__.return_value.read.return_value = "[]"
+
+        # Simulate CalledProcessError
+        mock_run.side_effect = subprocess.CalledProcessError(returncode=code, cmd="pytest")
+
+        if code in [5, 2]:
+            with pytest.raises(NoTestsFoundException):
+                detect_fixture_usage("nrobo", ["tests/"], ["-k", "some_test"])
+        else:
+            # should not raise for code 4 alone
+            result = detect_fixture_usage("nrobo", ["tests/"], ["-k", "some_test"])
+            assert result is False
