@@ -112,7 +112,7 @@ def get_nrobo_arg_parser():
         unknown_args.extend(
             [
                 "--cov=nrobo",  # measure coverage for your framework package
-                "--cov-report=html",  # generate HTML report
+                "--cov-report=xml",  # generate HTML report
                 "--cov-report=term-missing",  # show missing lines in terminal
                 "--cov-fail-under=90",  # fail if coverage < 90%
             ]
