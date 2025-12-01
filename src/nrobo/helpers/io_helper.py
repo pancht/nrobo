@@ -36,7 +36,8 @@ def copy_configs_if_updated():
 
         for file in source_dir.iterdir():
             if file.is_file() and file.name in include_files:
-                shutil.copy2(file, dest_dir / file.name)
+                _file_name = ".nrobo_env" if file.name == ".env" else file.name
+                shutil.copy2(file, dest_dir / _file_name)
                 print(f"✅ Copied {file.name} → {dest_dir}")
                 print("✅ Configs copied (updates detected).")
 
