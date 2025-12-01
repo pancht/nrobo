@@ -8,11 +8,11 @@ from nrobo.helpers.arg_parsing import (
 
 
 @patch("nrobo.core.settings.REPORT_TYPE_HTML", "html")
-@patch("nrobo.core.settings.HTML_REPORT_PATH", "reports")
+@patch("nrobo.core.settings.HTML_REPORT_PATH", "html-report")
 def test_standardize_html_report_path():
     args = ["--html=report3/repost4/report.html", "--color=yes"]
     result = standardize_html_reoprt_path(args.copy())
-    assert result[0] == "--html=reports/report.html"
+    assert result[0] == "--html=html-report/report.html"
     assert result[1] == "--color=yes"
 
 

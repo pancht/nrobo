@@ -3,7 +3,7 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  lint-test:
+  nrobo-framework-tests:
     runs-on: ubuntu-latest
 
     strategy:
@@ -35,12 +35,24 @@ jobs:
           allure --version
           pip install -r requirements.txt
           pip install -e .
+          nrobo --init
 
       - name: Run lint
-        run: python -m flake8 src/nrobo
-
+        run: |
+              python -m flake8 --config=configs/.flake8 src/nrobo
+      - name: Create test artifacts folders
+        run: mkdir -p test_artifacts/html_report test_artifacts/allure-results
+      - name: Check if imports work
+        run: |
+            ls
+            find tests -type f
+            python -c "import nrobo"
+            python -c "import nrobo.plugins.detect_fixtures_plugin"
+            pytest tests/unit --collect-only -q
+            nrobo --collect-only -q
       - name: Run tests
-        run: nrobo --cov -n auto
+        run: |        
+              nrobo --coverage -n auto
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

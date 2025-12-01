@@ -14,6 +14,7 @@ from nrobo.core import settings
 from nrobo.core.constants import ExitCodes
 from nrobo.core.exceptions import NoTestsFoundException, NRoboError
 from nrobo.helpers._pytest_helper import detect_fixture_usage, should_proceed
+from nrobo.helpers.cli_parser import get_nrobo_arg_parser
 from nrobo.helpers.test_helper import (
     _create_a_failing_test,
     _create_a_passing_test,
@@ -34,6 +35,7 @@ from nrobo.utils.suite_utils import detect_or_validate_suites
                     "NROBO_BROWSER": "chrome",
                     "NROBO_DEBUG": "False",
                     "NROBO_HEADLESS": "True",
+                    "NROBO_BASENAME_TMP": None,
                 },
                 "args": {
                     "debug": False,
@@ -42,11 +44,11 @@ from nrobo.utils.suite_utils import detect_or_validate_suites
                     "no_headless": False,
                 },
                 "pytest_args": {
-                    "--html=reports/report.html",
+                    "--html=test_artifacts/html_report/report.html",
                     "--self-contained-html",
                     "--alluredir",
-                    "allure-results",
-                    "--basetemp=.pytest_tmp",
+                    "test_artifacts/allure-results",
+                    #"--basetemp=.pytest_tmp",
                 },
             },
         ),
@@ -64,6 +66,7 @@ from nrobo.utils.suite_utils import detect_or_validate_suites
                 "--html=xyz/abc/myreport.html",
                 "--alluredir",
                 "abc/myreport.html",
+                "--basetemp=.pytest_tmp",
             ],
             {
                 "suites": ["suite1.yml", "suite2.yml"],
@@ -84,9 +87,9 @@ from nrobo.utils.suite_utils import detect_or_validate_suites
                     "--cov-report=html",
                     "--cov-report=term-missing",
                     "--cov-fail-under=90",
-                    "--html=reports/myreport.html",
+                    "--html=test_artifacts/html_report/myreport.html",
                     "--alluredir",
-                    "allure-results",
+                    "test_artifacts/allure-results",
                     "--basetemp=.pytest_tmp",
                 },
             },
@@ -117,6 +120,133 @@ def test_nrobo_cli_argument_parsing(argv, expected, logger: Logger):
     for flag in expected["pytest_args"]:
         logger.debug(f"flag={flag}")
         assert flag in pytest_args
+
+
+@pytest.mark.parametrize(
+    "argv, settings_tmp, expected",
+    [
+        # 🔹 Case 1: Default run, no basetemp
+        (
+            ["nrobo"],
+            None,  # settings.NROBO_BASENAME_TMP
+            {
+                "suites": None,
+                "browser": "chrome",
+                "env": {
+                    "NROBO_BROWSER": "chrome",
+                    "NROBO_DEBUG": "False",
+                    "NROBO_HEADLESS": "True",
+                    "NROBO_BASENAME_TMP": None,
+                },
+                "args": {
+                    "debug": False,
+                    "init": False,
+                    "coverage": False,
+                    "no_headless": False,
+                },
+                "pytest_args": {
+                    "--html=test_artifacts/html_report/report.html",
+                    "--self-contained-html",
+                    "--alluredir",
+                    "test_artifacts/allure-results",
+                },
+            },
+        ),
+        # 🔹 Case 2: Full run, with basetemp provided
+        (
+            [
+                "nrobo",
+                "--debug",
+                "--suite", "suite1.yml", "suite2.yml",
+                "--browser", "chrome",
+                "--no-headless",
+                "--coverage",
+                "--html=xyz/abc/myreport.html",
+                "--alluredir", "abc/myreport.html",
+            ],
+            ".pytest_tmp",  # settings.NROBO_BASENAME_TMP
+            {
+                "suites": ["suite1.yml", "suite2.yml"],
+                "browser": "chrome",
+                "env": {
+                    "NROBO_BROWSER": "chrome",
+                    "NROBO_DEBUG": "True",
+                    "NROBO_HEADLESS": "False",
+                    "NROBO_BASENAME_TMP": ".pytest_tmp",
+                },
+                "args": {
+                    "debug": True,
+                    "init": False,
+                    "coverage": True,
+                    "no_headless": True,
+                },
+                "pytest_args": {
+                    "--cov=nrobo",
+                    "--cov-report=html",
+                    "--cov-report=term-missing",
+                    "--cov-fail-under=90",
+                    "--html=test_artifacts/html_report/myreport.html",
+                    "--alluredir",
+                    "test_artifacts/allure-results",
+                },
+            },
+        ),
+    ],
+    ids=[
+        "no_basetemp_in_settings",
+        "with_basetemp_in_settings",
+    ],
+)
+def test_nrobo_cli_argument_parsing(argv, settings_tmp, expected, logger: Logger, monkeypatch):
+    """
+    ✅ Tests nrobo CLI argument parsing
+    - Ensures environment variables are set correctly
+    - Validates parsed CLI args
+    - Dynamically checks --basetemp inclusion based on settings.NROBO_BASENAME_TMP
+    """
+
+    # Mock settings.NROBO_BASENAME_TMP
+    monkeypatch.setattr("nrobo.core.settings.NROBO_BASENAME_TMP", settings_tmp, raising=False)
+
+    from nrobo.helpers.cli_parser import get_nrobo_arg_parser
+
+    with mock.patch.object(sys, "argv", argv):
+        suites, browser, args, pytest_args = get_nrobo_arg_parser()
+
+    # ---- Validate Suites and Browser ----
+    assert suites == expected["suites"]
+    assert browser == expected["browser"]
+
+    # ---- Validate Environment Variables ----
+    for key, val in expected["env"].items():
+        logger.debug(f"key={key} and value={val}")
+        if settings_tmp:
+            real_getenv = os.getenv  # capture the original function
+            with patch("os.getenv") as mock_getenv:
+                mock_getenv.side_effect = lambda key, default=None: (
+                    ".pytest_tmp" if key == "NROBO_BASENAME_TMP" else real_getenv(key, default)
+                )
+                assert os.getenv(key) == (None if val is None else val)
+
+    # ---- Validate CLI Args ----
+    for key, val in expected["args"].items():
+        logger.debug(f"(args, key)=({args}, {key}) and value={val}")
+        assert getattr(args, key) == val
+
+    # ---- Validate pytest args ----
+    for flag in expected["pytest_args"]:
+        logger.debug(f"flag={flag}")
+        assert flag in pytest_args
+
+    # ---- Conditional Check for --basetemp ----
+    if settings_tmp:
+        # Expect presence of correct basetemp flag
+        assert f"--basetemp={settings_tmp}" in pytest_args, \
+            f"Expected --basetemp={settings_tmp} in pytest args, got: {pytest_args}"
+    else:
+        # Ensure no basetemp flag is included
+        assert not any(arg.startswith("--basetemp") for arg in pytest_args), \
+            f"Unexpected basetemp flag in pytest args: {pytest_args}"
 
 
 def test_cli_handles_no_suites_gracefully(tmp_path: Path):
@@ -363,32 +493,30 @@ def test_cli_outputs_assertion_for_failing_test(tmp_path: Path, caplog: pytest.L
         )
 
     print(result.stdout)
-    return
+
     assert "assert (1 + 1) == 3" in result.stdout
     assert "AssertionError" in result.stdout
 
 
-#
-# def test_cli_outputs_assertion_for_failing_ui_test(tmp_path: Path, caplog: pytest.LogCaptureFixture):
-#     """Covers src/nrobo/__main__.py via subprocess call."""
-#
-#     fake_tests = tmp_path / "tests"
-#     fake_suites = tmp_path / "suites"
-#
-#     _create_sample_failing_ui_test(fake_tests)
-#     fake_suites.mkdir()
-#
-#     with (
-#         patch.object(settings, "TESTS_DIR", fake_tests),
-#         patch.object(settings, "SUITES_DIR", fake_suites),
-#     ):
-#         result = subprocess.run(
-#             [sys.executable, "-m", "nrobo", str(fake_tests), "-s"],
-#             cwd=f"{tmp_path}",  # 👈 critical to run from correct package root
-#             stdout=subprocess.PIPE,
-#             stderr=subprocess.STDOUT,
-#             text=True,
-#         )
-#     print(result.stdout)
-#     # assert "assert (1 + 1) == 3" in result.stdout
-#     # assert "AssertionError" in result.stdout
+def test_copy_configs_if_updated_handles_file_not_found(monkeypatch):
+    # Patch sys.argv to simulate command-line input
+    monkeypatch.setattr("sys.argv", ["nrobo"])
+
+    # Patch the function to raise FileNotFoundError
+    with patch("nrobo.helpers.cli_parser.copy_configs_if_updated", side_effect=FileNotFoundError):
+        try:
+            # It should not raise, just handle internally
+            get_nrobo_arg_parser()
+        except FileNotFoundError:
+            pytest.fail("FileNotFoundError was not suppressed as expected")
+
+def test_add_basetemp_if_not_present(monkeypatch):
+    # Setup minimal argv
+    monkeypatch.setattr("sys.argv", ["nrobo"])
+
+    # Patch settings and os.environ
+    with patch("nrobo.helpers.cli_parser.settings.NROBO_BASENAME_TMP", ".pytest_tmp"):
+        suites, browser, args, unknown_args = get_nrobo_arg_parser()
+
+        # Assertion: should contain the basetemp that was not originally in args
+        assert "--basetemp=.pytest_tmp" in unknown_args

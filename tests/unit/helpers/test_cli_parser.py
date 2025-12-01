@@ -36,7 +36,7 @@ def test_nrobo_help_switch_subprocess(tmp_path, user_input, expect_exit):
     output = normalize_cli_output(result.stdout)
 
     # Now assert expected help content
-    assert f"{settings.APP} - Smart Test Runner built on Pytest" in output
+    assert f"{settings.NROBO_APP} - Smart Test Runner built on Pytest" in output
     assert "--suite" in output
     assert "Enable debug mode (prints verbose logs and sets NROBO_DEBUG=True)" in output
     assert "One or more suite YAML files under suites/ (space-separated or repeated)." in output
@@ -48,7 +48,7 @@ def test_nrobo_help_switch_subprocess(tmp_path, user_input, expect_exit):
     assert "Run browser in headed mode (default is headless)" in output
 
     assert "--init" in output
-    assert f"Initialize a new {settings.APP} project with sample suite and tests." in output
+    assert f"Initialize a new {settings.NROBO_APP} project with sample suite and tests." in output
 
     assert "--coverage" in output
     assert (

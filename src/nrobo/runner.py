@@ -7,7 +7,7 @@ from nrobo.core import settings
 from nrobo.core.exceptions import ReadSuiteFailed, SuiteNotFoundError
 from nrobo.helpers.logging_helper import get_logger
 
-logger = get_logger(settings.APP)
+logger = get_logger(settings.NROBO_APP)
 
 
 def prepare_pytest_cli_options(
