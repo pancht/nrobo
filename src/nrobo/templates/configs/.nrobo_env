@@ -1,6 +1,8 @@
 NROBO_CONFIGS="configs"
 NROBO_ENV_FILE=".env"
 
+#NROBO_BASENAME_TMP=.pytest_tmp
+
 # Core Framework Settings
 NROBO_APP="nRobo"
 NROBO_VERSION="0.1.0"
