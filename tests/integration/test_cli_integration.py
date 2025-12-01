@@ -69,7 +69,7 @@ def test_cli_run_executes_tests_and_returns_correct_exit_code(
                     "nrobo",
                     "--alluredir",
                     str(tmp_path / test_artifacts_dir / "allure-results"),
-                    f"--html={str(tmp_path / test_artifacts_dir / "html-report" / "report.html")}",
+                    f'--html={str(tmp_path / test_artifacts_dir / "html-report" / "report.html")}',
                     f"--basetemp={tmp_path}/.pytest_tmp",
                     str(tmp_path / "tests"),
                 ],
