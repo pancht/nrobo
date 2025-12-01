@@ -10,12 +10,12 @@ from nrobo.helpers.logging_helper import get_logger
 from nrobo.helpers.reporting_helper import generate_allure_report
 from nrobo.utils.suite_utils import detect_or_validate_suites
 
-from .helpers._pytest_helper import (
+from nrobo.helpers._pytest_helper import (
     detect_fixture_usage,
     no_execution_key_found,
     should_proceed,
 )
-from .runner import prepare_pytest_cli_options
+from nrobo.runner import prepare_pytest_cli_options
 
 logger = get_logger(name=settings.NROBO_APP)
 
