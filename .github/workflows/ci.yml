@@ -35,8 +35,6 @@ jobs:
           allure --version
           pip install -r requirements.txt
           pip install -e .
-          mkdir .pytest_tmp
-          ls
 
       - name: Run lint
         run: |
@@ -44,7 +42,9 @@ jobs:
               python -m flake8 --config=configs/.flake8 src/nrobo
 
       - name: Run tests
-        run: nrobo --coverage -n auto
+        run: |
+              find tests -type f
+              nrobo --coverage -n auto
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
