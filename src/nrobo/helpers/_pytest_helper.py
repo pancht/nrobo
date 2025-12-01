@@ -72,8 +72,8 @@ def detect_fixture_usage(fixture_name: str, test_paths: List[str], pytest_args: 
             [
                 "pytest",
                 "--collect-only",
-                #"-p",
-                #"nrobo.plugins.detect_fixtures_plugin",
+                # "-p",
+                # nrobo.plugins.detect_fixtures_plugin",
                 *pytest_args,
                 *test_paths,
             ]
