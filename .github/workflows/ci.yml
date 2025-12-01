@@ -43,6 +43,7 @@ jobs:
 
       - name: Run tests
         run: |
+              ls 
               find tests -type f
               nrobo --coverage -n auto
 
