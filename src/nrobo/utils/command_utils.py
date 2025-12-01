@@ -48,7 +48,7 @@ def initialize_project():
         (ui_dir / "test_sample_another.py").write_bytes(src.read())
 
     with (
-        res.files("nrobo.templates.configs").joinpath(".env").open("rb") as src
+        res.files("nrobo.templates.configs").joinpath(".nrobo_env").open("rb") as src
     ):  # noqa: E501
         (configs_dir / ".env").write_bytes(src.read())
     #

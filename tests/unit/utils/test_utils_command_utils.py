@@ -32,7 +32,7 @@ def test_initialize_project_creates_structure_and_copies_templates(
         "sample_suite.yml": mock_sample_suite,
         "test_sample.py": mock_test_sample,
         "test_sample_another.py": mock_test_sample_another,
-        ".env": mock_test_env,
+        ".nrobo_env": mock_test_env,
     }[name]
 
     mock_files.return_value = mock_template_dir
