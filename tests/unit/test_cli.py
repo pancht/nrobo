@@ -14,6 +14,7 @@ from nrobo.core import settings
 from nrobo.core.constants import ExitCodes
 from nrobo.core.exceptions import NoTestsFoundException, NRoboError
 from nrobo.helpers._pytest_helper import detect_fixture_usage, should_proceed
+from nrobo.helpers.cli_parser import get_nrobo_arg_parser
 from nrobo.helpers.test_helper import (
     _create_a_failing_test,
     _create_a_passing_test,
@@ -492,32 +493,30 @@ def test_cli_outputs_assertion_for_failing_test(tmp_path: Path, caplog: pytest.L
         )
 
     print(result.stdout)
-    return
+
     assert "assert (1 + 1) == 3" in result.stdout
     assert "AssertionError" in result.stdout
 
 
-#
-# def test_cli_outputs_assertion_for_failing_ui_test(tmp_path: Path, caplog: pytest.LogCaptureFixture):
-#     """Covers src/nrobo/__main__.py via subprocess call."""
-#
-#     fake_tests = tmp_path / "tests"
-#     fake_suites = tmp_path / "suites"
-#
-#     _create_sample_failing_ui_test(fake_tests)
-#     fake_suites.mkdir()
-#
-#     with (
-#         patch.object(settings, "TESTS_DIR", fake_tests),
-#         patch.object(settings, "SUITES_DIR", fake_suites),
-#     ):
-#         result = subprocess.run(
-#             [sys.executable, "-m", "nrobo", str(fake_tests), "-s"],
-#             cwd=f"{tmp_path}",  # 👈 critical to run from correct package root
-#             stdout=subprocess.PIPE,
-#             stderr=subprocess.STDOUT,
-#             text=True,
-#         )
-#     print(result.stdout)
-#     # assert "assert (1 + 1) == 3" in result.stdout
-#     # assert "AssertionError" in result.stdout
+def test_copy_configs_if_updated_handles_file_not_found(monkeypatch):
+    # Patch sys.argv to simulate command-line input
+    monkeypatch.setattr("sys.argv", ["nrobo"])
+
+    # Patch the function to raise FileNotFoundError
+    with patch("nrobo.helpers.cli_parser.copy_configs_if_updated", side_effect=FileNotFoundError):
+        try:
+            # It should not raise, just handle internally
+            get_nrobo_arg_parser()
+        except FileNotFoundError:
+            pytest.fail("FileNotFoundError was not suppressed as expected")
+
+def test_add_basetemp_if_not_present(monkeypatch):
+    # Setup minimal argv
+    monkeypatch.setattr("sys.argv", ["nrobo"])
+
+    # Patch settings and os.environ
+    with patch("nrobo.helpers.cli_parser.settings.NROBO_BASENAME_TMP", ".pytest_tmp"):
+        suites, browser, args, unknown_args = get_nrobo_arg_parser()
+
+        # Assertion: should contain the basetemp that was not originally in args
+        assert "--basetemp=.pytest_tmp" in unknown_args

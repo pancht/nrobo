@@ -6,7 +6,7 @@ from _pytest.config import ExitCode
 from nrobo.helpers._pytest_helper import (
     extract_test_name,
     no_execution_key_found,
-    should_proceed,
+    should_proceed, extract_k_option,
 )
 
 
@@ -71,3 +71,39 @@ def test_should_proceed(code, expected):
 )
 def test_no_execution_key_found(args, expected):
     assert no_execution_key_found(args) == expected
+
+
+@pytest.mark.parametrize(
+    "args, expected",
+    [
+        (
+            ['--html=out.html', '--self-contained-html', '-k', 'test_keyword', '--alluredir', 'results'],
+            ['-k', 'test_keyword']
+        ),
+        (
+            ['--html=out.html', '--self-contained-html', '--alluredir', 'results'],
+            []
+        ),
+        (
+            ['-k', 'some_test', '-k', 'another_test'],
+            ['-k', 'some_test', '-k', 'another_test']
+        ),
+        (
+            ['-k'],  # Edge case: -k without a value
+            []
+        ),
+        (
+            [],  # Empty input
+            []
+        ),
+    ],
+    ids=[
+        "single -k option",
+        "no -k option",
+        "multiple -k options",
+        "-k with no value",
+        "empty args list",
+    ]
+)
+def test_extract_k_option(args, expected):
+    assert extract_k_option(args) == expected
