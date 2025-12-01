@@ -40,7 +40,8 @@ jobs:
         run: |
               nrobo --init
               python -m flake8 --config=configs/.flake8 src/nrobo
-
+      - name: Create test artifacts folders
+        run: mkdir -p test_artifacts/html_report test_artifacts/allure-results
       - name: Run tests
         run: |
               ls 
