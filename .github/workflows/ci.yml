@@ -47,6 +47,7 @@ jobs:
               ls 
               find tests -type f
               python -c "import nrobo"
+              python -c "import nrobo.plugins.detect_fixtures_plugin"
               pytest tests/unit --collect-only
               nrobo --coverage -n auto
 
