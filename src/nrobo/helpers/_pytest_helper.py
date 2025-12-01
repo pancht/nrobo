@@ -72,10 +72,10 @@ def detect_fixture_usage(fixture_name: str, test_paths: List[str], pytest_args: 
             [
                 "pytest",
                 "--collect-only",
-                # "-p",
-                # "nrobo.plugins.detect_fixtures_plugin",
-                # *['--html=test_artifacts/html_report/report.html', '--self-contained-html', '--alluredir', 'test_artifacts/allure-results'],
-                # *test_paths,
+                "-p",
+                "nrobo.plugins.detect_fixtures_plugin",
+                *pytest_args,
+                *test_paths,
             ]
         )
 
