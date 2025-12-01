@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 import time
+from pathlib import Path
 
 import allure
 import pytest
@@ -139,8 +140,8 @@ class nRoboWebDriverPlugin:
 
         wrapper: NRoboSeleniumWrapperClass = getattr(item, "_driver_wrapper", None)  # noqa: E501
         if wrapper is not None and report.outcome == "failed":
-            screenshots_dir = os.path.join("screenshots")
-            os.makedirs(screenshots_dir, exist_ok=True)
+            screenshots_dir = Path(settings.TEST_ARTIFACTS_DIR) / settings.SCREENSHOTS
+            screenshots_dir.mkdir(parents=True, exist_ok=True)
             try:
                 screenshot_file = os.path.join(  # noqa: F841
                     screenshots_dir, f"{final_test_name}.png"
