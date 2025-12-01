@@ -8,6 +8,7 @@
 
 [![CI](https://github.com/pancht/nrobo/actions/workflows/ci.yml/badge.svg)](https://github.com/pancht/nrobo/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/pancht/nrobo/branch/production/graph/badge.svg?token=YOUR_TOKEN)](https://codecov.io/gh/pancht/nrobo)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/pancht/nrobo/blob/production/LICENSE)
 
 # Architecture
 
