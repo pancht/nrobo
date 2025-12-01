@@ -42,13 +42,14 @@ jobs:
               python -m flake8 --config=configs/.flake8 src/nrobo
       - name: Create test artifacts folders
         run: mkdir -p test_artifacts/html_report test_artifacts/allure-results
-#      - name: Check if imports work
-#        run: |
-#            ls
-#            find tests -type f
-#            python -c "import nrobo"
-#            python -c "import nrobo.plugins.detect_fixtures_plugin"
-#            pytest tests/unit --collect-only
+      - name: Check if imports work
+        run: |
+            ls
+            find tests -type f
+            python -c "import nrobo"
+            python -c "import nrobo.plugins.detect_fixtures_plugin"
+            pytest tests/unit --collect-only
+            nrobo --co
       - name: Run tests
         run: |        
               nrobo --coverage -n auto
