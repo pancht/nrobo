@@ -42,11 +42,11 @@ def test_nrobo_settings_default_constants_are_valid():
     assert settings.REPORT_TYPE_ALLURE == "alluredir"
     assert (
         settings.ALLURE_RESULTS_DIR
-        == f"{test_artifacts_dir}/{os.getenv("NROBO_ALLURE_RESULTS_DIR", "allure-results")}"
+        == f'{test_artifacts_dir}/{os.getenv("NROBO_ALLURE_RESULTS_DIR", "allure-results")}'
     )
     assert (
         settings.ALLURE_REPORT_DIR
-        == f"{test_artifacts_dir}/{os.getenv("NROBO_ALLURE_REPORT_DIR", "allure-reports")}"
+        == f'{test_artifacts_dir}/{os.getenv("NROBO_ALLURE_REPORT_DIR", "allure-reports")}'
     )
 
     assert settings.LOG_LEVEL_STREAM == "INFO"
