@@ -16,6 +16,10 @@ load_dotenv(env_path)
 NROBO_APP = os.getenv("NROBO_APP", "nRobo")
 NROBO_VERSION = "0.1.0"
 
+# Determine safe basetemp
+safe_temp = os.getenv("NROBO_BASENAME_TMP", None)
+NROBO_BASENAME_TMP = None if safe_temp is None else str(Path(safe_temp).absolute())
+
 # APP Mode
 DEBUG = os.getenv("NROBO_DEBUG", "False").lower() in ("true", "1", "yes")  # noqa: E501
 # Test Execution

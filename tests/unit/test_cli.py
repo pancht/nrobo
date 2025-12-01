@@ -34,6 +34,7 @@ from nrobo.utils.suite_utils import detect_or_validate_suites
                     "NROBO_BROWSER": "chrome",
                     "NROBO_DEBUG": "False",
                     "NROBO_HEADLESS": "True",
+                    "NROBO_BASENAME_TMP": None,
                 },
                 "args": {
                     "debug": False,
@@ -46,7 +47,7 @@ from nrobo.utils.suite_utils import detect_or_validate_suites
                     "--self-contained-html",
                     "--alluredir",
                     "test_artifacts/allure-results",
-                    "--basetemp=.pytest_tmp",
+                    #"--basetemp=.pytest_tmp",
                 },
             },
         ),
@@ -64,6 +65,7 @@ from nrobo.utils.suite_utils import detect_or_validate_suites
                 "--html=xyz/abc/myreport.html",
                 "--alluredir",
                 "abc/myreport.html",
+                "--basetemp=.pytest_tmp",
             ],
             {
                 "suites": ["suite1.yml", "suite2.yml"],
@@ -117,6 +119,133 @@ def test_nrobo_cli_argument_parsing(argv, expected, logger: Logger):
     for flag in expected["pytest_args"]:
         logger.debug(f"flag={flag}")
         assert flag in pytest_args
+
+
+@pytest.mark.parametrize(
+    "argv, settings_tmp, expected",
+    [
+        # 🔹 Case 1: Default run, no basetemp
+        (
+            ["nrobo"],
+            None,  # settings.NROBO_BASENAME_TMP
+            {
+                "suites": None,
+                "browser": "chrome",
+                "env": {
+                    "NROBO_BROWSER": "chrome",
+                    "NROBO_DEBUG": "False",
+                    "NROBO_HEADLESS": "True",
+                    "NROBO_BASENAME_TMP": None,
+                },
+                "args": {
+                    "debug": False,
+                    "init": False,
+                    "coverage": False,
+                    "no_headless": False,
+                },
+                "pytest_args": {
+                    "--html=test_artifacts/html_report/report.html",
+                    "--self-contained-html",
+                    "--alluredir",
+                    "test_artifacts/allure-results",
+                },
+            },
+        ),
+        # 🔹 Case 2: Full run, with basetemp provided
+        (
+            [
+                "nrobo",
+                "--debug",
+                "--suite", "suite1.yml", "suite2.yml",
+                "--browser", "chrome",
+                "--no-headless",
+                "--coverage",
+                "--html=xyz/abc/myreport.html",
+                "--alluredir", "abc/myreport.html",
+            ],
+            ".pytest_tmp",  # settings.NROBO_BASENAME_TMP
+            {
+                "suites": ["suite1.yml", "suite2.yml"],
+                "browser": "chrome",
+                "env": {
+                    "NROBO_BROWSER": "chrome",
+                    "NROBO_DEBUG": "True",
+                    "NROBO_HEADLESS": "False",
+                    "NROBO_BASENAME_TMP": ".pytest_tmp",
+                },
+                "args": {
+                    "debug": True,
+                    "init": False,
+                    "coverage": True,
+                    "no_headless": True,
+                },
+                "pytest_args": {
+                    "--cov=nrobo",
+                    "--cov-report=html",
+                    "--cov-report=term-missing",
+                    "--cov-fail-under=90",
+                    "--html=test_artifacts/html_report/myreport.html",
+                    "--alluredir",
+                    "test_artifacts/allure-results",
+                },
+            },
+        ),
+    ],
+    ids=[
+        "no_basetemp_in_settings",
+        "with_basetemp_in_settings",
+    ],
+)
+def test_nrobo_cli_argument_parsing(argv, settings_tmp, expected, logger: Logger, monkeypatch):
+    """
+    ✅ Tests nrobo CLI argument parsing
+    - Ensures environment variables are set correctly
+    - Validates parsed CLI args
+    - Dynamically checks --basetemp inclusion based on settings.NROBO_BASENAME_TMP
+    """
+
+    # Mock settings.NROBO_BASENAME_TMP
+    monkeypatch.setattr("nrobo.core.settings.NROBO_BASENAME_TMP", settings_tmp, raising=False)
+
+    from nrobo.helpers.cli_parser import get_nrobo_arg_parser
+
+    with mock.patch.object(sys, "argv", argv):
+        suites, browser, args, pytest_args = get_nrobo_arg_parser()
+
+    # ---- Validate Suites and Browser ----
+    assert suites == expected["suites"]
+    assert browser == expected["browser"]
+
+    # ---- Validate Environment Variables ----
+    for key, val in expected["env"].items():
+        logger.debug(f"key={key} and value={val}")
+        if settings_tmp:
+            real_getenv = os.getenv  # capture the original function
+            with patch("os.getenv") as mock_getenv:
+                mock_getenv.side_effect = lambda key, default=None: (
+                    ".pytest_tmp" if key == "NROBO_BASENAME_TMP" else real_getenv(key, default)
+                )
+                assert os.getenv(key) == (None if val is None else val)
+
+    # ---- Validate CLI Args ----
+    for key, val in expected["args"].items():
+        logger.debug(f"(args, key)=({args}, {key}) and value={val}")
+        assert getattr(args, key) == val
+
+    # ---- Validate pytest args ----
+    for flag in expected["pytest_args"]:
+        logger.debug(f"flag={flag}")
+        assert flag in pytest_args
+
+    # ---- Conditional Check for --basetemp ----
+    if settings_tmp:
+        # Expect presence of correct basetemp flag
+        assert f"--basetemp={settings_tmp}" in pytest_args, \
+            f"Expected --basetemp={settings_tmp} in pytest args, got: {pytest_args}"
+    else:
+        # Ensure no basetemp flag is included
+        assert not any(arg.startswith("--basetemp") for arg in pytest_args), \
+            f"Unexpected basetemp flag in pytest args: {pytest_args}"
 
 
 def test_cli_handles_no_suites_gracefully(tmp_path: Path):

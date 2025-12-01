@@ -120,7 +120,8 @@ def get_nrobo_arg_parser():
 
     # always change temp dir under project dir
     if not any("--basetemp=" in arg for arg in unknown_args):
-        unknown_args.extend(["--basetemp=.pytest_tmp"])
+        if settings.NROBO_BASENAME_TMP:
+            unknown_args.extend(["--basetemp=.pytest_tmp"])
 
     unknown_args = prepare_reporting_args(pytest_args=unknown_args)
     logger.debug(f"Final PyTest Options=>{unknown_args}")
