@@ -44,6 +44,7 @@ ALLURE_RESULTS_DIR = str(
 ALLURE_REPORT_DIR = str(
     Path(TEST_ARTIFACTS_DIR) / os.getenv("NROBO_ALLURE_REPORT_DIR", "allure-reports")
 )
+SCREENSHOTS = "screenshots"
 
 # Logging Stream handler
 LOG_LEVEL_STREAM = os.getenv("NROBO_LOG_LEVEL_STREAM", "INFO")
