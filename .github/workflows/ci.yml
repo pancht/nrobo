@@ -43,6 +43,7 @@ jobs:
 
       - name: Run tests
         run: |
+              mkdir test_artifacts
               ls 
               find tests -type f
               nrobo --coverage -n auto
