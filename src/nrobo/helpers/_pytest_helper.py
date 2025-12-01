@@ -67,6 +67,8 @@ def detect_fixture_usage(fixture_name: str, test_paths: List[str], pytest_args: 
     try:
         os.environ["FIXTURE_REPORT_PATH"] = str(report_path)
 
+        k_option = extract_k_option(pytest_args)
+
         # Build and deduplicate CLI args
         cmd = deduplicate_preserve_order(
             [
@@ -74,7 +76,7 @@ def detect_fixture_usage(fixture_name: str, test_paths: List[str], pytest_args: 
                 "--collect-only",
                 "-p",
                 "nrobo.plugins.detect_fixtures_plugin",
-                *pytest_args,
+                *k_option,
                 *test_paths,
             ]
         )
@@ -123,3 +125,16 @@ def detect_fixture_usage(fixture_name: str, test_paths: List[str], pytest_args: 
         # Always remove the temp file
         if report_path.exists():
             report_path.unlink()
+
+
+def extract_k_option(args: list[str]):
+    result = []
+    skip = False
+    for i, arg in enumerate(args):
+        if skip:
+            skip = False
+            continue
+        if arg == "-k" and i + 1 < len(args):
+            result.extend([arg, args[i + 1]])
+            skip = True
+    return result
