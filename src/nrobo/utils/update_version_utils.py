@@ -1,6 +1,7 @@
 import re
 from pathlib import Path
 
+
 def update_version_file(version_file_path: str, new_version: str):
     path = Path(version_file_path)
 
@@ -21,4 +22,3 @@ def update_version_file(version_file_path: str, new_version: str):
 
     path.write_text(updated_content)
     print(f"✅ Version updated to {new_version} in {version_file_path}")
-

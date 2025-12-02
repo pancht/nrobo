@@ -181,7 +181,8 @@ class nRoboWebDriverPlugin:
                 pass
 
     def pytest_configure(self, config: Config):
-        pass 
+        pass
+
 
 def pytest_configure(config):
     """
@@ -193,5 +194,3 @@ def pytest_configure(config):
     # Register plugin
     plugin_instance = nRoboWebDriverPlugin()
     config.pluginmanager.register(plugin_instance, name="nrobo_webdriver_plugin")  # noqa: E501
-
-

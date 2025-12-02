@@ -142,7 +142,6 @@ def extract_k_option(args: list[str]):
     return result
 
 
-
 def prepare_pytest_cli_options(
     suites: Optional[Union[str, List[str]]] = None,
     pytest_args: Optional[List[str]] = None,

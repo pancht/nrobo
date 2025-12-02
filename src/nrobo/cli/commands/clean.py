@@ -3,6 +3,7 @@ import argparse
 
 ARTIFACT_DIR = "test_artifacts"
 
+
 def clean_artifacts(verbose=False):
     for root, dirs, files in os.walk(ARTIFACT_DIR):
         for f in files:
@@ -18,6 +19,7 @@ def clean_artifacts(verbose=False):
                 if verbose:
                     print(f"📂 Removed empty dir: {dir_path}")
     print("✅ test_artifacts cleaned.")
+
 
 def run(args):
     parser = argparse.ArgumentParser(
