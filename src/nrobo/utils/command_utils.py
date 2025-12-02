@@ -59,5 +59,3 @@ def initialize_project():
     logger.info("   👉 project_structure.md")
     logger.info("It’ll help you understand how things are organized and where to start!")
     logger.info("Visit: https://github.com/pancht/nrobo/wiki/Getting-Started-with-nRobo")
-
-

@@ -185,4 +185,3 @@ def prepare_pytest_cli_options(
 
     selected_tests = selected_tests or [str(test_dir)]
     return (pytest_args or []) + selected_tests
-
