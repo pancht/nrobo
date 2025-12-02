@@ -6,6 +6,7 @@ import coverage
 from nrobo.core import settings
 from nrobo.core.constants import ExitCodes
 from nrobo.core.exceptions import NoTestsFoundException, NRoboError
+from nrobo.helpers.cli_parser import check_if_nrobo_initialized
 from nrobo.helpers.logging_helper import get_logger
 from nrobo.helpers.reporting_helper import generate_allure_report
 from nrobo.utils.suite_utils import detect_or_validate_suites
@@ -20,6 +21,7 @@ logger = get_logger(name=settings.NROBO_APP)
 
 
 def run() -> int:
+    check_if_nrobo_initialized()
     # Handle circular import error
     from nrobo.helpers.cli_parser import get_nrobo_arg_parser
 

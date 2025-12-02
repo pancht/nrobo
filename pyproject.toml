@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nrobo"
-version = "2025.2.1"
+version = "2025.2.12"
 description = "A Pytest-powered Smart Test Runner CLI tool."
 readme = "README.md"
 license = { text = "MIT" }
@@ -23,13 +23,23 @@ dependencies = [
   "selenium>=4.12.0",
   "Appium-Python-Client>=2.11.1",
   "webdriver-manager>=4.0.1",
+  "coverage>=7.3",
 ]
 
 [project.scripts]
 nrobo = "nrobo.cli.main:main"
 
+[tool.setuptools]
+include-package-data = true
+
+
 [tool.setuptools.package-data]
-"nrobo" = ["templates/*"]
+"nrobo" = [
+  "tepmpaltes/*",
+  "templates/configs/*",     # Includes files in configs
+  "templates/configs/.*",    # Includes hidden files like .nrobo_env
+]
+
 
 [project.entry-points.pytest11]
 nrobo = "nrobo.plugins.nrobo_plugin"
@@ -49,7 +59,7 @@ dev = [
     "selenium>=4.12.0",
     "Appium-Python-Client>=2.11.1",
     "webdriver-manager>=4.0.1",
-    "coverage",
+    "coverage>=7.3",
 ]
 
 # pyproject.toml

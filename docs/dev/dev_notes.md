@@ -17,3 +17,13 @@ Then do
 
 
 `python -m flake8 --config=configs/.flake8 src/nrobo`
+
+Recreate venv
+
+```bash
+# From your project root 
+rm -rf .venv 
+# or whatever your venv folder is called 
+python -m venv .venv 
+source .venv/bin/activate # or .venv\Scripts\activate on Windows
+```

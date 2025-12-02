@@ -50,11 +50,14 @@ def initialize_project():
     with (
         res.files("nrobo.templates.configs").joinpath(".nrobo_env").open("rb") as src
     ):  # noqa: E501
-        (configs_dir / ".env").write_bytes(src.read())
+        (configs_dir / ".env").write_text("")
     #
 
-    logger.info(f"✨ [bold green]{settings.NROBO_APP} project initialized![/]")
-    logger.info("📂 Created: suites/, tests/")
-    logger.info(
-        "🧩 Added: sample_suite.yml + test_sample.py + test_sample_another.py"  # noqa: E501
-    )  # noqa: E501
+    logger.info(f"✨ {settings.NROBO_APP} project initialized!")
+    logger.info("📁 Your nRobo project structure has been created!")
+    logger.info("📘 For a quick overview of the folders and files, check out:")
+    logger.info("   👉 project_structure.md")
+    logger.info("It’ll help you understand how things are organized and where to start!")
+    logger.info("Visit: https://github.com/pancht/nrobo/wiki/Getting-Started-with-nRobo")
+
+
