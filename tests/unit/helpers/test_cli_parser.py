@@ -5,7 +5,6 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
-import nrobo
 from nrobo.cli.commands import init, clean
 from nrobo.core import settings
 from nrobo.helpers import cli_parser
@@ -17,7 +16,7 @@ from nrobo.utils.common_utils import normalize_cli_output
     "user_input, expect_exit",
     [
         ("n\n", 0),
-        #("y\n", 0),
+        ("y\n", 0),
     ],
 )
 def test_nrobo_help_switch_subprocess(tmp_path, user_input, expect_exit):
