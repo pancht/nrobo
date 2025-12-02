@@ -15,3 +15,5 @@ Then do
 ``pytest --cache-clear
 ``
 
+
+`python -m flake8 --config=configs/.flake8 src/nrobo`
