@@ -181,13 +181,7 @@ class nRoboWebDriverPlugin:
                 pass
 
     def pytest_configure(self, config: Config):
-        # Ensure default alluredir is used if not set
-        # alluredir = getattr(config.option, "alluredir", None)
-        # if not alluredir:
-        #     config.option.alluredir = "allure-results"
-        # os.makedirs(config.option.alluredir, exist_ok=True)
-        pass
-
+        pass 
 
 def pytest_configure(config):
     """
@@ -195,5 +189,9 @@ def pytest_configure(config):
     We register an instance of nRoboWebDriverPlugin so its fixtures
     and hooks become globally available.
     """
+
+    # Register plugin
     plugin_instance = nRoboWebDriverPlugin()
     config.pluginmanager.register(plugin_instance, name="nrobo_webdriver_plugin")  # noqa: E501
+
+
