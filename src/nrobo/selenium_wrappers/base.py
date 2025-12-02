@@ -22,7 +22,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 
-from nrobo.nrobo_types import AnyBy, AnyDriver
+from nrobo.selenium_wrappers.nrobo_types import AnyBy, AnyDriver
 from nrobo.utils.driver_utils import is_mobile_session
 
 PAGE_LOAD_TIMEOUT = 30

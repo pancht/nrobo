@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from nrobo import cli
+from nrobo.cli.main import run
 from nrobo.core import settings
 from nrobo.helpers.test_helper import _create_a_failing_ui_test, _create_a_passing_test
 
@@ -29,7 +29,7 @@ def test_cli_run_executes_tests_and_returns_correct_exit_code(
         caplog.at_level("INFO"),
     ):
         try:
-            cli.run()
+            run()
         except SystemExit:
             pass
 
@@ -74,7 +74,7 @@ def test_cli_run_executes_tests_and_returns_correct_exit_code(
                     str(tmp_path / "tests"),
                 ],
             ),
-            patch("nrobo.cli.Path") as mock_path_cls,
+            patch("nrobo.cli.main.Path") as mock_path_cls,
             caplog.at_level("INFO"),
         ):
             mock_allure_path = MagicMock(spec=Path)
@@ -83,7 +83,7 @@ def test_cli_run_executes_tests_and_returns_correct_exit_code(
 
             mock_path_cls.return_value = mock_allure_path
 
-            exit_code = cli.run()
+            exit_code = run()
 
         if exit_code != 0:
             print("Captured logs:\n", caplog.text)

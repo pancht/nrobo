@@ -3,6 +3,8 @@ import sys
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 from nrobo.core import settings
 from nrobo.helpers.test_helper import _create_a_passing_test
 
@@ -22,7 +24,7 @@ def test___main___invokes_cli_main(tmp_path: Path):
         patch.object(sys, "argv", ["nrobo", str(fake_tests)]),
     ):
         subprocess.run(
-            [sys.executable, "-m", "src/nrobo/__main__.py"],
+            ["coverage", "run", "-m", "src/nrobo/cli/main.py"],
             cwd="src",  # 👈 critical to run from correct package root
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,

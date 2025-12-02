@@ -1,7 +1,5 @@
-import json
-import os
 import importlib.util
-import runpy
+import os
 import subprocess
 import sys
 from io import StringIO
@@ -13,8 +11,7 @@ from unittest.mock import MagicMock, patch, call
 import pytest
 from _pytest.config import ExitCode
 
-from nrobo import cli
-from nrobo.cli import run
+from nrobo.cli.main import run, main
 from nrobo.core import settings
 from nrobo.core.constants import ExitCodes
 from nrobo.core.exceptions import NoTestsFoundException, NRoboError
@@ -282,7 +279,7 @@ def test_cli_handles_no_suites_gracefully(tmp_path: Path):
 def test_no_execution_key_used(caplog: pytest.LogCaptureFixture):
     with (patch.object(sys, "argv", ["nrobo", "--co"]),):
         with caplog.at_level("INFO"):
-            exit_code = cli.run()
+            exit_code = run()
 
         assert exit_code == 0
 
@@ -311,7 +308,7 @@ def test_cli_returns_no_tests_found_when_no_suites_or_tests_exist(
         patch.object(settings, "TESTS_DIR", fake_tests_dir),
         patch.object(sys, "argv", argv),
     ):
-        exit_code = cli.run()
+        exit_code = run()
 
     # ✅ Confirm proper exit code
     assert exit_code == ExitCodes.NO_TESTS_FOUND
@@ -319,7 +316,7 @@ def test_cli_returns_no_tests_found_when_no_suites_or_tests_exist(
 
 def test_cli_handles_pytest_main_exception():
     with patch.object(sys, "argv", ["nrobo"]), patch("pytest.main", side_effect=Exception):
-        exit_code = cli.run()
+        exit_code = run()
 
     # Check correct exit code is returned for internal error
     assert exit_code == pytest.ExitCode.INTERNAL_ERROR
@@ -351,7 +348,7 @@ def test_cli_skips_allure_report_when_results_dir_is_empty(
                 "--disable-warnings",
             ],
         ),
-        patch("nrobo.cli.Path") as mock_path_cls,
+        patch("nrobo.cli.main.Path") as mock_path_cls,
         caplog.at_level("INFO"),
     ):
         # Setup mock Path instance for `allure_dir`
@@ -361,7 +358,7 @@ def test_cli_skips_allure_report_when_results_dir_is_empty(
 
         mock_path_cls.return_value = mock_allure_path
 
-        exit_code = cli.run()
+        exit_code = run()
 
     assert exit_code == 0
 
@@ -369,9 +366,9 @@ def test_cli_skips_allure_report_when_results_dir_is_empty(
 
 
 def test_main_exits_normally_via_run():
-    with patch("nrobo.cli.run", side_effect=SystemExit(0)) as mock_run:
+    with patch("nrobo.cli.main.run", side_effect=SystemExit(0)) as mock_run:
         with pytest.raises(SystemExit) as exc:
-            cli.main()
+            main()
 
         assert exc.value.code == ExitCodes.SUCCESS
         mock_run.assert_called_once()
@@ -380,9 +377,9 @@ def test_main_exits_normally_via_run():
 def test_main_exits_on_nrobo_error():
     mock_error = NRoboError("something went wrong")
 
-    with patch("nrobo.cli.run", side_effect=mock_error):
+    with patch("nrobo.cli.main.run", side_effect=mock_error):
         with pytest.raises(SystemExit) as exc:
-            cli.main()
+            main()
 
         assert exc.value.code == ExitCodes.INTERNAL_ERROR
 
@@ -390,9 +387,9 @@ def test_main_exits_on_nrobo_error():
 def test_main_exits_on_keyboard_interrupt_error():
     mock_error = KeyboardInterrupt("something went wrong")
 
-    with patch("nrobo.cli.run", side_effect=mock_error):
+    with patch("nrobo.cli.main.run", side_effect=mock_error):
         with pytest.raises(SystemExit) as exc:
-            cli.main()
+            main()
 
         assert exc.value.code == ExitCodes.INTERRUPTED
 
@@ -400,9 +397,9 @@ def test_main_exits_on_keyboard_interrupt_error():
 def test_main_exits_on_exception():
     mock_error = Exception("something went wrong")
 
-    with patch("nrobo.cli.run", side_effect=mock_error):
+    with patch("nrobo.cli.main.run", side_effect=mock_error):
         with pytest.raises(SystemExit) as exc:
-            cli.main()
+            main()
 
         assert exc.value.code == ExitCodes.INTERNAL_ERROR
 
@@ -489,7 +486,7 @@ def test_cli_outputs_assertion_for_failing_test(tmp_path: Path, caplog: pytest.L
         patch.object(sys, "argv", ["nrobo"]),
     ):
         result = subprocess.run(
-            [sys.executable, "-m", "nrobo"],
+            ["nrobo"],
             cwd=str(tmp_path),
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
@@ -527,14 +524,14 @@ def test_add_basetemp_if_not_present(monkeypatch):
         assert "--basetemp=.pytest_tmp" in unknown_args
 
 
-@patch("nrobo.runner.Path.open", create=True)
+@patch("nrobo.helpers._pytest_helper.Path.open", create=True)
 @patch("nrobo.helpers.cli_parser.get_nrobo_arg_parser", autospec=True)
-@patch("nrobo.cli.detect_or_validate_suites", autospec=True)
-@patch("nrobo.cli.detect_fixture_usage", autospec=True)
-@patch("nrobo.cli.prepare_pytest_cli_options", autospec=True)
-@patch("nrobo.cli.settings")  # 👈 only patch the settings imported in cli.py
-@patch("nrobo.cli.pytest")
-@patch("nrobo.cli.logger")
+@patch("nrobo.cli.main.detect_or_validate_suites", autospec=True)
+@patch("nrobo.cli.main.detect_fixture_usage", autospec=True)
+@patch("nrobo.cli.main.prepare_pytest_cli_options", autospec=True)
+@patch("nrobo.cli.main.settings")  # 👈 only patch the settings imported in cli.py
+@patch("nrobo.cli.main.pytest")
+@patch("nrobo.cli.main.logger")
 @pytest.mark.parametrize("coverage_exists", [True, False])
 def test_coverage_reporting_logic(
     mock_logger,
@@ -547,7 +544,6 @@ def test_coverage_reporting_logic(
     mock_path_open,
     coverage_exists,
 ):
-    from nrobo.cli import run
 
     # Simulate CLI args
     fake_args = MagicMock()
@@ -588,10 +584,10 @@ def test_coverage_reporting_logic(
 
 
 def test_cli_entrypoint_executes_main_with_args(tmp_path):
-    cli_path = Path("src/nrobo/cli.py").resolve()
+    cli_path = Path("src/nrobo/cli/main.py").resolve()
 
     # Load the module dynamically
-    spec = importlib.util.spec_from_file_location("nrobo.cli", cli_path)
+    spec = importlib.util.spec_from_file_location("nrobo.cli.main", cli_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
 

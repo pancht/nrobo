@@ -2,7 +2,7 @@ import time
 
 from selenium.webdriver.common.by import By
 
-from nrobo.nrobo_types import AnyDevice
+from nrobo.selenium_wrappers.nrobo_types import AnyDevice
 from nrobo.selenium_wrappers.nrobo_selenium_wrapper import (  # noqa: E501
     NRoboSeleniumWrapperClass,
 )
