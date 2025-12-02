@@ -1,10 +1,13 @@
 import subprocess
 import sys
+from unittest.mock import patch
 
 import pytest
 
+from nrobo.cli.commands import init
 from nrobo.core import settings
 from nrobo.helpers import cli_parser
+from nrobo.helpers.cli_parser import get_nrobo_arg_parser
 from nrobo.utils.common_utils import normalize_cli_output
 
 
@@ -143,3 +146,34 @@ def test_help_flag_y(monkeypatch):
 
     assert excinfo.value.code == 0
     assert called["args"] == ["--help"]
+
+def test_init_run_creates_files_via_direct_template_patch(tmp_path, monkeypatch):
+    from nrobo.cli.commands import init
+
+    # Create a custom template file in temp
+    template_path = tmp_path / "custom_template.yaml"
+    template_path.write_text("""
+project:
+  name: "{{project_name}}"
+
+folders:
+  - demo/path
+
+files:
+  greeting.txt: "Hello {{project_name}}!"
+  demo/info.txt: "Info: {{project_name}}"
+""")
+
+    # Patch PROJECT_TEMPLATE_PATH to use our temp template
+    monkeypatch.setattr(init, "PROJECT_TEMPLATE_PATH", template_path)
+
+    # Patch cwd to temp so base_path="." points to tmp_path
+    monkeypatch.chdir(tmp_path)
+
+    # Execute the real command
+    init.run(["--app", "SuperApp"])
+
+    # Assert created structure and content
+    assert (tmp_path / "demo" / "path").is_dir()
+    assert (tmp_path / "greeting.txt").read_text() == "Hello SuperApp!"
+    assert (tmp_path / "demo" / "info.txt").read_text() == "Info: SuperApp"

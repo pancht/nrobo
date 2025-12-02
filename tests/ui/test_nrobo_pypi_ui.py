@@ -9,4 +9,5 @@ def test_nrobo_pypi_page(nrobo: NRoboSeleniumWrapperClass):  # noqa: E501
     url = "https://pypi.org/project/nrobo/"
     nrobo.logger.info(f"Open {url}")
     nrobo_pypi_page.get(url)
+    nrobo.wait_for_page_to_be_loaded()
     assert nrobo_pypi_page.is_page_visible()
