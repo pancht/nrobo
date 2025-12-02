@@ -9,6 +9,7 @@ from nrobo.helpers.io_helper import copy_configs_if_updated
 from nrobo.helpers.logging_helper import get_logger, set_logger_level
 from nrobo.helpers.reporting_helper import prepare_reporting_args
 from nrobo.utils.command_utils import initialize_project
+from nrobo.version import __version__
 
 logger = get_logger(name=settings.NROBO_APP)
 
@@ -56,6 +57,12 @@ def get_nrobo_arg_parser():
         action="store_true",
         default=False,
         help="Enable coverage reporting for the nRoBo framework. Used for nRobo framework coverage report!",  # noqa: E501
+    )
+
+    parser.add_argument(
+        '-v', '--version',
+        action='version',
+        version=f'nrobo version {__version__}'
     )
 
     if "--help" in sys.argv:

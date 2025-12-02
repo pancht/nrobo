@@ -1,5 +1,5 @@
-allure-pytest==2.15.0
-allure-python-commons==2.15.0
+allure-pytest==2.15.2
+allure-python-commons==2.15.2
 Appium-Python-Client==5.2.4
 astroid==4.0.2
 attrs==25.4.0
@@ -36,6 +36,7 @@ mdurl==0.1.2
 more-itertools==10.8.0
 nh3==0.3.2
 nodeenv==1.9.1
+-e git+ssh://git@github.com/pancht/nrobo.git@49b9a03393ba648a48946330649d87652eec5ee0#egg=nrobo
 outcome==1.3.0.post0
 packaging==25.0
 platformdirs==4.5.0
@@ -44,7 +45,7 @@ pre_commit==4.5.0
 pycodestyle==2.14.0
 pyflakes==3.4.0
 Pygments==2.19.2
-pylint==4.0.3
+pylint==4.0.4
 pyproject_hooks==1.2.0
 PySocks==1.7.1
 pytest==9.0.1
@@ -63,6 +64,7 @@ selenium==4.38.0
 shellingham==1.5.4
 sniffio==1.3.1
 sortedcontainers==2.4.0
+termcolor==3.2.0
 tomlkit==0.13.3
 trio==0.32.0
 trio-websocket==0.12.2
