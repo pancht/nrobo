@@ -1,0 +1,8 @@
+suite_name: "Your Suite Name"
+tags: [ui, regression]
+priority: high
+owner: frontend-team
+tests:
+  - test_login
+  - test_get_user
+  - test_create_post
