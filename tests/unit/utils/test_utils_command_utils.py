@@ -77,9 +77,12 @@ def test_initialize_project_creates_structure_and_copies_templates(
         assert (tmp_path / "suites/sample_suite.yml").read_bytes() == fake_template_content
         assert (tmp_path / "tests/ui/test_sample.py").read_bytes() == fake_template_content
         assert (tmp_path / "tests/ui/test_sample_another.py").read_bytes() == fake_template_content
-        assert (tmp_path / "configs/.env").read_bytes() == fake_template_content
+        assert (tmp_path / "configs/.env").read_text() == ""
 
         # Assert logs
-        assert f"{settings.NROBO_APP} project initialized!" in caplog.text
-        assert "📂 Created: suites/, tests/" in caplog.text
-        assert "🧩 Added: sample_suite.yml + test_sample.py + test_sample_another.py" in caplog.text
+        assert f"✨ {settings.NROBO_APP} project initialized!" in caplog.text
+        assert "📁 Your nRobo project structure has been created!" in caplog.text
+        assert "📘 For a quick overview of the folders and files, check out:" in caplog.text
+        assert "   👉 project_structure.md" in caplog.text
+        assert "It’ll help you understand how things are organized and where to start!" in caplog.text
+        assert "Visit: https://github.com/pancht/nrobo/wiki/Getting-Started-with-nRobo" in caplog.text

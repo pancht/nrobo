@@ -128,14 +128,13 @@ def test_help_flag_n(monkeypatch):
 
     assert excinfo.value.code == 0
 
-
 def test_help_flag_y(monkeypatch):
     monkeypatch.setattr(sys, "argv", ["nrobo", "--help"])
     monkeypatch.setattr("builtins.input", lambda _: "y")
 
     # Patch pytest.main to prevent actual help printing
     called = {}
-    def fake_pytest_main(args):
+    def fake_pytest_main(args, **kwargs):
         called["args"] = args
         return 0
 
@@ -146,6 +145,7 @@ def test_help_flag_y(monkeypatch):
 
     assert excinfo.value.code == 0
     assert called["args"] == ["--help"]
+
 
 def test_init_run_creates_files_via_direct_template_patch(tmp_path, monkeypatch):
     from nrobo.cli.commands import init

@@ -1,11 +1,9 @@
 import argparse
 import os
 import sys
-import warnings
 from pathlib import Path
 
 import pytest
-from _pytest.warning_types import PytestAssertRewriteWarning
 
 from nrobo.cli.commands import clean, init
 from nrobo.core import settings
@@ -87,12 +85,6 @@ def parse_nrobo_args(argv):
 
         if user_input.startswith("y"):
             logger.info("\n📜 Pytest Help Menu:")
-            import warnings
-
-            warnings.filterwarnings(
-                "ignore",
-                category=pytest.PytestAssertRewriteWarning,
-            )
 
             pytest.main(
                 ["--help"], plugins=None
@@ -191,6 +183,10 @@ def check_if_nrobo_initialized():
 
     # Allowed commands that don't need full project
     bypass_keywords = ["init", "--help", "-h", "--version", "-v"]
+    is_dev_env = settings.BASE_DIR.exists()
+
+    if is_dev_env:
+        return
 
     if any(not m.exists() for m in markers):
         if not any(bypass in sys.argv for bypass in bypass_keywords):
