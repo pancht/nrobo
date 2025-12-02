@@ -62,3 +62,19 @@ def test_safari_headless_raises_not_implemented():
 def test_unsupported_browser_raises_value_error():
     with pytest.raises(ValueError, match="Unsupported browser: opera"):
         get_driver("opera")
+
+
+def test_safari_raises_on_non_macos():
+    with patch("nrobo.drivers.driver_factory.sys.platform", "win32"):
+        with pytest.raises(EnvironmentError) as excinfo:
+            get_driver("safari", headless=False)
+        assert "Safari is only supported on macOS." in str(excinfo.value)
+
+def test_safari_driver_returned_on_macos():
+    with (
+        patch("nrobo.drivers.driver_factory.sys.platform", "darwin"),
+        patch("nrobo.drivers.driver_factory.SafariDriver", return_value=MagicMock()) as mock_safari,
+    ):
+        driver = get_driver("safari", headless=False)
+        mock_safari.assert_called_once()
+        assert driver == mock_safari.return_value

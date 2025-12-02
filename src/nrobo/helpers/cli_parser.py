@@ -17,6 +17,7 @@ logger = get_logger(name=settings.NROBO_APP)
 
 
 def parse_nrobo_args(argv):
+    argv = argv or sys.argv
     parser = argparse.ArgumentParser(
         description=f"{settings.NROBO_APP} - Smart Test Runner built on Pytest",
         add_help=True,
@@ -68,7 +69,7 @@ def parse_nrobo_args(argv):
         version=f'nrobo version {__version__}'
     )
 
-    if "--help" in sys.argv:
+    if "--help" in argv:
         logger.info(f"\n📜 {settings.NROBO_APP} Help Menu:")
         parser.print_help()
 
@@ -110,19 +111,19 @@ def parse_subcommand(argv):
     return parser.parse_args(argv)
 
 
-def get_nrobo_arg_parser():
-
-    if len(sys.argv) > 1 and sys.argv[1] in ["clean", "init"]:
+def get_nrobo_arg_parser(argv=None):
+    argv = argv or sys.argv
+    if len(argv) > 1 and argv[1] in ["clean", "init"]:
         # Run subcommand parser only
-        sub_args = parse_subcommand(sys.argv[1:])
+        sub_args = parse_subcommand(argv[1:])
         if sub_args.command == "clean":
-            clean.run(sys.argv[2:])
+            clean.run(argv[2:])
         elif sub_args.command == "init":
-            init.run(sys.argv[2:])
+            init.run(argv[2:])
 
         sys.exit(0)
 
-    args, unknown_args = parse_nrobo_args(sys.argv[1:])
+    args, unknown_args = parse_nrobo_args(argv[1:])
 
     # Handle `nrobo --init`
     if args.init:
@@ -172,7 +173,9 @@ def get_nrobo_arg_parser():
     return suites, browser, args, unknown_args
 
 
-def check_if_nrobo_initialized():
+def check_if_nrobo_initialized(sys_argv=None):
+    if sys_argv is None:
+        sys_argv = sys.argv
     markers = [
         Path(settings.CONFIGS),
         Path(settings.TESTS_DIR),
@@ -189,7 +192,7 @@ def check_if_nrobo_initialized():
         return
 
     if any(not m.exists() for m in markers):
-        if not any(bypass in sys.argv for bypass in bypass_keywords):
+        if not any(bypass in sys_argv for bypass in bypass_keywords):
             print(f"🚫 {settings.NROBO_APP} project not initialized.")
             print("💡 Run this to get started:")
             print("    nrobo init --app my_project")
