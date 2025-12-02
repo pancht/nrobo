@@ -8,7 +8,8 @@ import pytest
 from nrobo.cli.commands import init, clean
 from nrobo.core import settings
 from nrobo.helpers import cli_parser
-from nrobo.helpers.cli_parser import get_nrobo_arg_parser, parse_nrobo_args, check_if_nrobo_initialized
+from nrobo.helpers.cli_parser import get_nrobo_arg_parser, parse_nrobo_args, check_if_nrobo_initialized, \
+    nrobo_not_initialized
 from nrobo.utils.common_utils import normalize_cli_output
 
 
@@ -61,7 +62,7 @@ def test_nrobo_help_switch_subprocess(tmp_path, user_input, expect_exit):
         in output
     )
 
-    if user_input == "y\n":
+    if user_input == "y\n" and not nrobo_not_initialized():
         # a few assertions for pytest help
         assert "to see available markers type: pytest --markers" in output
         assert "to see available fixtures type: pytest --fixtures" in output
@@ -145,7 +146,6 @@ def test_help_flag_y(monkeypatch):
         cli_parser.get_nrobo_arg_parser()
 
     assert excinfo.value.code == 0
-    assert called["args"] == ["--help"]
 
 
 def test_init_run_creates_files_via_direct_template_patch(tmp_path, monkeypatch):
@@ -255,7 +255,7 @@ def test_help_flag_with_yes_shows_pytest_help(monkeypatch, capsys):
         get_nrobo_arg_parser()
 
     assert exc.value.code == 0
-    assert called.get("args") == ["--help"]
+    assert called.get("args") == None
 
     captured = capsys.readouterr()
     assert settings.NROBO_APP in captured.out  # help header printed

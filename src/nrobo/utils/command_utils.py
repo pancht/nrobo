@@ -32,7 +32,7 @@ def initialize_project():
     allure_results_dir.mkdir(parents=True, exist_ok=True)
     logs_dir.mkdir(parents=True, exist_ok=True)
     page_dir.mkdir(parents=True, exist_ok=True)
-    test_data_dir.mkdir(parents=True, exist_ok=True)
+    # test_data_dir.mkdir(parents=True, exist_ok=True)
     configs_dir.mkdir(parents=True, exist_ok=True)
 
     # Copy template files from package templates

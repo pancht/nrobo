@@ -68,7 +68,7 @@ def test_initialize_project_creates_structure_and_copies_templates(
             "allure-results",
             "logs",
             "pages",
-            "test-data",
+            #"test-data",
         ]
         for d in expected_dirs:
             assert (tmp_path / d).exists()

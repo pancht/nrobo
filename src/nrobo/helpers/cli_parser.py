@@ -73,6 +73,9 @@ def parse_nrobo_args(argv):
         logger.info(f"\n📜 {settings.NROBO_APP} Help Menu:")
         parser.print_help()
 
+        if nrobo_not_initialized():
+            sys.exit(0)
+
         try:
             user_input = (
                 input(
@@ -172,10 +175,10 @@ def get_nrobo_arg_parser(argv=None):
     logger.debug(f"Final PyTest Options=>{unknown_args}")
     return suites, browser, args, unknown_args
 
+def is_dev_machine():
+    return "src" in str(settings.BASE_DIR) or (settings.BASE_DIR / "src").exists()
 
-def check_if_nrobo_initialized(sys_argv=None):
-    if sys_argv is None:
-        sys_argv = sys.argv
+def nrobo_not_initialized():
     markers = [
         Path(settings.CONFIGS),
         Path(settings.TESTS_DIR),
@@ -184,14 +187,20 @@ def check_if_nrobo_initialized(sys_argv=None):
         Path("common") / "utils",
     ]
 
+    return any(not m.exists() for m in markers)
+
+def check_if_nrobo_initialized(sys_argv=None):
+    if sys_argv is None:
+        sys_argv = sys.argv
+
+
     # Allowed commands that don't need full project
     bypass_keywords = ["init", "--help", "-h", "--version", "-v"]
-    is_dev_env = "src" in str(settings.BASE_DIR) or (settings.BASE_DIR / "src").exists()
 
-    if is_dev_env:
+    if is_dev_machine():
         return
 
-    if any(not m.exists() for m in markers):
+    if nrobo_not_initialized():
         if not any(bypass in sys_argv for bypass in bypass_keywords):
             print(f"🚫 {settings.NROBO_APP} project not initialized.")
             print("💡 Run this to get started:")
