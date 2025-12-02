@@ -216,5 +216,6 @@ allure-results
 .pytest_tmp
 src/nrobo.egg-info
 **/__pycache__/
-test_artifacts/.gitkeep
+test_artifacts/*
+!test_artifacts/.gitkeep
 
