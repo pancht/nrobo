@@ -28,6 +28,10 @@ folders:
   - test_artifacts/videos
 
 files:
+  pytest.ini: |
+    [pytest]
+    filterwarnings =
+        ignore::pytest.PytestAssertRewriteWarning
   requirements.txt: |
     # add dependencies here
   test_artifacts/.gitkeep: |

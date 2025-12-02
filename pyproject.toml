@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nrobo"
-version = "2025.2.15"
+version = "2025.2.17"
 description = "A Pytest-powered Smart Test Runner CLI tool."
 readme = "README.md"
 license = { text = "MIT" }
@@ -24,6 +24,11 @@ dependencies = [
   "Appium-Python-Client>=2.11.1",
   "webdriver-manager>=4.0.1",
   "coverage>=7.3",
+  "tomlkit>=0.13.3",
+  "termcolor>=3.2.0",
+  "pytest-cov>=7.0.0",
+  "pytest-xdist>=3.8.0",
+  "pytest-mock==3.15.1",
 ]
 
 [project.scripts]
@@ -47,20 +52,22 @@ nrobo = "nrobo.plugins.nrobo_plugin"
 [tool.bandit]
 skips = ["B607", "B101", "B603", "B404"]
 
-[project.optional-dependencies]
-dev = [
-    "pytest",
-    "pytest-cov",
-    "pre-commit",
-    "flake8",
-    "codecov",
-    "allure-pytest",
-    "colorlog>=6.8.2",
-    "selenium>=4.12.0",
-    "Appium-Python-Client>=2.11.1",
-    "webdriver-manager>=4.0.1",
-    "coverage>=7.3",
-]
+#[project.optional-dependencies]
+#dev = [
+#    "pytest",
+#    "pytest-cov",
+#    "pre-commit",
+#    "flake8",
+#    "codecov",
+#    "allure-pytest",
+#    "colorlog>=6.8.2",
+#    "selenium>=4.12.0",
+#    "Appium-Python-Client>=2.11.1",
+#    "webdriver-manager>=4.0.1",
+#    "coverage>=7.3",
+#    "tomlkit>=0.13.3",
+#    "termcolor>=3.2.0",
+#]
 
 # pyproject.toml
 
