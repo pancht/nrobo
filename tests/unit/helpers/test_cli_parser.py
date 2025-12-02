@@ -5,6 +5,7 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
+import nrobo
 from nrobo.cli.commands import init, clean
 from nrobo.core import settings
 from nrobo.helpers import cli_parser
@@ -322,17 +323,18 @@ def test_check_if_nrobo_initialized_allows_bypass(monkeypatch, tmp_path):
     # Should not raise
     check_if_nrobo_initialized(sys_argv=fake_argv)
 
-
-def test_check_if_nrobo_initialized_skips_on_dev_env(monkeypatch, tmp_path):
-    """If settings.BASE_DIR exists (dev env), skip checks."""
-    # Create fake base dir
-    fake_base = tmp_path / "base"
-    fake_base.mkdir()
-    monkeypatch.setattr(settings, "BASE_DIR", fake_base)
-
-    fake_argv = ["nrobo", "run"]
-    # Should not raise
-    check_if_nrobo_initialized(sys_argv=fake_argv)
+def test_check_if_nrobo_initialized_skips_on_dev_env():
+    """
+    If settings.BASE_DIR points to a dev environment (contains 'src'),
+    check_if_nrobo_initialized should skip initialization checks.
+    """
+    # Simulate a dev environment with 'src' in path
+    fake_base = Path("/Users/mac/PycharmProjects/nrobo/src")
+    from nrobo.core import settings
+    with patch.object(settings, "BASE_DIR", fake_base), \
+         patch.object(sys, "argv", ["nrobo", "--co"]):
+        # No SystemExit should be raised
+        check_if_nrobo_initialized(sys_argv=sys.argv)
 
 
 def test_parse_nrobo_args_defaults_and_flags():
@@ -410,15 +412,6 @@ def test_check_if_nrobo_initialized_does_not_exit_on_bypass_flags(bypass_flag):
         patch.object(sys, "argv", ["nrobo"] + bypass_flag)
     ):
         check_if_nrobo_initialized()  # should not raise
-
-
-def test_check_if_nrobo_initialized_skips_check_when_dev_env():
-    """Should skip all checks if in dev environment (BASE_DIR exists)."""
-    with (
-        patch.object(settings, "BASE_DIR", Path.cwd()),
-        patch.object(sys, "argv", ["nrobo", "run"])
-    ):
-        check_if_nrobo_initialized()
 
 
 @patch("nrobo.helpers.cli_parser.Path.exists", return_value=False)

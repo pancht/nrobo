@@ -186,7 +186,7 @@ def check_if_nrobo_initialized(sys_argv=None):
 
     # Allowed commands that don't need full project
     bypass_keywords = ["init", "--help", "-h", "--version", "-v"]
-    is_dev_env = settings.BASE_DIR.exists()
+    is_dev_env = "src" in str(settings.BASE_DIR) or (settings.BASE_DIR / "src").exists()
 
     if is_dev_env:
         return
