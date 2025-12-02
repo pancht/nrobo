@@ -1,7 +1,5 @@
-import json
-import os
 import importlib.util
-import runpy
+import os
 import subprocess
 import sys
 from io import StringIO
@@ -526,7 +524,7 @@ def test_add_basetemp_if_not_present(monkeypatch):
         assert "--basetemp=.pytest_tmp" in unknown_args
 
 
-@patch("nrobo.runner.Path.open", create=True)
+@patch("nrobo.helpers._pytest_helper.Path.open", create=True)
 @patch("nrobo.helpers.cli_parser.get_nrobo_arg_parser", autospec=True)
 @patch("nrobo.cli.main.detect_or_validate_suites", autospec=True)
 @patch("nrobo.cli.main.detect_fixture_usage", autospec=True)
