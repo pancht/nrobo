@@ -13,9 +13,8 @@ from nrobo.utils.suite_utils import detect_or_validate_suites
 from nrobo.helpers._pytest_helper import (
     detect_fixture_usage,
     no_execution_key_found,
-    should_proceed,
+    should_proceed, prepare_pytest_cli_options,
 )
-from nrobo.runner import prepare_pytest_cli_options
 
 logger = get_logger(name=settings.NROBO_APP)
 

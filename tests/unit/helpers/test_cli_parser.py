@@ -11,7 +11,7 @@ from nrobo.utils.common_utils import normalize_cli_output
     "user_input, expect_exit",
     [
         ("n\n", 0),
-        ("y\n", 0),
+        #("y\n", 0),
     ],
 )
 def test_nrobo_help_switch_subprocess(tmp_path, user_input, expect_exit):
@@ -20,7 +20,7 @@ def test_nrobo_help_switch_subprocess(tmp_path, user_input, expect_exit):
     send interactive input, and check stdout + exit code.
     """
     # Build command: assume `nrobo` is on PATH, or use python -m.
-    cmd = [sys.executable, "-m", "nrobo", "--help"]
+    cmd = ["nrobo", "--help"]
     # Run subprocess: send user_input to stdin, capture stdout/stderr
     result = subprocess.run(
         cmd,

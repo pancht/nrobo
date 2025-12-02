@@ -3,7 +3,7 @@ from abc import ABC
 
 from selenium.webdriver import ActionChains
 
-from nrobo.nrobo_types import AnyDevice, AnyDriver
+from nrobo.selenium_wrappers.nrobo_types import AnyDevice, AnyDriver
 from nrobo.selenium_wrappers.base import SeleniumWrapperBase
 
 

@@ -6,7 +6,7 @@ import yaml
 
 from nrobo.core import settings
 from nrobo.core.exceptions import SuiteNotFoundError, ReadSuiteFailed
-from nrobo.runner import prepare_pytest_cli_options
+from nrobo.helpers._pytest_helper import prepare_pytest_cli_options
 
 
 def write_suite_file(path: Path, data: dict):

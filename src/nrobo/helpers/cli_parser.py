@@ -4,6 +4,7 @@ import sys
 
 import pytest
 
+from nrobo.cli.commands import clean
 from nrobo.core import settings
 from nrobo.helpers.io_helper import copy_configs_if_updated
 from nrobo.helpers.logging_helper import get_logger, set_logger_level
@@ -14,7 +15,7 @@ from nrobo.version import __version__
 logger = get_logger(name=settings.NROBO_APP)
 
 
-def get_nrobo_arg_parser():
+def parse_nrobo_args(argv):
     parser = argparse.ArgumentParser(
         description=f"{settings.NROBO_APP} - Smart Test Runner built on Pytest",
         add_help=True,
@@ -56,7 +57,8 @@ def get_nrobo_arg_parser():
         "--coverage",
         action="store_true",
         default=False,
-        help="Enable coverage reporting for the nRoBo framework. Used for nRobo framework coverage report!",  # noqa: E501
+        help="Enable coverage reporting for the nRoBo framework. Used for nRobo framework coverage report!",
+        # noqa: E501
     )
 
     parser.add_argument(
@@ -83,10 +85,47 @@ def get_nrobo_arg_parser():
         if user_input.startswith("y"):
             logger.info("\n📜 Pytest Help Menu:")
             pytest.main(["--help"])
+
+        raise SystemExit(0)
+
+    return parser.parse_known_args()
+
+def parse_subcommand(argv):
+    parser = argparse.ArgumentParser(
+        description="nrobo subcommands"
+    )
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    clean_parser = subparsers.add_parser("clean", help="Clean test_artifacts/")
+    clean_parser.add_argument("-v", "--verbose", action="store_true")
+
+    return parser.parse_args(argv)
+
+#
+# def get_nrobo_arg_parser():
+#     import argparse
+#
+#     if len(sys.argv) > 1 and sys.argv[1] in ["clean"]:
+#         # Run subcommand parser only
+#         sub_args = parse_subcommand(sys.argv[1:])
+#         if sub_args.command == "clean":
+#             clean.run(sys.argv[2:])
+#             sys.exit(0)
+#
+#         # Normal nrobo arguments
+#     print(parse_nrobo_args(sys.argv[1:]))
+
+
+def get_nrobo_arg_parser():
+
+    if len(sys.argv) > 1 and sys.argv[1] in ["clean"]:
+        # Run subcommand parser only
+        sub_args = parse_subcommand(sys.argv[1:])
+        if sub_args.command == "clean":
+            clean.run(sys.argv[2:])
             sys.exit(0)
 
-    # parse_known_args() → splits known vs unknown args safely
-    args, unknown_args = parser.parse_known_args()
+    args, unknown_args = parse_nrobo_args(sys.argv[1:])
 
     # Handle `nrobo --init`
     if args.init:

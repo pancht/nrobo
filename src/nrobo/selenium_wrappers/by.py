@@ -1,7 +1,7 @@
 import logging
 from abc import ABC
 
-from nrobo.nrobo_types import AnyDevice, AnyDriver
+from nrobo.selenium_wrappers.nrobo_types import AnyDevice, AnyDriver
 from nrobo.selenium_wrappers.alerts import AlertWrapper
 
 

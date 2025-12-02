@@ -4,7 +4,7 @@ from typing import Dict, Optional
 
 from selenium.webdriver.support.select import Select
 
-from nrobo.nrobo_types import AnyBy, AnyDevice, AnyDriver
+from nrobo.selenium_wrappers.nrobo_types import AnyBy, AnyDevice, AnyDriver
 from nrobo.selenium_wrappers.desired_cap import DesiredCapabilitiesWrapper
 
 
