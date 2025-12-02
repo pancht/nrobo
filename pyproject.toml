@@ -29,22 +29,23 @@ dependencies = [
   "pytest-cov",
   "pytest-xdist>=3.8.0",
   "pytest-mock>=3.15.1",
+  "flake8",
 ]
 
 [project.scripts]
 nrobo = "nrobo.cli.main:main"
-
-[tool.setuptools]
-include-package-data = true
-
-
-[tool.setuptools.package-data]
-"nrobo" = [
-  "tepmpaltes/*",
-  "templates/configs/*",     # Includes files in configs
-  "templates/configs/.*",    # Includes hidden files like .nrobo_env
-]
-
+#
+#[tool.setuptools]
+#include-package-data = true
+#
+#
+#[tool.setuptools.package-data]
+#"nrobo" = [
+#  "tepmpaltes/*",
+#  "templates/configs/*",     # Includes files in configs
+#  "templates/configs/.*",    # Includes hidden files like .nrobo_env
+#]
+#
 
 [project.entry-points.pytest11]
 nrobo = "nrobo.plugins.nrobo_plugin"
