@@ -5,7 +5,7 @@ ARTIFACT_DIR = "test_artifacts"
 
 
 def clean_artifacts(verbose=False):
-    for root, dirs, files in os.walk(ARTIFACT_DIR):
+    for root, dirs, files in os.walk(ARTIFACT_DIR, topdown=False):
         for f in files:
             if f != ".gitkeep":
                 file_path = os.path.join(root, f)

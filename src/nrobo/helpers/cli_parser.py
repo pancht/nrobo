@@ -102,20 +102,6 @@ def parse_subcommand(argv):
 
     return parser.parse_args(argv)
 
-#
-# def get_nrobo_arg_parser():
-#     import argparse
-#
-#     if len(sys.argv) > 1 and sys.argv[1] in ["clean"]:
-#         # Run subcommand parser only
-#         sub_args = parse_subcommand(sys.argv[1:])
-#         if sub_args.command == "clean":
-#             clean.run(sys.argv[2:])
-#             sys.exit(0)
-#
-#         # Normal nrobo arguments
-#     print(parse_nrobo_args(sys.argv[1:]))
-
 
 def get_nrobo_arg_parser():
 
