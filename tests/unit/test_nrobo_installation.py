@@ -24,7 +24,7 @@ def test_nrobo_installation_and_cli(tmp_path: Path):
 
     # Install nrobo locally in the venv
     subprocess.run(
-        [bin_dir / "pip", "install", "-e", "."],
+        [bin_dir / "pip", "install", "-e", ".[dev]"],
         cwd=Path(__file__).parent.parent.parent,  # Root of nrobo project
         check=True,
     )

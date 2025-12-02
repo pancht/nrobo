@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 
 import pytest
-
+import coverage
 from nrobo.core import settings
 from nrobo.core.constants import ExitCodes
 from nrobo.core.exceptions import NoTestsFoundException, NRoboError
@@ -80,7 +80,16 @@ def run() -> int:
 
     # Handle coverage report path if requested
     if getattr(args, "coverage", False):
+        try:
+            cov = coverage.Coverage()
+            cov.combine()
+            cov.save()
+            logger.info("🧪 Combined coverage data from multiple subprocesses.")
+        except Exception as e:
+            logger.warning(f"⚠️ Failed to combine coverage data: {e}")
+
         coverage_path = settings.COVERAGE_REPORT_HTML
+
         if coverage_path.exists():
             logger.info(f"📈 Coverage report available → file://{coverage_path.resolve()}")
         else:
