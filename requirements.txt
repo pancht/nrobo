@@ -15,7 +15,6 @@ Jinja2==3.1.6
 markdown-it-py==4.0.0
 MarkupSafe==3.0.3
 mdurl==0.1.2
--e git+ssh://git@github.com/pancht/nrobo.git@b4d54ad296ed79c91e738f478caac44fd236c2cf#egg=nrobo
 outcome==1.3.0.post0
 packaging==25.0
 pluggy==1.6.0
