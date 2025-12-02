@@ -4,7 +4,7 @@ import sys
 
 import pytest
 
-from nrobo.cli.commands import clean
+from nrobo.cli.commands import clean, init
 from nrobo.core import settings
 from nrobo.helpers.io_helper import copy_configs_if_updated
 from nrobo.helpers.logging_helper import get_logger, set_logger_level
@@ -100,17 +100,23 @@ def parse_subcommand(argv):
     clean_parser = subparsers.add_parser("clean", help="Clean test_artifacts/")
     clean_parser.add_argument("-v", "--verbose", action="store_true")
 
+    init_parser = subparsers.add_parser("init", help=f"{settings.NROBO_APP} project initializer")
+    init_parser.add_argument('--app', required=True, type=str, help='App name (used as project name)')
+
     return parser.parse_args(argv)
 
 
 def get_nrobo_arg_parser():
 
-    if len(sys.argv) > 1 and sys.argv[1] in ["clean"]:
+    if len(sys.argv) > 1 and sys.argv[1] in ["clean", "init"]:
         # Run subcommand parser only
         sub_args = parse_subcommand(sys.argv[1:])
         if sub_args.command == "clean":
             clean.run(sys.argv[2:])
-            sys.exit(0)
+        elif sub_args.command == "init":
+            init.run(sys.argv[2:])
+
+        sys.exit(0)
 
     args, unknown_args = parse_nrobo_args(sys.argv[1:])
 
