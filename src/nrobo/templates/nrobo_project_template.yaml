@@ -26,6 +26,8 @@ folders:
   - test_artifacts/videos
 
 files:
+  test_artifacts/.gitkeep: |
+
   .gitignore: |
     # Byte-compiled / optimized / DLL files
     __pycache__/
@@ -110,6 +112,11 @@ files:
     # IPython
     profile_default/
     ipython_config.py
+    
+    #nrobo specific
+    test_artifacts/*
+    !test_artifacts/.gitkeep
+
     
     # pyenv
     #   For a library or package, you might want to ignore these files since the code is
