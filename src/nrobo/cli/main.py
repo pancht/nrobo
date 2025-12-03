@@ -77,10 +77,6 @@ def run() -> int:
     allure_dir = Path(settings.ALLURE_RESULTS_DIR)
     if allure_dir.exists() and any(allure_dir.iterdir()):
         generate_allure_report()
-        # import tempfile, os
-        # logger.debug("TMPDIR:", tempfile.gettempdir())
-        # logger.debug("HOME:", os.path.expanduser("~"))
-        # print("CWD:", os.getcwd())
     else:
         logger.warning("⚠️ Skipping Allure report — no results found.")
 

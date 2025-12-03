@@ -75,7 +75,7 @@ def generate_allure_report() -> None:
         logger.info(f"✅ Allure report ready  →  file://{report_path}")
         try:
             state = reuse_or_launch_allure_nginx(settings.ALLURE_REPORT_DIR, open_browser=False)
-            logger.info(f"Allure report served at url: {state}")
+            logger.info(f"Allure report served at url: {state['url']}")
         except Exception as e:
             logger.debug(e)
     except subprocess.CalledProcessError as e:
