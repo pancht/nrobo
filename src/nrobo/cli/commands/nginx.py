@@ -24,6 +24,7 @@ def cmd_start(args):
         print("Incorrect command usage error!")
         run(argv=["start", "-h"])
         sys.exit(1)
+        return
     result = reuse_or_launch_allure_nginx(str(allure_dir))
     print(f"🚀 Allure report served at: {result['url']}")
 
