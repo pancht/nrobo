@@ -82,7 +82,7 @@ def detect_fixture_usage(fixture_name: str, test_paths: List[str], pytest_args: 
                 *test_paths,
             ]
         )
-        #print(cmd)
+        # print(cmd)
         try:
             # Run collection subprocess silently
             subprocess.run(
@@ -92,7 +92,7 @@ def detect_fixture_usage(fixture_name: str, test_paths: List[str], pytest_args: 
                 stderr=subprocess.DEVNULL,
             )
         except CalledProcessError as cpe:
-            #print(cpe)
+            # print(cpe)
             if cpe.returncode == 5:
                 logger.error("❌ No tests were collected by pytest.")
                 logger.warning("ℹ️ Troubleshooting Tips:")

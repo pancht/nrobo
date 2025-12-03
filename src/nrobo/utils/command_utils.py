@@ -19,7 +19,7 @@ def initialize_project():
     allure_results_dir = base_dir / settings.ALLURE_RESULTS_DIR
     logs_dir = base_dir / settings.LOG_DIR
     page_dir = base_dir / settings.PAGE_OBJECT_DIR
-    test_data_dir = base_dir / settings.TEST_DATA_DIR
+    # test_data_dir = base_dir / settings.TEST_DATA_DIR
     configs_dir = base_dir / "configs"
 
     suites_dir.mkdir(parents=True, exist_ok=True)

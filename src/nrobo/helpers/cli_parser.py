@@ -175,8 +175,10 @@ def get_nrobo_arg_parser(argv=None):
     logger.debug(f"Final PyTest Options=>{unknown_args}")
     return suites, browser, args, unknown_args
 
+
 def is_dev_machine():
     return "src" in str(settings.BASE_DIR) or (settings.BASE_DIR / "src").exists()
+
 
 def nrobo_not_initialized():
     markers = [
@@ -189,10 +191,10 @@ def nrobo_not_initialized():
 
     return any(not m.exists() for m in markers)
 
+
 def check_if_nrobo_initialized(sys_argv=None):
     if sys_argv is None:
         sys_argv = sys.argv
-
 
     # Allowed commands that don't need full project
     bypass_keywords = ["init", "--help", "-h", "--version", "-v"]
