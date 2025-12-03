@@ -107,6 +107,8 @@ def main():
         new_version = local_version
         cprint(f"✅ Local version is newer ({local_version}) — keeping as-is", "green")
 
+    update_version_file(version_file_path=VERSION_FILE, new_version=new_version)
+
     if not args.no_git_log:
         show_git_changelog()
 
@@ -130,7 +132,6 @@ def main():
         return
 
     upload_package(repo)
-    update_version_file(version_file_path=VERSION_FILE, new_version=new_version)
 
     cprint(f"\n✅ Version {new_version} successfully uploaded to {repo}!", "green")
 
