@@ -34,6 +34,8 @@ files:
         ignore::pytest.PytestAssertRewriteWarning
   requirements.txt: |
     # add dependencies here
+  configs/.env: |
+
   test_artifacts/.gitkeep: |
 
   .gitignore: |

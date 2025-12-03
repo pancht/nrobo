@@ -47,11 +47,6 @@ def initialize_project():
     ):  # noqa: E501
         (ui_dir / "test_sample_another.py").write_bytes(src.read())
 
-    with (
-        res.files("nrobo.templates.configs").joinpath(".nrobo_env").open("rb") as src
-    ):  # noqa: E501
-        (configs_dir / ".env").write_text("")
-    #
 
     logger.info(f"✨ {settings.NROBO_APP} project initialized!")
     logger.info("📁 Your nRobo project structure has been created!")
