@@ -9,6 +9,8 @@
 [![CI](https://github.com/pancht/nrobo/actions/workflows/ci.yml/badge.svg)](https://github.com/pancht/nrobo/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/pancht/nrobo/branch/production/graph/badge.svg?token=YOUR_TOKEN)](https://codecov.io/gh/pancht/nrobo)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/pancht/nrobo/blob/production/LICENSE)
+[![Watch on YouTube](https://img.shields.io/badge/YouTube-Playlist-red?logo=youtube&logoColor=white)](https://youtube.com/playlist?list=PLMkFSH7JcxPGXo5D3tesuUQcDqUPeE-ZL&si=uD3TCu6KpKDKV3G7)
+
 
 # Architecture
 
