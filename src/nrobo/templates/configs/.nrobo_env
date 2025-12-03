@@ -1,0 +1,45 @@
+NROBO_CONFIGS="configs"
+NROBO_ENV_FILE=".env"
+
+NROBO_BASENAME_TMP=.pytest_tmp
+
+# Core Framework Settings
+NROBO_APP="nRobo"
+NROBO_VERSION="0.1.0"
+
+# APP Mode
+NROBO_DEBUG="False"
+# Test Execution
+NROBO_DEFAULT_BROWSER="chrome"
+NROBO_BROWSER="chrome"
+NROBO_HEADLESS="True"
+
+# Reporting
+NROBO_TEST_ARTIFACTS_DIR="test_artifacts"
+NROBO_COVERAGE_REPORTS_DIR="coverage_reports"
+NROBO_REPORT_TYPE_HTML="html"
+NROBO_HTML_REPORT_PATH="html_report"
+
+NROBO_HTML_DEFAULT_REPORT_NAME="report.html"
+NROBO_REPORT_TYPE_ALLURE="alluredir"
+NROBO_ALLURE_RESULTS_DIR="allure-results"
+ALLURE_REPORT_DIR="allure-reports"
+
+# Logging Stream handler
+NROBO_LOG_LEVEL_STREAM="INFO"
+NROBO_LOG_FORMAT_STREAM="%(log_color)s[%(levelname)s]%(reset)s %(message)s"
+
+# Logging File Handler
+NROBO_LOG_FILE_FILE=""
+NROBO_LOG_LEVEL_FILE="DEBUG"
+NROBO_LOG_FORMAT_FILE="%(asctime)s - %(levelname)s - %(message)s"
+
+# standard directories
+NROBO_LOG_DIR="logs"
+NROBO_SUITES_DIR="test_suites"
+NROBO_TESTS_DIR="tests"
+NROBO_UI_DIR="ui"
+NROBO_MOBILE_DIR="mobile"
+NROBO_API_DIR="api"
+NROBO_PAGE_OBJECT_DIR="pages"
+NROBO_TEST_DATA_DIR="test_data"
