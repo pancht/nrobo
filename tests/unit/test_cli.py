@@ -184,7 +184,7 @@ def test_nrobo_cli_argument_parsing(argv, expected, logger: Logger):
                 },
                 "pytest_args": {
                     "--cov=nrobo",
-                    "--cov-report=html",
+                    f"--cov-report=html:{settings.TEST_ARTIFACTS_DIR}/{settings.COVERAGE_REPORTS_DIR}/html",
                     "--cov-report=term-missing",
                     "--cov-fail-under=90",
                     "--html=test_artifacts/html_report/myreport.html",

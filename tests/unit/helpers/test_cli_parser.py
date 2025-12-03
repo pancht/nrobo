@@ -287,7 +287,7 @@ def test_coverage_flag_adds_cov_args(monkeypatch):
     assert args.coverage is True
     # unknown args should contain cov-related flags
     assert "--cov=nrobo" in unknown
-    assert "--cov-report=html" in unknown
+    assert f"--cov-report=html:{settings.TEST_ARTIFACTS_DIR}/{settings.COVERAGE_REPORTS_DIR}/html" in unknown
     assert "--cov-report=term-missing" in unknown
     # also basetemp fallback if settings.NROBO_BASENAME_TMP truthy
     if settings.NROBO_BASENAME_TMP:
