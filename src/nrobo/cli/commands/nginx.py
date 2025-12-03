@@ -97,6 +97,8 @@ def run(argv=None):
         parser.print_help()
         return
 
-    args.func(args)
-
+    try:
+        args.func(args)
+    except Exception as e:
+        print(f"nginx server could not be started due to error: {e}")
 
