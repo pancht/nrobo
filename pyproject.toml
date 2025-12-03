@@ -33,6 +33,7 @@ dependencies = [
   "platformdirs",
   "socket",
   "contextlib",
+  "psutils",
 ]
 
 [project.scripts]

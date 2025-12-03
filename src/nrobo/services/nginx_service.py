@@ -7,6 +7,7 @@ import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
+import psutils
 
 from nrobo.helpers.network_utils import find_free_port, wait_until_listening, is_port_in_use
 from nrobo.helpers.logging_helper import get_logger
@@ -101,14 +102,32 @@ def reuse_or_launch_allure_nginx(allure_report_dir: str, open_browser: bool = Fa
     save_state(new_state)
     return new_state
 
-def _pid_running(pid_file: Path) -> bool:
+def _pid_running(pid_file: Path, expected_prefix: Path) -> bool:
     try:
         pid = int(pid_file.read_text().strip())
     except Exception:
         return False
     try:
-        os.kill(pid, 0)  # check signal
-        return True
+        p = psutil.Process(pid)
+        if "nginx" not in p.name().lower():
+            return False
+        # Confirm it's our instance (has -p <prefix>)
+        cmdline = " ".join(p.cmdline())
+        if str(expected_prefix) not in cmdline:
+            return False
+        # Check it actually listens on TCP sockets
+        for conn in p.connections(kind="inet"):
+            if conn.status == psutil.CONN_LISTEN:
+                return True
+        # Fallback: double-check via lsof
+        res = subprocess.run(
+            ["lsof", "-iTCP", "-a", f"-p{pid}", "-sTCP:LISTEN"],
+            capture_output=True,
+            text=True,
+        )
+        if res.returncode == 0 and "nginx" in res.stdout:
+            return True
+        return False
     except Exception:
         return False
 
@@ -125,16 +144,84 @@ def _http_header_matches(host: str, port: int, expected_dir: str) -> bool:
         return False
 
 def _user_local_alive(runtime_dir: str, host: str, port: int, expected_dir: str) -> bool:
+    """
+    Return True only if the user-local nginx instance is genuinely alive
+    and serving the expected directory. Cleans up stale masters if needed.
+    """
     prefix = Path(runtime_dir)
     pid_file = prefix / "logs" / "nginx.pid"
+
+    # PID file must exist
     if not pid_file.is_file():
         return False
-    if not _pid_running(pid_file):
+
+    # Read PID
+    try:
+        pid = int(pid_file.read_text().strip())
+    except Exception:
         return False
-    if not is_port_in_use(port, host=host):
+
+    # Check if process is alive and is nginx
+    try:
+        p = psutil.Process(pid)
+        if "nginx" not in p.name().lower():
+            return False
+    except psutil.NoSuchProcess:
         return False
+    except Exception:
+        return False
+
+    # Verify the process command line actually points to our prefix
+    try:
+        cmdline = " ".join(p.cmdline())
+        if str(prefix) not in cmdline:
+            # Not our instance — ignore it
+            return False
+    except Exception:
+        pass  # skip if psutil can't read cmdline
+
+    # Now verify that it is actually listening on the port
+    listening = False
+    try:
+        for conn in p.connections(kind="inet"):
+            if conn.status == psutil.CONN_LISTEN and conn.laddr.port == port:
+                listening = True
+                break
+    except Exception:
+        pass
+
+    # Fallback: use lsof to cross-check (macOS-friendly)
+    if not listening:
+        try:
+            res = subprocess.run(
+                ["lsof", "-iTCP:%d" % port, "-sTCP:LISTEN"],
+                capture_output=True,
+                text=True,
+            )
+            if res.returncode == 0 and "nginx" in res.stdout:
+                listening = True
+        except Exception:
+            pass
+
+    # If it's alive but not listening, clean up the zombie
+    if not listening:
+        try:
+            os.kill(pid, 15)
+            pid_file.unlink(missing_ok=True)
+            logger.warning(
+                f"🧹 Cleaned up stale nginx master (PID {pid}) — not listening on port {port}"
+            )
+        except Exception:
+            pass
+        return False
+
+    # Last sanity check: make sure the served dir matches
     if not _http_header_matches(host, port, expected_dir):
         return False
+
+    logger.info(
+        f"♻️ Reusing user-local nginx (PID {pid}) at http://{host}:{port}/ for {expected_dir}"
+    )
     return True
 
 @dataclass(frozen=True)
