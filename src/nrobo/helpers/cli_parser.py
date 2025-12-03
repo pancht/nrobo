@@ -1,10 +1,11 @@
 import argparse
 import os
 import sys
+from pathlib import Path
 
 import pytest
 
-from nrobo.cli.commands import clean
+from nrobo.cli.commands import clean, init
 from nrobo.core import settings
 from nrobo.helpers.io_helper import copy_configs_if_updated
 from nrobo.helpers.logging_helper import get_logger, set_logger_level
@@ -16,6 +17,7 @@ logger = get_logger(name=settings.NROBO_APP)
 
 
 def parse_nrobo_args(argv):
+    argv = argv or sys.argv
     parser = argparse.ArgumentParser(
         description=f"{settings.NROBO_APP} - Smart Test Runner built on Pytest",
         add_help=True,
@@ -67,9 +69,12 @@ def parse_nrobo_args(argv):
         version=f'nrobo version {__version__}'
     )
 
-    if "--help" in sys.argv:
+    if "--help" in argv:
         logger.info(f"\n📜 {settings.NROBO_APP} Help Menu:")
         parser.print_help()
+
+        if nrobo_not_initialized():
+            sys.exit(0)
 
         try:
             user_input = (
@@ -84,7 +89,10 @@ def parse_nrobo_args(argv):
 
         if user_input.startswith("y"):
             logger.info("\n📜 Pytest Help Menu:")
-            pytest.main(["--help"])
+
+            pytest.main(
+                ["--help"], plugins=None
+            )
 
         raise SystemExit(0)
 
@@ -100,19 +108,25 @@ def parse_subcommand(argv):
     clean_parser = subparsers.add_parser("clean", help="Clean test_artifacts/")
     clean_parser.add_argument("-v", "--verbose", action="store_true")
 
+    init_parser = subparsers.add_parser("init", help=f"{settings.NROBO_APP} project initializer")
+    init_parser.add_argument('--app', required=True, type=str, help='App name (used as project name)')
+
     return parser.parse_args(argv)
 
 
-def get_nrobo_arg_parser():
-
-    if len(sys.argv) > 1 and sys.argv[1] in ["clean"]:
+def get_nrobo_arg_parser(argv=None):
+    argv = argv or sys.argv
+    if len(argv) > 1 and argv[1] in ["clean", "init"]:
         # Run subcommand parser only
-        sub_args = parse_subcommand(sys.argv[1:])
+        sub_args = parse_subcommand(argv[1:])
         if sub_args.command == "clean":
-            clean.run(sys.argv[2:])
-            sys.exit(0)
+            clean.run(argv[2:])
+        elif sub_args.command == "init":
+            init.run(argv[2:])
 
-    args, unknown_args = parse_nrobo_args(sys.argv[1:])
+        sys.exit(0)
+
+    args, unknown_args = parse_nrobo_args(argv[1:])
 
     # Handle `nrobo --init`
     if args.init:
@@ -145,8 +159,8 @@ def get_nrobo_arg_parser():
         unknown_args.extend(
             [
                 "--cov=nrobo",  # measure coverage for your framework package
-                "--cov-report=html",
-                "--cov-report=xml",  # generate HTML report
+                f"--cov-report=html:{settings.TEST_ARTIFACTS_DIR}/{settings.COVERAGE_REPORTS_DIR}/html",
+                f"--cov-report=xml:{str(settings.COVERAGE_REPORT_XML)}",  # generate HTML report
                 "--cov-report=term-missing",  # show missing lines in terminal
                 "--cov-fail-under=90",  # fail if coverage < 90%
             ]
@@ -160,3 +174,37 @@ def get_nrobo_arg_parser():
     unknown_args = prepare_reporting_args(pytest_args=unknown_args)
     logger.debug(f"Final PyTest Options=>{unknown_args}")
     return suites, browser, args, unknown_args
+
+
+def is_dev_machine():
+    return "src" in str(settings.BASE_DIR) or (settings.BASE_DIR / "src").exists()
+
+
+def nrobo_not_initialized():
+    markers = [
+        Path(settings.CONFIGS),
+        Path(settings.TESTS_DIR),
+        Path(settings.SUITES_DIR),
+        Path("common") / "helpers",
+        Path("common") / "utils",
+    ]
+
+    return any(not m.exists() for m in markers)
+
+
+def check_if_nrobo_initialized(sys_argv=None):
+    if sys_argv is None:
+        sys_argv = sys.argv
+
+    # Allowed commands that don't need full project
+    bypass_keywords = ["init", "--help", "-h", "--version", "-v"]
+
+    if is_dev_machine():
+        return
+
+    if nrobo_not_initialized():
+        if not any(bypass in sys_argv for bypass in bypass_keywords):
+            print(f"🚫 {settings.NROBO_APP} project not initialized.")
+            print("💡 Run this to get started:")
+            print("    nrobo init --app my_project")
+            sys.exit(1)

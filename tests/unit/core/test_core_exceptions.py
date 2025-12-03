@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from nrobo.core.constants import ExitCodes
-from nrobo.core.exceptions import NoTestsFoundException, NRoboError, ReadSuiteFailed
+from nrobo.core.exceptions import NoTestsFoundException, NRoboError, ReadSuiteFailed, DependencyNotFoundError
 
 
 @pytest.mark.parametrize("reason", [None, "invalid yaml", ValueError("Missing colon")])
@@ -64,3 +64,13 @@ def test_no_tests_found_exception(reason, search_path, expected_reason, expected
         assert f"🔍 Searched in: {expected_path}" in msg
     else:
         assert "🔍 Searched in:" not in msg
+
+
+def test_dependency_not_found_error_with_hint():
+    hint = "Run `brew install git`"
+    try:
+        raise DependencyNotFoundError("git", install_hint=hint)
+    except DependencyNotFoundError as e:
+        assert "git" in str(e)
+        assert hint in str(e)
+        assert e.return_code == ExitCodes.DEP_NOT_FOUND

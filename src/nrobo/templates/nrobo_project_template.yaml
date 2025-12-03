@@ -10,12 +10,14 @@ folders:
   - pages
   - tests/ui
   - tests/api
+  - tests/mobile
   - tests/e2e
   - tests/unit
   - tests/integration
   - tests/performance
   - test_suites/ui
   - test_suites/api
+  - test_suites/mobile
   - test_suites/e2e
   - test_suites/unit
   - test_suites/integration
@@ -26,6 +28,12 @@ folders:
   - test_artifacts/videos
 
 files:
+  pytest.ini: |
+    [pytest]
+    filterwarnings =
+        ignore::pytest.PytestAssertRewriteWarning
+  requirements.txt: |
+    # add dependencies here
   test_artifacts/.gitkeep: |
 
   .gitignore: |
@@ -261,6 +269,7 @@ files:
     - `tests/`: All test cases, organized by type:
       - `tests/ui/`
       - `tests/api/`
+      - `tests/mobile/`
       - `tests/e2e/`
       - `tests/unit/`
       - `tests/integration/`
@@ -268,6 +277,7 @@ files:
     - `test_suites/`: All test suites, organized by type:
       - `test_suites/ui/`
       - `test_suites/api/`
+      - `test_suites/mobile/`
       - `test_suites/e2e/`
       - `test_suites/unit/`
       - `test_suites/integration/`

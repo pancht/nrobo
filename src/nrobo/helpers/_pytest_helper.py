@@ -77,21 +77,22 @@ def detect_fixture_usage(fixture_name: str, test_paths: List[str], pytest_args: 
                 "--collect-only",
                 "-p",
                 "nrobo.plugins.detect_fixtures_plugin",
+                "-q",
                 *k_option,
                 *test_paths,
             ]
         )
-        print(cmd)
+        # print(cmd)
         try:
             # Run collection subprocess silently
             subprocess.run(
                 cmd,
                 check=True,
-                # stdout=subprocess.DEVNULL,
-                # stderr=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
             )
         except CalledProcessError as cpe:
-            print(cpe)
+            # print(cpe)
             if cpe.returncode == 5:
                 logger.error("❌ No tests were collected by pytest.")
                 logger.warning("ℹ️ Troubleshooting Tips:")
