@@ -34,6 +34,7 @@ dependencies = [
   "socket",
   "contextlib",
   "psutils",
+  "psutil",
 ]
 
 [project.scripts]
