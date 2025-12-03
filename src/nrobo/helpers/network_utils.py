@@ -91,6 +91,30 @@ def wait_for_port(port: int, host: str = "127.0.0.1", timeout: int = 10) -> bool
     return False
 
 
+def wait_until_listening(port: int, host: str = "127.0.0.1", timeout: int = 10) -> bool:
+    """
+    Wait until a TCP port starts accepting connections (i.e., service listening).
+
+    Args:
+        port (int): Port number to check.
+        host (str): Hostname or IP address.
+        timeout (int): Seconds to wait before giving up.
+
+    Returns:
+        bool: True if service starts listening before timeout, False otherwise.
+    """
+    start = time.time()
+    while time.time() - start < timeout:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(0.5)
+            if s.connect_ex((host, port)) == 0:
+                logger.info(f"[NetworkUtils] Port {port} is now listening ✅")
+                return True
+        time.sleep(0.5)
+    logger.warning(f"[NetworkUtils] Port {port} not listening after {timeout}s ⚠️")
+    return False
+
+
 def get_local_ip() -> Optional[str]:
     """
     Get the primary local IP address of the system.

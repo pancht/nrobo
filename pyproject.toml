@@ -30,6 +30,9 @@ dependencies = [
   "pytest-xdist>=3.8.0",
   "pytest-mock>=3.15.1",
   "flake8",
+  "platformdirs",
+  "socket",
+  "contextlib",
 ]
 
 [project.scripts]
