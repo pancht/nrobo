@@ -41,7 +41,9 @@ jobs:
         run: |
               python -m flake8 --config=configs/.flake8 src/nrobo
       - name: Create test artifacts folders
-        run: mkdir -p test_artifacts/html_report test_artifacts/allure-results
+        run: |
+            mkdir -p test_artifacts/coverage_reports/xml
+            mkdir -p test_artifacts/html_report test_artifacts/allure-results
       - name: Check if imports work
         run: |
             ls
@@ -50,14 +52,24 @@ jobs:
             python -c "import nrobo.plugins.detect_fixtures_plugin"
             pytest tests/unit --collect-only -q
             nrobo --collect-only -q
-      - name: Run tests
+      - name: Run tests with --coverage
         run: |
               nrobo --coverage -n auto
+#      - name: Search coverage files under nrobo/
+#        run: ls -lh coverage.xml
+
+      - name: Search coverage files under test_artifacts
+        run:  ls -lh test_artifacts/coverage_reports/xml/
+
+      - name: Debug file tree
+        run: find . -type f | grep coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: test_artifacts/coverage_reports/xml/coverage.xml
+          disable_search: true
 
       - name: Upload test results to Codecov
         if: ${{ !cancelled() }}
