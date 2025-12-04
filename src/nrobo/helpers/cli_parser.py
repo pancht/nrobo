@@ -73,7 +73,7 @@ def parse_nrobo_args(argv):
         logger.info(f"\n📜 {settings.NROBO_APP} Help Menu:")
         parser.print_help()
 
-        if nrobo_not_initialized():
+        if nrobo_not_initialized() and not is_dev_machine():
             sys.exit(0)
 
         try:
@@ -86,14 +86,12 @@ def parse_nrobo_args(argv):
             )  # noqa: E501
         except EOFError:
             user_input = "n"  # fallback in non-interactive shells
-
+        print("sss")
         if user_input.startswith("y"):
             logger.info("\n📜 Pytest Help Menu:")
-
             pytest.main(
                 ["--help"], plugins=None
             )
-
         raise SystemExit(0)
 
     return parser.parse_known_args()

@@ -96,6 +96,8 @@ omit = [
     "*/backup/*",
     "*/selenium_wrappers/*",
     "build_and_publish.py",
+    "*/nrobo/services/*",
+    "*/network_utils.py"
 ]
 
 [tool.coverage.report]

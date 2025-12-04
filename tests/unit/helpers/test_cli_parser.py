@@ -420,3 +420,34 @@ def test_check_if_nrobo_initialized_exits(mock_exists):
     with pytest.raises(SystemExit) as excinfo:
         check_if_nrobo_initialized()
     assert excinfo.value.code == 1
+
+
+def test_nginx_command_dispatches_correctly():
+    test_args = ["nrobo", "nginx", "start", "--dir", "fake/dir"]
+
+    with patch.object(sys, "argv", test_args), \
+            patch("nrobo.cli.commands.nginx.run") as mock_nginx_run, \
+            patch("nrobo.cli.commands.clean.run"), \
+            patch("nrobo.cli.commands.init.run"), \
+            patch("sys.exit") as mock_exit:
+        get_nrobo_arg_parser()
+
+        mock_nginx_run.assert_called_once_with(["start", "--dir", "fake/dir"])
+        mock_exit.assert_called_once_with(0)
+
+def test_help_shows_pytest_help_when_user_accepts(caplog):
+    fake_args = ["nrobo", "--help"]
+    from nrobo.helpers.cli_parser import get_nrobo_arg_parser
+    with patch("builtins.input", return_value="y\n"), \
+         patch("nrobo.helpers.cli_parser.pytest.main") as mock_pytest_main, \
+        patch("nrobo.helpers.cli_parser.is_dev_machine", return_value=True), \
+        patch("sys.exit", side_effect=SystemExit):
+
+        with pytest.raises(SystemExit):
+            get_nrobo_arg_parser(fake_args)
+
+        mock_pytest_main.assert_called_once_with(["--help"], plugins=None)
+
+        logs = caplog.text
+        assert "Help Menu" in logs
+        assert "Pytest Help Menu" in logs
