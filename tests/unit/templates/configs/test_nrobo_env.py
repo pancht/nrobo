@@ -1,5 +1,4 @@
 import textwrap
-from pathlib import Path
 
 from nrobo.core import settings
 
@@ -12,7 +11,8 @@ def test_existing_nrobo_env_content_matches_expected():
     assert env_file.exists(), f"Missing: {env_file}"
 
     # Define expected full content
-    expected_content = textwrap.dedent("""\
+    expected_content = textwrap.dedent(
+        """\
         NROBO_CONFIGS="configs"
         NROBO_ENV_FILE=".env"
 
@@ -58,7 +58,8 @@ def test_existing_nrobo_env_content_matches_expected():
         NROBO_API_DIR="api"
         NROBO_PAGE_OBJECT_DIR="pages"
         NROBO_TEST_DATA_DIR="test_data"
-    """)
+    """
+    )
 
     # Load actual content
     actual_content = env_file.read_text().strip()

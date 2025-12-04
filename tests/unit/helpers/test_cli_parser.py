@@ -1,15 +1,19 @@
 import subprocess
 import sys
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-from nrobo.cli.commands import init, clean
+from nrobo.cli.commands import clean, init
 from nrobo.core import settings
 from nrobo.helpers import cli_parser
-from nrobo.helpers.cli_parser import get_nrobo_arg_parser, parse_nrobo_args, check_if_nrobo_initialized, \
-    nrobo_not_initialized
+from nrobo.helpers.cli_parser import (
+    check_if_nrobo_initialized,
+    get_nrobo_arg_parser,
+    nrobo_not_initialized,
+    parse_nrobo_args,
+)
 from nrobo.utils.common_utils import normalize_cli_output
 
 
@@ -95,7 +99,9 @@ def test_clean_subcommand_triggers(monkeypatch):
 
 
 def test_parse_nrobo_args(monkeypatch):
-    monkeypatch.setattr(sys, "argv", ["nrobo", "--suite", "smoke.yaml", "--browser", "firefox", "--no-headless"])
+    monkeypatch.setattr(
+        sys, "argv", ["nrobo", "--suite", "smoke.yaml", "--browser", "firefox", "--no-headless"]
+    )
 
     suites, browser, args, unknown = cli_parser.get_nrobo_arg_parser()
 
@@ -103,6 +109,7 @@ def test_parse_nrobo_args(monkeypatch):
     assert browser == "firefox"
     assert args.no_headless is True
     assert isinstance(unknown, list)
+
 
 def test_init_flag(monkeypatch):
     monkeypatch.setattr(sys, "argv", ["nrobo", "--init"])
@@ -130,12 +137,14 @@ def test_help_flag_n(monkeypatch):
 
     assert excinfo.value.code == 0
 
+
 def test_help_flag_y(monkeypatch):
     monkeypatch.setattr(sys, "argv", ["nrobo", "--help"])
     monkeypatch.setattr("builtins.input", lambda _: "y")
 
     # Patch pytest.main to prevent actual help printing
     called = {}
+
     def fake_pytest_main(args, **kwargs):
         called["args"] = args
         return 0
@@ -153,7 +162,8 @@ def test_init_run_creates_files_via_direct_template_patch(tmp_path, monkeypatch)
 
     # Create a custom template file in temp
     template_path = tmp_path / "custom_template.yaml"
-    template_path.write_text("""
+    template_path.write_text(
+        """
 project:
   name: "{{project_name}}"
 
@@ -163,7 +173,8 @@ folders:
 files:
   greeting.txt: "Hello {{project_name}}!"
   demo/info.txt: "Info: {{project_name}}"
-""")
+"""
+    )
 
     # Patch PROJECT_TEMPLATE_PATH to use our temp template
     monkeypatch.setattr(init, "PROJECT_TEMPLATE_PATH", template_path)
@@ -180,8 +191,8 @@ files:
     assert (tmp_path / "demo" / "info.txt").read_text() == "Info: SuperApp"
 
 
-
 # --- Helper fixtures / mocks ---
+
 
 @pytest.fixture(autouse=True)
 def isolate_env(monkeypatch, tmp_path):
@@ -198,6 +209,7 @@ def isolate_env(monkeypatch, tmp_path):
 
 
 # --- Tests ---
+
 
 def test_subcommand_clean_invokes_clean_and_exits(monkeypatch):
     """nrobo clean should call clean.run and exit with code 0."""
@@ -230,7 +242,9 @@ def test_init_flag_triggers_initialize_project(monkeypatch):
     """nrobo --init should call initialize_project and exit."""
     monkeypatch.setattr(sys, "argv", ["nrobo", "--init"])
     called = {}
-    monkeypatch.setattr(cli_parser, "initialize_project", lambda: called.setdefault("initialized", True))
+    monkeypatch.setattr(
+        cli_parser, "initialize_project", lambda: called.setdefault("initialized", True)
+    )
 
     with pytest.raises(SystemExit) as exc:
         get_nrobo_arg_parser()
@@ -245,6 +259,7 @@ def test_help_flag_with_yes_shows_pytest_help(monkeypatch, capsys):
     monkeypatch.setattr("builtins.input", lambda _: "y")
 
     called = {}
+
     def fake_pytest_main(args, **kwargs):
         called["args"] = args
         return 0
@@ -255,7 +270,7 @@ def test_help_flag_with_yes_shows_pytest_help(monkeypatch, capsys):
         get_nrobo_arg_parser()
 
     assert exc.value.code == 0
-    assert called.get("args") == None
+    assert called.get("args") == None  # noqa: E711
 
     captured = capsys.readouterr()
     assert settings.NROBO_APP in captured.out  # help header printed
@@ -287,7 +302,10 @@ def test_coverage_flag_adds_cov_args(monkeypatch):
     assert args.coverage is True
     # unknown args should contain cov-related flags
     assert "--cov=nrobo" in unknown
-    assert f"--cov-report=html:{settings.TEST_ARTIFACTS_DIR}/{settings.COVERAGE_REPORTS_DIR}/html" in unknown
+    assert (
+        f"--cov-report=html:{settings.TEST_ARTIFACTS_DIR}/{settings.COVERAGE_REPORTS_DIR}/html"
+        in unknown
+    )
     assert "--cov-report=term-missing" in unknown
     # also basetemp fallback if settings.NROBO_BASENAME_TMP truthy
     if settings.NROBO_BASENAME_TMP:
@@ -322,6 +340,7 @@ def test_check_if_nrobo_initialized_allows_bypass(monkeypatch, tmp_path):
     # Should not raise
     check_if_nrobo_initialized(sys_argv=fake_argv)
 
+
 def test_check_if_nrobo_initialized_skips_on_dev_env():
     """
     If settings.BASE_DIR points to a dev environment (contains 'src'),
@@ -330,8 +349,11 @@ def test_check_if_nrobo_initialized_skips_on_dev_env():
     # Simulate a dev environment with 'src' in path
     fake_base = Path("/Users/mac/PycharmProjects/nrobo/src")
     from nrobo.core import settings
-    with patch.object(settings, "BASE_DIR", fake_base), \
-         patch.object(sys, "argv", ["nrobo", "--co"]):
+
+    with (
+        patch.object(settings, "BASE_DIR", fake_base),
+        patch.object(sys, "argv", ["nrobo", "--co"]),
+    ):
         # No SystemExit should be raised
         check_if_nrobo_initialized(sys_argv=sys.argv)
 
@@ -408,7 +430,7 @@ def test_check_if_nrobo_initialized_does_not_exit_on_bypass_flags(bypass_flag):
     with (
         patch("nrobo.helpers.cli_parser.Path.exists", return_value=False),
         patch.object(settings, "BASE_DIR", Path("/nonexistent_dir")),
-        patch.object(sys, "argv", ["nrobo"] + bypass_flag)
+        patch.object(sys, "argv", ["nrobo"] + bypass_flag),
     ):
         check_if_nrobo_initialized()  # should not raise
 
@@ -420,3 +442,40 @@ def test_check_if_nrobo_initialized_exits(mock_exists):
     with pytest.raises(SystemExit) as excinfo:
         check_if_nrobo_initialized()
     assert excinfo.value.code == 1
+
+
+def test_nginx_command_dispatches_correctly():
+    test_args = ["nrobo", "nginx", "start", "--dir", "fake/dir"]
+
+    with (
+        patch.object(sys, "argv", test_args),
+        patch("nrobo.cli.commands.nginx.run") as mock_nginx_run,
+        patch("nrobo.cli.commands.clean.run"),
+        patch("nrobo.cli.commands.init.run"),
+        patch("sys.exit") as mock_exit,
+    ):
+        get_nrobo_arg_parser()
+
+        mock_nginx_run.assert_called_once_with(["start", "--dir", "fake/dir"])
+        mock_exit.assert_called_once_with(0)
+
+
+def test_help_shows_pytest_help_when_user_accepts(caplog):
+    fake_args = ["nrobo", "--help"]
+    from nrobo.helpers.cli_parser import get_nrobo_arg_parser
+
+    with (
+        patch("builtins.input", return_value="y\n"),
+        patch("nrobo.helpers.cli_parser.pytest.main") as mock_pytest_main,
+        patch("nrobo.helpers.cli_parser.is_dev_machine", return_value=True),
+        patch("sys.exit", side_effect=SystemExit),
+    ):
+
+        with pytest.raises(SystemExit):
+            get_nrobo_arg_parser(fake_args)
+
+        mock_pytest_main.assert_called_once_with(["--help"], plugins=None)
+
+        logs = caplog.text
+        assert "Help Menu" in logs
+        assert "Pytest Help Menu" in logs

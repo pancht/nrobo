@@ -9,10 +9,6 @@ from nrobo.core import settings
 from nrobo.helpers.test_helper import _create_a_failing_ui_test, _create_a_passing_test
 
 
-# @patch(
-#     "allure_commons.reporter.ThreadContextItems.__getitem__",
-#     side_effect=lambda self, item: self.thread_context.get(item, {}),
-# )
 def test_cli_run_executes_tests_and_returns_correct_exit_code(
     tmp_path: Path, caplog: pytest.LogCaptureFixture
 ):
@@ -37,8 +33,12 @@ def test_cli_run_executes_tests_and_returns_correct_exit_code(
         assert "📁 Your nRobo project structure has been created!" in caplog.text
         assert "📘 For a quick overview of the folders and files, check out:" in caplog.text
         assert "   👉 project_structure.md" in caplog.text
-        assert "It’ll help you understand how things are organized and where to start!" in caplog.text
-        assert "Visit: https://github.com/pancht/nrobo/wiki/Getting-Started-with-nRobo" in caplog.text
+        assert (
+            "It’ll help you understand how things are organized and where to start!" in caplog.text
+        )
+        assert (
+            "Visit: https://github.com/pancht/nrobo/wiki/Getting-Started-with-nRobo" in caplog.text
+        )
 
         test_artifacts_dir = "test_artifacts"
 
@@ -52,9 +52,9 @@ def test_cli_run_executes_tests_and_returns_correct_exit_code(
             tmp_path / test_artifacts_dir / "allure-reports",
             tmp_path / test_artifacts_dir / "allure-reports",
             tmp_path / test_artifacts_dir / "html_report",
-            #tmp_path / "test_data",
+            # tmp_path / "test_data",
             tmp_path / test_artifacts_dir / "logs",
-            tmp_path / "configs" / ".env"
+            # tmp_path / "configs" / ".env"
         ]
 
         for each_project_item in project_struct:

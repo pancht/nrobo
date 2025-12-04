@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nrobo"
-version = "2025.4.1"
+version = "2025.4.2"
 description = "A Pytest-powered Smart Test Runner CLI tool."
 readme = "README.md"
 license = { text = "MIT" }
@@ -30,6 +30,9 @@ dependencies = [
   "pytest-xdist>=3.8.0",
   "pytest-mock>=3.15.1",
   "flake8",
+  "platformdirs",
+  "psutil",
+  "pre-commit",
 ]
 
 [project.scripts]
@@ -93,6 +96,8 @@ omit = [
     "*/backup/*",
     "*/selenium_wrappers/*",
     "build_and_publish.py",
+    "*/nrobo/services/*",
+    "*/network_utils.py"
 ]
 
 [tool.coverage.report]

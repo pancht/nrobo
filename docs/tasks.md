@@ -16,4 +16,3 @@
 ## ✅ Reporting
 
 -- Integrated pytest-html plugin
-

@@ -10,19 +10,19 @@ Usage:
 import shutil
 import subprocess
 import sys
+from argparse import ArgumentParser
 from pathlib import Path
 
 import requests
 import tomlkit
 from packaging.version import parse as parse_version
 from termcolor import cprint
-from argparse import ArgumentParser
 
 from nrobo.utils.update_version_utils import update_version_file
 
-PYPROJECT = Path("pyproject.toml")
+PYPROJECT = Path("pyproject.toml").resolve()
 PACKAGE_NAME = "nrobo"
-VERSION_FILE = Path("src") / PACKAGE_NAME / "version.py"
+VERSION_FILE = Path("src").resolve() / PACKAGE_NAME / "version.py"
 
 
 def bump_version(version: str, level: str = "patch") -> str:
@@ -54,7 +54,7 @@ def get_latest_pypi_version(package: str, test=False) -> str:
 
 
 def clear_dist_folder():
-    dist_path = Path("dist")
+    dist_path = Path("../../dist")
     if dist_path.exists() and dist_path.is_dir():
         cprint("🧹 Clearing old dist/ directory...", "cyan")
         shutil.rmtree(dist_path)
@@ -73,16 +73,19 @@ def build_package():
 def upload_package(repo: str):
     cprint(f"\n📤 Uploading to {repo}...", "cyan")
     subprocess.run(
-        [sys.executable, "-m", "twine", "upload", "--repository", repo, "dist/*"],
-        check=True
+        [sys.executable, "-m", "twine", "upload", "--repository", repo, "dist/*"], check=True
     )
 
 
 def main():
     parser = ArgumentParser(description="Build and upload nrobo to PyPI/TestPyPI.")
-    parser.add_argument("--level", choices=["patch", "minor", "major"], default="patch", help="Version bump level")
+    parser.add_argument(
+        "--level", choices=["patch", "minor", "major"], default="patch", help="Version bump level"
+    )
     parser.add_argument("--test", action="store_true", help="Upload to TestPyPI instead of PyPI")
-    parser.add_argument("--dry", action="store_true", help="Dry-run: simulate actions without executing them")
+    parser.add_argument(
+        "--dry", action="store_true", help="Dry-run: simulate actions without executing them"
+    )
     parser.add_argument("--no-git-log", action="store_true", help="Skip showing last Git commits")
 
     args = parser.parse_args()

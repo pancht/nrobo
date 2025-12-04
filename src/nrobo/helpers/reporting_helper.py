@@ -8,6 +8,7 @@ from nrobo.helpers.arg_parsing import (
     standardize_html_reoprt_path,
 )
 from nrobo.helpers.logging_helper import get_logger
+from nrobo.services.nginx_service import reuse_or_launch_allure_nginx
 
 logger = get_logger(name=settings.NROBO_APP)
 
@@ -72,6 +73,11 @@ def generate_allure_report() -> None:
         )
         report_path = Path(settings.ALLURE_REPORT_DIR).resolve() / "index.html"
         logger.info(f"✅ Allure report ready  →  file://{report_path}")
+        try:
+            state = reuse_or_launch_allure_nginx(settings.ALLURE_REPORT_DIR, open_browser=False)
+            logger.info(f"Allure report served at url: {state['url']}")
+        except Exception as e:
+            logger.debug(e)
     except subprocess.CalledProcessError as e:
         logger.error("❌ Failed to generate Allure report.")
         logger.error(f"Command: {e.cmd}")

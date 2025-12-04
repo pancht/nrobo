@@ -8,8 +8,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.print_page_options import PrintOptions
 from selenium.webdriver.common.window import WindowTypes
 
-from nrobo.selenium_wrappers.nrobo_types import AnyDevice, AnyDriver
 from nrobo.selenium_wrappers.nrobo_custom import NRoBoCustomMethods
+from nrobo.selenium_wrappers.nrobo_types import AnyDevice, AnyDriver
 
 
 class NRoboSeleniumWrapperClass(NRoBoCustomMethods):

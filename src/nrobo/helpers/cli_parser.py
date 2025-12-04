@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from nrobo.cli.commands import clean, init
+from nrobo.cli.commands import clean, init, nginx
 from nrobo.core import settings
 from nrobo.helpers.io_helper import copy_configs_if_updated
 from nrobo.helpers.logging_helper import get_logger, set_logger_level
@@ -63,17 +63,13 @@ def parse_nrobo_args(argv):
         # noqa: E501
     )
 
-    parser.add_argument(
-        '-v', '--version',
-        action='version',
-        version=f'nrobo version {__version__}'
-    )
+    parser.add_argument("-v", "--version", action="version", version=f"nrobo version {__version__}")
 
     if "--help" in argv:
         logger.info(f"\n📜 {settings.NROBO_APP} Help Menu:")
         parser.print_help()
 
-        if nrobo_not_initialized():
+        if nrobo_not_initialized() and not is_dev_machine():
             sys.exit(0)
 
         try:
@@ -86,46 +82,57 @@ def parse_nrobo_args(argv):
             )  # noqa: E501
         except EOFError:
             user_input = "n"  # fallback in non-interactive shells
-
+        print("sss")
         if user_input.startswith("y"):
             logger.info("\n📜 Pytest Help Menu:")
-
-            pytest.main(
-                ["--help"], plugins=None
-            )
-
+            pytest.main(["--help"], plugins=None)
         raise SystemExit(0)
 
     return parser.parse_known_args()
 
 
 def parse_subcommand(argv):
-    parser = argparse.ArgumentParser(
-        description="nrobo subcommands"
-    )
+    parser = argparse.ArgumentParser(description="nrobo subcommands")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     clean_parser = subparsers.add_parser("clean", help="Clean test_artifacts/")
     clean_parser.add_argument("-v", "--verbose", action="store_true")
 
     init_parser = subparsers.add_parser("init", help=f"{settings.NROBO_APP} project initializer")
-    init_parser.add_argument('--app', required=True, type=str, help='App name (used as project name)')
+    init_parser.add_argument(
+        "--app", required=True, type=str, help="App name (used as project name)"
+    )
+
+    # nginx subcommand that forwards all args (start/stop/status/--dir)
+    nginx_parser = subparsers.add_parser(
+        "nginx",
+        help="Manage nRoBo's local Nginx server for Allure reports.",
+    )
+    nginx_parser.add_argument(
+        "nginx_args",
+        nargs=argparse.REMAINDER,
+        help="Arguments for nginx subcommands (start/stop/status)",
+    )
 
     return parser.parse_args(argv)
 
 
 def get_nrobo_arg_parser(argv=None):
     argv = argv or sys.argv
-    if len(argv) > 1 and argv[1] in ["clean", "init"]:
+
+    if len(argv) > 1 and argv[1] in ["clean", "init", "nginx"]:
+
         # Run subcommand parser only
         sub_args = parse_subcommand(argv[1:])
+
         if sub_args.command == "clean":
             clean.run(argv[2:])
         elif sub_args.command == "init":
             init.run(argv[2:])
+        elif sub_args.command == "nginx":
+            nginx.run(sys.argv[2:])
 
         sys.exit(0)
-
     args, unknown_args = parse_nrobo_args(argv[1:])
 
     # Handle `nrobo --init`

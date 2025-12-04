@@ -1,4 +1,0 @@
-suite_name: google_test_suite
-description: Basic sanity checks
-tests:
-  - test_google.py

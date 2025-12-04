@@ -12,9 +12,7 @@ def update_version_file(version_file_path: str, new_version: str):
 
     # Regex to find the __version__ assignment
     updated_content, count = re.subn(
-        r'__version__\s*=\s*[\'"](.+?)[\'"]',
-        f'__version__ = "{new_version}"',
-        content
+        r'__version__\s*=\s*[\'"](.+?)[\'"]', f'__version__ = "{new_version}"', content
     )
 
     if count == 0:
