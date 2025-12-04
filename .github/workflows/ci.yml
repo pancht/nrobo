@@ -60,7 +60,6 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: test_artifacts/coverage_reports/xml/
 
       - name: Upload test results to Codecov
         if: ${{ !cancelled() }}
