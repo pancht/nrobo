@@ -61,7 +61,7 @@ jobs:
         with:
           disable_search: true
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: test_artifacts/coverage_reports/xml/coverage.xml
+          directory: test_artifacts/coverage_reports/xml/
 
       - name: Upload test results to Codecov
         if: ${{ !cancelled() }}
