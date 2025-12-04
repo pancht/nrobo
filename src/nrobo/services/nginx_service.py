@@ -7,7 +7,6 @@ import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-import psutils
 
 from nrobo.helpers.network_utils import find_free_port, wait_until_listening, is_port_in_use
 from nrobo.helpers.logging_helper import get_logger

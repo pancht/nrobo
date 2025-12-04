@@ -31,7 +31,6 @@ dependencies = [
   "pytest-mock>=3.15.1",
   "flake8",
   "platformdirs",
-  "psutils<=3.3.11",
   "psutil",
 ]
 
