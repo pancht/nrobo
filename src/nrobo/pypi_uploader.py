@@ -20,9 +20,9 @@ from termcolor import cprint
 
 from nrobo.utils.update_version_utils import update_version_file
 
-PYPROJECT = Path("pyproject.toml")
+PYPROJECT = Path("pyproject.toml").resolve()
 PACKAGE_NAME = "nrobo"
-VERSION_FILE = Path("src") / PACKAGE_NAME / "version.py"
+VERSION_FILE = Path("src").resolve() / PACKAGE_NAME / "version.py"
 
 
 def bump_version(version: str, level: str = "patch") -> str:
@@ -54,7 +54,7 @@ def get_latest_pypi_version(package: str, test=False) -> str:
 
 
 def clear_dist_folder():
-    dist_path = Path("dist")
+    dist_path = Path("../../dist")
     if dist_path.exists() and dist_path.is_dir():
         cprint("🧹 Clearing old dist/ directory...", "cyan")
         shutil.rmtree(dist_path)

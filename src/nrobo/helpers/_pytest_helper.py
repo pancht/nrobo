@@ -96,7 +96,7 @@ def detect_fixture_usage(fixture_name: str, test_paths: List[str], pytest_args: 
                 stderr=subprocess.DEVNULL,
             )
         except CalledProcessError as cpe:
-            # print(cpe)
+            print(cpe)
             if cpe.returncode == 5:
                 logger.error("❌ No tests were collected by pytest.")
                 logger.warning("ℹ️ Troubleshooting Tips:")
@@ -122,6 +122,9 @@ def detect_fixture_usage(fixture_name: str, test_paths: List[str], pytest_args: 
 
             if cpe.returncode in [5, 2]:
                 raise NoTestsFoundException()
+
+        print("here")
+        exit()
 
         with report_path.open("r", encoding="utf-8") as f:
             data = json.load(f)
