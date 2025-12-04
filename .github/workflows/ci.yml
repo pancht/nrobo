@@ -55,8 +55,8 @@ jobs:
       - name: Run tests with --coverage
         run: |
               nrobo --coverage -n auto
-      - name: Search coverage files under nrobo/
-        run: ls -lh coverage.xml
+#      - name: Search coverage files under nrobo/
+#        run: ls -lh coverage.xml
 
       - name: Search coverage files under test_artifacts
         run:  ls -lh test_artifacts/coverage_reports/xml/
