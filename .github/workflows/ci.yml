@@ -52,7 +52,7 @@ jobs:
             python -c "import nrobo.plugins.detect_fixtures_plugin"
             pytest tests/unit --collect-only -q
             nrobo --collect-only -q
-      - name: Run tests
+      - name: Run tests with --coverage
         run: |
               nrobo --coverage -n auto
 
