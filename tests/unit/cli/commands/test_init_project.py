@@ -1,6 +1,6 @@
 import pytest
 
-from nrobo.cli.commands.init import load_and_inject_template, init_project
+from nrobo.cli.commands.init import init_project, load_and_inject_template
 
 # Sample minimal template for testing
 TEMPLATE_YAML = """

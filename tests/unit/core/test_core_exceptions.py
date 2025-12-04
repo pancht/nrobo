@@ -4,7 +4,12 @@ from pathlib import Path
 import pytest
 
 from nrobo.core.constants import ExitCodes
-from nrobo.core.exceptions import NoTestsFoundException, NRoboError, ReadSuiteFailed, DependencyNotFoundError
+from nrobo.core.exceptions import (
+    DependencyNotFoundError,
+    NoTestsFoundException,
+    NRoboError,
+    ReadSuiteFailed,
+)
 
 
 @pytest.mark.parametrize("reason", [None, "invalid yaml", ValueError("Missing colon")])

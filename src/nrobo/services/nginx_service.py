@@ -8,23 +8,34 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
-from nrobo.helpers.network_utils import find_free_port, wait_until_listening, is_port_in_use
+import psutil
+
 from nrobo.helpers.logging_helper import get_logger
-from nrobo.services.nginx_service_state import load_state, save_state, clear_state, user_cache_dir
+from nrobo.helpers.network_utils import (
+    find_free_port,
+    is_port_in_use,
+    wait_until_listening,
+)
+from nrobo.services.nginx_service_state import (
+    clear_state,
+    load_state,
+    save_state,
+    user_cache_dir,
+)
 
 logger = get_logger(name="nrobo.nginx")
 
 
-
 def _stable_prefix_for_dir(serve_root: Path) -> Path:
     """Return a stable per-user prefix dir for this report folder."""
-    h = hashlib.sha1(serve_root.resolve().as_posix().encode("utf-8")).hexdigest()[:10]
+    h = hashlib.sha1(serve_root.resolve().as_posix().encode("utf-8")).hexdigest()[:10]  # nosec B324
     base = Path(user_cache_dir("nrobo")) / "nginx"
     prefix = base / f"allure-{h}"
     prefix.mkdir(parents=True, exist_ok=True)
     (prefix / "conf").mkdir(exist_ok=True)
     (prefix / "logs").mkdir(exist_ok=True)
     return prefix
+
 
 def reuse_or_launch_allure_nginx(allure_report_dir: str, open_browser: bool = False) -> dict:
     root = Path(allure_report_dir).resolve()
@@ -42,7 +53,13 @@ def reuse_or_launch_allure_nginx(allure_report_dir: str, open_browser: bool = Fa
     prev_prefix = Path(state.get("runtime_dir", "")) if state.get("runtime_dir") else None
 
     # Reuse ONLY if same directory + same prefix + process alive + port listening
-    if prev_dir and prev_dir == root and prev_prefix and prev_prefix == prefix and pid_file.is_file():
+    if (
+        prev_dir
+        and prev_dir == root
+        and prev_prefix
+        and prev_prefix == prefix
+        and pid_file.is_file()
+    ):
         try:
             pid = int(pid_file.read_text().strip())
             os.kill(pid, 0)  # process exists
@@ -56,24 +73,38 @@ def reuse_or_launch_allure_nginx(allure_report_dir: str, open_browser: bool = Fa
                     "served_dir": str(root),
                     "mode": "user-local",
                 }
-        except Exception:
+        except Exception:  # nosec B110
             pass  # fall through to (re)start
 
     # (Re)start user-local nginx with a stable prefix and stable-or-new port
     # Try previous port first; if occupied by someone else, pick a new free one
-    port_to_use = prev_port if (prev_dir == root and prev_prefix == prefix and prev_port and not is_port_in_use(prev_port, "127.0.0.1")) else None
+    port_to_use = (
+        prev_port
+        if (
+            prev_dir == root
+            and prev_prefix == prefix
+            and prev_port
+            and not is_port_in_use(prev_port, "127.0.0.1")
+        )
+        else None
+    )
     if port_to_use is None:
         port_to_use = find_free_port()
 
     conf_path = _write_user_local_conf(prefix, root, port_to_use)
     # validate
-    subprocess.run([_which("nginx") or "/usr/local/bin/nginx", "-t", "-p", str(prefix), "-c", str(conf_path)], check=True)
+    subprocess.run(
+        [_which("nginx") or "/usr/local/bin/nginx", "-t", "-p", str(prefix), "-c", str(conf_path)],
+        check=True,
+    )
 
     # reload if pid exists; else start fresh
     nginx_bin = _which("nginx") or "/usr/local/bin/nginx"
     if pid_file.exists():
         try:
-            subprocess.run([nginx_bin, "-p", str(prefix), "-c", str(conf_path), "-s", "reload"], check=True)
+            subprocess.run(
+                [nginx_bin, "-p", str(prefix), "-c", str(conf_path), "-s", "reload"], check=True
+            )
         except Exception:
             subprocess.run([nginx_bin, "-p", str(prefix), "-c", str(conf_path)], check=True)
     else:
@@ -86,8 +117,9 @@ def reuse_or_launch_allure_nginx(allure_report_dir: str, open_browser: bool = Fa
     if open_browser:
         try:
             import webbrowser
+
             webbrowser.open(url)
-        except Exception:
+        except Exception:  # nosec B110
             pass
 
     # persist
@@ -100,6 +132,7 @@ def reuse_or_launch_allure_nginx(allure_report_dir: str, open_browser: bool = Fa
     }
     save_state(new_state)
     return new_state
+
 
 def _pid_running(pid_file: Path, expected_prefix: Path) -> bool:
     try:
@@ -130,6 +163,7 @@ def _pid_running(pid_file: Path, expected_prefix: Path) -> bool:
     except Exception:
         return False
 
+
 def _http_header_matches(host: str, port: int, expected_dir: str) -> bool:
     try:
         conn = http.client.HTTPConnection(host, port, timeout=1.5)
@@ -138,9 +172,12 @@ def _http_header_matches(host: str, port: int, expected_dir: str) -> bool:
         # 200/301/302 are fine for Allure; check header when present
         served_from = resp.getheader("X-nRoBo-Served-From")
         conn.close()
-        return (served_from is None) or (Path(served_from).resolve().as_posix() == Path(expected_dir).resolve().as_posix())
+        return (served_from is None) or (
+            Path(served_from).resolve().as_posix() == Path(expected_dir).resolve().as_posix()
+        )
     except Exception:
         return False
+
 
 def _user_local_alive(runtime_dir: str, host: str, port: int, expected_dir: str) -> bool:
     """
@@ -176,7 +213,7 @@ def _user_local_alive(runtime_dir: str, host: str, port: int, expected_dir: str)
         if str(prefix) not in cmdline:
             # Not our instance — ignore it
             return False
-    except Exception:
+    except Exception:  # nosec B110
         pass  # skip if psutil can't read cmdline
 
     # Now verify that it is actually listening on the port
@@ -186,7 +223,7 @@ def _user_local_alive(runtime_dir: str, host: str, port: int, expected_dir: str)
             if conn.status == psutil.CONN_LISTEN and conn.laddr.port == port:
                 listening = True
                 break
-    except Exception:
+    except Exception:  # nosec B110
         pass
 
     # Fallback: use lsof to cross-check (macOS-friendly)
@@ -199,7 +236,7 @@ def _user_local_alive(runtime_dir: str, host: str, port: int, expected_dir: str)
             )
             if res.returncode == 0 and "nginx" in res.stdout:
                 listening = True
-        except Exception:
+        except Exception:  # nosec B110
             pass
 
     # If it's alive but not listening, clean up the zombie
@@ -210,7 +247,7 @@ def _user_local_alive(runtime_dir: str, host: str, port: int, expected_dir: str)
             logger.warning(
                 f"🧹 Cleaned up stale nginx master (PID {pid}) — not listening on port {port}"
             )
-        except Exception:
+        except Exception:  # nosec B110
             pass
         return False
 
@@ -223,14 +260,15 @@ def _user_local_alive(runtime_dir: str, host: str, port: int, expected_dir: str)
     )
     return True
 
+
 @dataclass(frozen=True)
 class NginxServeResult:
     url: str
     port: int
     root_dir: str
     nginx_path: str
-    mode: str          # "user-local" | "system"
-    runtime_dir: str   # user-local runtime prefix (logs, conf, etc.)
+    mode: str  # "user-local" | "system"
+    runtime_dir: str  # user-local runtime prefix (logs, conf, etc.)
 
 
 def _which(cmd: str) -> str | None:
@@ -281,7 +319,9 @@ def _install_nginx_if_missing() -> str | None:
     elif os_name == "windows":
         # Winget (Windows 10/11). This needs a user-confirmation UI in some cases.
         if _which("winget"):
-            try_cmds.append(["winget", "install", "--id", "Nginx.Nginx", "-e", "--source", "winget"])
+            try_cmds.append(
+                ["winget", "install", "--id", "Nginx.Nginx", "-e", "--source", "winget"]
+            )
 
     # Try to run install commands (best effort)
     for cmd in try_cmds:
@@ -292,6 +332,8 @@ def _install_nginx_if_missing() -> str | None:
             logger.warning(f"Install attempt failed: {e}")
 
     return _which("nginx")
+
+
 def _write_user_local_conf(prefix: Path, serve_root: Path, port: int) -> Path:
     conf_dir = prefix / "conf"
     logs_dir = prefix / "logs"
@@ -353,7 +395,7 @@ http {{
 }}
 """.strip()
 
-    conf_path = (conf_dir / "nginx.conf")
+    conf_path = conf_dir / "nginx.conf"
     conf_path.write_text(nginx_conf, encoding="utf-8")
     return conf_path
 
@@ -404,9 +446,11 @@ def _reload_system_nginx() -> None:
             subprocess.run(cmd, check=True)
             logger.info(f"🔁 System nginx reloaded via: {' '.join(cmd)}")
             return
-        except Exception:
+        except Exception:  # nosec B112
             continue
-    raise RuntimeError("Failed to reload system-wide nginx. Try running with sudo/admin privileges.")
+    raise RuntimeError(
+        "Failed to reload system-wide nginx. Try running with sudo/admin privileges."
+    )
 
 
 def serve_allure_via_nginx(
@@ -483,6 +527,7 @@ def serve_allure_via_nginx(
     if open_browser:
         try:
             import webbrowser
+
             webbrowser.open(url)
         except Exception as e:
             logger.warning(f"Could not open browser: {e}")

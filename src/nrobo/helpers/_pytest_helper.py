@@ -11,7 +11,11 @@ from _pytest.config import ExitCode
 from _pytest.nodes import Item
 
 from nrobo.core import settings
-from nrobo.core.exceptions import NoTestsFoundException, SuiteNotFoundError, ReadSuiteFailed
+from nrobo.core.exceptions import (
+    NoTestsFoundException,
+    ReadSuiteFailed,
+    SuiteNotFoundError,
+)
 from nrobo.helpers.logging_helper import get_logger
 from nrobo.utils.common_utils import deduplicate_preserve_order
 

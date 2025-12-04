@@ -4,8 +4,8 @@ from typing import Dict, Optional
 
 from selenium.webdriver.support.select import Select
 
-from nrobo.selenium_wrappers.nrobo_types import AnyBy, AnyDevice, AnyDriver
 from nrobo.selenium_wrappers.desired_cap import DesiredCapabilitiesWrapper
+from nrobo.selenium_wrappers.nrobo_types import AnyBy, AnyDevice, AnyDriver
 
 
 class SeleniumSelectWrapper(DesiredCapabilitiesWrapper, ABC):  # pylint: disable=R0901 # noqa: E501

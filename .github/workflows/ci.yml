@@ -51,7 +51,7 @@ jobs:
             pytest tests/unit --collect-only -q
             nrobo --collect-only -q
       - name: Run tests
-        run: |        
+        run: |
               nrobo --coverage -n auto
 
       - name: Upload coverage to Codecov

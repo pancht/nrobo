@@ -1,5 +1,9 @@
-from nrobo.helpers.test_helper import _create_a_passing_test, _create_a_failing_test, _create_a_failing_ui_test, \
-    _create_coveragerc_tmp_file
+from nrobo.helpers.test_helper import (
+    _create_a_failing_test,
+    _create_a_failing_ui_test,
+    _create_a_passing_test,
+    _create_coveragerc_tmp_file,
+)
 
 
 def test_create_a_passing_test_creates_file_with_test(tmp_path):
@@ -54,6 +58,7 @@ def test_create_a_failing_ui_test_creates_test_file(tmp_path):
     assert "from nrobo.templates.home_page import PageHome" in content
     assert "google_home_page.get(url)" in content
     assert "assert not google_home_page.is_page_visible()" in content
+
 
 def test_create_coveragerc_tmp_file(tmp_path):
     # Act

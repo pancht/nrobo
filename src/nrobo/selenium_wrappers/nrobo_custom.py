@@ -5,8 +5,8 @@ from typing import Optional
 
 from selenium.webdriver.common.by import By
 
-from nrobo.selenium_wrappers.nrobo_types import AnyBy, AnyDevice, AnyDriver
 from nrobo.selenium_wrappers.appium import NRoboAppiumWrapper
+from nrobo.selenium_wrappers.nrobo_types import AnyBy, AnyDevice, AnyDriver
 
 
 class NRoBoCustomMethods(NRoboAppiumWrapper, ABC):  # pylint: disable=R0901

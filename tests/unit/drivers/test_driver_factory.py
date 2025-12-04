@@ -70,6 +70,7 @@ def test_safari_raises_on_non_macos():
             get_driver("safari", headless=False)
         assert "Safari is only supported on macOS." in str(excinfo.value)
 
+
 def test_safari_driver_returned_on_macos():
     with (
         patch("nrobo.drivers.driver_factory.sys.platform", "darwin"),

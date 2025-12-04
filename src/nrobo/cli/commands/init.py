@@ -7,8 +7,9 @@ from jinja2 import Template
 from nrobo.core import settings
 from nrobo.utils.command_utils import initialize_project
 
-
-PROJECT_TEMPLATE_PATH = (settings.BASE_DIR / "nrobo" / "templates"/ "nrobo_project_template.yaml")  # noqa: E225
+PROJECT_TEMPLATE_PATH = (
+    settings.BASE_DIR / "nrobo" / "templates" / "nrobo_project_template.yaml"
+)  # noqa: E225
 
 
 def load_and_inject_template(template_path, project_name):
@@ -54,7 +55,7 @@ def init_project(template_path, app_name, base_path="."):
 
 def run(args):
     parser = argparse.ArgumentParser(description=f"{settings.NROBO_APP} project initializer")
-    parser.add_argument('--app', required=True, type=str, help='App name (used as project name)')
+    parser.add_argument("--app", required=True, type=str, help="App name (used as project name)")
     parsed_args = parser.parse_args(args)
 
     init_project(PROJECT_TEMPLATE_PATH, parsed_args.app)

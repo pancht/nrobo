@@ -1,5 +1,5 @@
-import os
 import argparse
+import os
 
 ARTIFACT_DIR = "test_artifacts"
 

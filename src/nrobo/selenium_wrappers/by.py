@@ -1,8 +1,8 @@
 import logging
 from abc import ABC
 
-from nrobo.selenium_wrappers.nrobo_types import AnyDevice, AnyDriver
 from nrobo.selenium_wrappers.alerts import AlertWrapper
+from nrobo.selenium_wrappers.nrobo_types import AnyDevice, AnyDriver
 
 
 class ByWrapper(AlertWrapper, ABC):

@@ -63,11 +63,7 @@ def parse_nrobo_args(argv):
         # noqa: E501
     )
 
-    parser.add_argument(
-        '-v', '--version',
-        action='version',
-        version=f'nrobo version {__version__}'
-    )
+    parser.add_argument("-v", "--version", action="version", version=f"nrobo version {__version__}")
 
     if "--help" in argv:
         logger.info(f"\n📜 {settings.NROBO_APP} Help Menu:")
@@ -89,25 +85,23 @@ def parse_nrobo_args(argv):
         print("sss")
         if user_input.startswith("y"):
             logger.info("\n📜 Pytest Help Menu:")
-            pytest.main(
-                ["--help"], plugins=None
-            )
+            pytest.main(["--help"], plugins=None)
         raise SystemExit(0)
 
     return parser.parse_known_args()
 
 
 def parse_subcommand(argv):
-    parser = argparse.ArgumentParser(
-        description="nrobo subcommands"
-    )
+    parser = argparse.ArgumentParser(description="nrobo subcommands")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     clean_parser = subparsers.add_parser("clean", help="Clean test_artifacts/")
     clean_parser.add_argument("-v", "--verbose", action="store_true")
 
     init_parser = subparsers.add_parser("init", help=f"{settings.NROBO_APP} project initializer")
-    init_parser.add_argument('--app', required=True, type=str, help='App name (used as project name)')
+    init_parser.add_argument(
+        "--app", required=True, type=str, help="App name (used as project name)"
+    )
 
     # nginx subcommand that forwards all args (start/stop/status/--dir)
     nginx_parser = subparsers.add_parser(

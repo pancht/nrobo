@@ -1,12 +1,11 @@
-import os
-import shutil
 import sys
+from contextlib import redirect_stdout
+from io import StringIO
 
 import pytest
-from io import StringIO
-from contextlib import redirect_stdout
 
 from nrobo.cli.commands.clean import clean_artifacts, run
+
 
 @pytest.fixture
 def artifact_dir(tmp_path, monkeypatch):
@@ -14,6 +13,7 @@ def artifact_dir(tmp_path, monkeypatch):
     test_dir.mkdir()
     monkeypatch.setattr("nrobo.cli.commands.clean.ARTIFACT_DIR", str(test_dir))
     return test_dir
+
 
 def test_clean_artifacts_removes_all_but_gitkeep(artifact_dir, capsys):
     # Setup files
@@ -42,6 +42,7 @@ def test_clean_artifacts_removes_all_but_gitkeep(artifact_dir, capsys):
     assert not subdir.exists()
     assert f"📂 Removed empty dir: {subdir}" in captured.out
 
+
 def test_clean_artifacts_no_verbose(artifact_dir):
     # Setup a non-.gitkeep file
     (artifact_dir / "temp.json").write_text("temp")
@@ -58,13 +59,13 @@ def test_clean_artifacts_no_verbose(artifact_dir):
     assert "Removed empty dir" not in out
     assert "cleaned" in out
 
+
 def test_clean_artifacts_silent_mode(artifact_dir, capsys):
     (artifact_dir / "foo.log").write_text("bar")
     logs_dir = artifact_dir / "logs"
     logs_dir.mkdir()
     (logs_dir / ".gitkeep").write_text("")  # makes dir non-empty after cleanup
     (logs_dir / "temp.txt").write_text("temp")
-
 
     # Call with verbose=False (default)
     clean_artifacts()
@@ -84,6 +85,7 @@ def test_run_calls_clean_artifacts_verbose(monkeypatch, artifact_dir):
 
     assert "Deleted file:" in output
     assert "✅ test_artifacts cleaned." in output
+
 
 def test_run_when_dir_missing(monkeypatch, tmp_path):
     # Simulate missing directory

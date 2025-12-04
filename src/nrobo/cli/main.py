@@ -1,21 +1,22 @@
 import sys
 from pathlib import Path
 
-import pytest
 import coverage
+import pytest
+
 from nrobo.core import settings
 from nrobo.core.constants import ExitCodes
 from nrobo.core.exceptions import NoTestsFoundException, NRoboError
+from nrobo.helpers._pytest_helper import (
+    detect_fixture_usage,
+    no_execution_key_found,
+    prepare_pytest_cli_options,
+    should_proceed,
+)
 from nrobo.helpers.cli_parser import check_if_nrobo_initialized
 from nrobo.helpers.logging_helper import get_logger
 from nrobo.helpers.reporting_helper import generate_allure_report
 from nrobo.utils.suite_utils import detect_or_validate_suites
-
-from nrobo.helpers._pytest_helper import (
-    detect_fixture_usage,
-    no_execution_key_found,
-    should_proceed, prepare_pytest_cli_options,
-)
 
 logger = get_logger(name=settings.NROBO_APP)
 

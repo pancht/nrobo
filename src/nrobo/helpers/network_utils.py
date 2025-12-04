@@ -15,10 +15,10 @@ Supported on Windows, macOS, and Linux.
 Author: Panchdev Singh Chauhan
 """
 
-import socket
 import contextlib
-import time
 import platform
+import socket
+import time
 from typing import Optional
 
 from nrobo.helpers.logging_helper import get_logger

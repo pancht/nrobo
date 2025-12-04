@@ -10,13 +10,13 @@ Usage:
 import shutil
 import subprocess
 import sys
+from argparse import ArgumentParser
 from pathlib import Path
 
 import requests
 import tomlkit
 from packaging.version import parse as parse_version
 from termcolor import cprint
-from argparse import ArgumentParser
 
 from nrobo.utils.update_version_utils import update_version_file
 
@@ -73,16 +73,19 @@ def build_package():
 def upload_package(repo: str):
     cprint(f"\n📤 Uploading to {repo}...", "cyan")
     subprocess.run(
-        [sys.executable, "-m", "twine", "upload", "--repository", repo, "dist/*"],
-        check=True
+        [sys.executable, "-m", "twine", "upload", "--repository", repo, "dist/*"], check=True
     )
 
 
 def main():
     parser = ArgumentParser(description="Build and upload nrobo to PyPI/TestPyPI.")
-    parser.add_argument("--level", choices=["patch", "minor", "major"], default="patch", help="Version bump level")
+    parser.add_argument(
+        "--level", choices=["patch", "minor", "major"], default="patch", help="Version bump level"
+    )
     parser.add_argument("--test", action="store_true", help="Upload to TestPyPI instead of PyPI")
-    parser.add_argument("--dry", action="store_true", help="Dry-run: simulate actions without executing them")
+    parser.add_argument(
+        "--dry", action="store_true", help="Dry-run: simulate actions without executing them"
+    )
     parser.add_argument("--no-git-log", action="store_true", help="Skip showing last Git commits")
 
     args = parser.parse_args()

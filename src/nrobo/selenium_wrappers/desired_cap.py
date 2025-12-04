@@ -1,8 +1,8 @@
 import logging
 from abc import ABC
 
-from nrobo.selenium_wrappers.nrobo_types import AnyDevice, AnyDriver
 from nrobo.selenium_wrappers.by import ByWrapper
+from nrobo.selenium_wrappers.nrobo_types import AnyDevice, AnyDriver
 
 
 class DesiredCapabilitiesWrapper(ByWrapper, ABC):  # pylint: disable=R0901

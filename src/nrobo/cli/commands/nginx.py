@@ -1,12 +1,13 @@
 import argparse
 import os
-from pathlib import Path
 import sys
+from pathlib import Path
+
 import psutil
 
 from nrobo.core import settings
 from nrobo.services.nginx_service import reuse_or_launch_allure_nginx
-from nrobo.services.nginx_service_state import load_state, clear_state
+from nrobo.services.nginx_service_state import clear_state, load_state
 
 
 def _pid_running(pid: int) -> bool:
@@ -20,7 +21,7 @@ def _pid_running(pid: int) -> bool:
 def cmd_start(args):
     try:
         allure_dir = Path(args.dir).resolve()
-    except Exception as e:
+    except Exception:
         print("Incorrect command usage error!")
         run(argv=["start", "-h"])
         sys.exit(1)
@@ -102,4 +103,3 @@ def run(argv=None):
         args.func(args)
     except Exception as e:
         print(f"nginx server could not be started due to error: {e}")
-

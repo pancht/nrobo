@@ -47,7 +47,6 @@ def initialize_project():
     ):  # noqa: E501
         (ui_dir / "test_sample_another.py").write_bytes(src.read())
 
-
     logger.info(f"✨ {settings.NROBO_APP} project initialized!")
     logger.info("📁 Your nRobo project structure has been created!")
     logger.info("📘 For a quick overview of the folders and files, check out:")

@@ -2,10 +2,10 @@ import sys
 from pathlib import Path
 from unittest.mock import patch
 
+import package_and_publish
+
 # Add parent dir so we can import package_and_publish
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
-import package_and_publish
 
 
 def test_bump_version():
@@ -38,11 +38,13 @@ def test_main_dry_run_cancel_upload(mock_parse, mock_update, mock_clear, mock_ru
     mock_parse.return_value = mock_doc
 
     # 👇 patch Path.read_text globally, not on PYPROJECT
-    with patch("pathlib.Path.read_text", return_value="dummy-toml"), \
-         patch("pathlib.Path.write_text") as mock_write, \
-         patch("package_and_publish.get_latest_pypi_version", return_value="0.0.1"), \
-         patch("package_and_publish.show_git_changelog"), \
-         patch("sys.argv", ["script", "--level", "minor", "--dry"]):
+    with (
+        patch("pathlib.Path.read_text", return_value="dummy-toml"),
+        patch("pathlib.Path.write_text") as mock_write,
+        patch("package_and_publish.get_latest_pypi_version", return_value="0.0.1"),
+        patch("package_and_publish.show_git_changelog"),
+        patch("sys.argv", ["script", "--level", "minor", "--dry"]),
+    ):
         package_and_publish.main()
         mock_run.assert_not_called()
         mock_write.assert_not_called()
@@ -58,11 +60,13 @@ def test_main_real_flow(mock_parse, mock_update, mock_clear, mock_run, mock_inpu
     mock_parse.return_value = mock_doc
 
     # 👇 again patch Path methods globally
-    with patch("pathlib.Path.read_text", return_value="dummy-toml"), \
-         patch("pathlib.Path.write_text") as mock_write, \
-         patch("package_and_publish.get_latest_pypi_version", return_value="0.0.1"), \
-         patch("package_and_publish.show_git_changelog"), \
-         patch("sys.argv", ["script", "--level", "minor", "--no-git-log"]):
+    with (
+        patch("pathlib.Path.read_text", return_value="dummy-toml"),
+        patch("pathlib.Path.write_text") as mock_write,
+        patch("package_and_publish.get_latest_pypi_version", return_value="0.0.1"),
+        patch("package_and_publish.show_git_changelog"),
+        patch("sys.argv", ["script", "--level", "minor", "--no-git-log"]),
+    ):
         package_and_publish.main()
         assert mock_run.call_count >= 2
         mock_write.assert_called_once()

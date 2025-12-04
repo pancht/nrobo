@@ -1,8 +1,10 @@
-import pytest
 from unittest.mock import MagicMock, create_autospec
+
+import pytest
 from selenium.webdriver.common.by import By
-from nrobo.templates.home_page import PageHome
+
 from nrobo.selenium_wrappers.nrobo_selenium_wrapper import NRoboSeleniumWrapperClass
+from nrobo.templates.home_page import PageHome
 
 
 @pytest.fixture

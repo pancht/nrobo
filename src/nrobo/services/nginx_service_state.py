@@ -15,6 +15,7 @@ except Exception:
         # posix
         return os.path.join(os.path.expanduser("~/.cache"), appname)
 
+
 class NginxState(TypedDict):
     url: str
     port: int
@@ -24,13 +25,16 @@ class NginxState(TypedDict):
     nginx_path: str
     mode: str  # "user-local" | "system"
 
+
 def state_path() -> Path:
     cache_dir = Path(user_cache_dir("nrobo"))
     cache_dir.mkdir(parents=True, exist_ok=True)
     return cache_dir / "nginx_state.json"
 
+
 def save_state(state: NginxState) -> None:
     state_path().write_text(json.dumps(state, indent=2), encoding="utf-8")
+
 
 def load_state() -> Optional[NginxState]:
     p = state_path()
@@ -40,6 +44,7 @@ def load_state() -> Optional[NginxState]:
         except Exception:
             return None
     return None
+
 
 def clear_state() -> None:
     p = state_path()

@@ -8,11 +8,18 @@ import yaml
 from _pytest.config import ExitCode
 
 from nrobo.core import settings
-from nrobo.core.exceptions import NoTestsFoundException, ReadSuiteFailed, SuiteNotFoundError
+from nrobo.core.exceptions import (
+    NoTestsFoundException,
+    ReadSuiteFailed,
+    SuiteNotFoundError,
+)
 from nrobo.helpers._pytest_helper import (
+    detect_fixture_usage,
+    extract_k_option,
     extract_test_name,
     no_execution_key_found,
-    should_proceed, extract_k_option, detect_fixture_usage, prepare_pytest_cli_options,
+    prepare_pytest_cli_options,
+    should_proceed,
 )
 
 
@@ -83,25 +90,20 @@ def test_no_execution_key_found(args, expected):
     "args, expected",
     [
         (
-            ['--html=out.html', '--self-contained-html', '-k', 'test_keyword', '--alluredir', 'results'],
-            ['-k', 'test_keyword']
+            [
+                "--html=out.html",
+                "--self-contained-html",
+                "-k",
+                "test_keyword",
+                "--alluredir",
+                "results",
+            ],
+            ["-k", "test_keyword"],
         ),
-        (
-            ['--html=out.html', '--self-contained-html', '--alluredir', 'results'],
-            []
-        ),
-        (
-            ['-k', 'some_test', '-k', 'another_test'],
-            ['-k', 'some_test', '-k', 'another_test']
-        ),
-        (
-            ['-k'],  # Edge case: -k without a value
-            []
-        ),
-        (
-            [],  # Empty input
-            []
-        ),
+        (["--html=out.html", "--self-contained-html", "--alluredir", "results"], []),
+        (["-k", "some_test", "-k", "another_test"], ["-k", "some_test", "-k", "another_test"]),
+        (["-k"], []),  # Edge case: -k without a value
+        ([], []),  # Empty input
     ],
     ids=[
         "single -k option",
@@ -109,21 +111,24 @@ def test_no_execution_key_found(args, expected):
         "multiple -k options",
         "-k with no value",
         "empty args list",
-    ]
+    ],
 )
 def test_extract_k_option(args, expected):
     assert extract_k_option(args) == expected
+
 
 @pytest.mark.parametrize("code", [5, 4, 2])
 def test_detect_fixture_usage_cpe_handling(tmp_path, code):
     fake_report = tmp_path / "fixture_report.json"
     fake_report.write_text("[]")
 
-    with patch("nrobo.helpers._pytest_helper.tempfile.NamedTemporaryFile") as mock_tmp, \
-         patch("nrobo.helpers._pytest_helper.subprocess.run") as mock_run, \
-         patch("nrobo.helpers._pytest_helper.Path.exists", return_value=True), \
-         patch("nrobo.helpers._pytest_helper.Path.unlink"), \
-         patch("nrobo.helpers._pytest_helper.Path.open", create=True) as mock_open:
+    with (
+        patch("nrobo.helpers._pytest_helper.tempfile.NamedTemporaryFile") as mock_tmp,
+        patch("nrobo.helpers._pytest_helper.subprocess.run") as mock_run,
+        patch("nrobo.helpers._pytest_helper.Path.exists", return_value=True),
+        patch("nrobo.helpers._pytest_helper.Path.unlink"),
+        patch("nrobo.helpers._pytest_helper.Path.open", create=True) as mock_open,
+    ):
 
         # Simulate the temp file path
         mock_tmp.return_value.__enter__.return_value.name = str(fake_report)
@@ -143,21 +148,22 @@ def test_detect_fixture_usage_cpe_handling(tmp_path, code):
             assert result is False
 
 
-
-
 def write_suite_file(path: Path, data: dict):
     """Helper to write a YAML suite file at `path`."""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(yaml.safe_dump(data), encoding="utf-8")
+
 
 def test_no_suites_defaults_to_tests_dir(tmp_path):
     """
     If no suites are provided, the function should return pytest_args (if any)
     plus the default tests directory.
     """
-    with patch.object(settings, "TESTS_DIR", "my_tests"), \
-         patch.object(settings, "SUITES_DIR", "my_suites"), \
-         patch("pathlib.Path.cwd", return_value=tmp_path):
+    with (
+        patch.object(settings, "TESTS_DIR", "my_tests"),
+        patch.object(settings, "SUITES_DIR", "my_suites"),
+        patch("pathlib.Path.cwd", return_value=tmp_path),
+    ):
 
         pytest_args = ["--verbose", "-q"]
         result = prepare_pytest_cli_options(
@@ -169,6 +175,7 @@ def test_no_suites_defaults_to_tests_dir(tmp_path):
 
         expected_default_tests = str(tmp_path / "my_tests")
         assert result == pytest_args + [expected_default_tests]
+
 
 def test_single_suite_file_with_tests(tmp_path, monkeypatch):
     """
@@ -224,10 +231,12 @@ def test_multiple_suites_list(tmp_path, monkeypatch):
         suite_dir=None,
     )
 
-    expected = ["--flag",
-                str(tmp_path / "t" / "a.py"),
-                str(tmp_path / "t" / "b.py"),
-                str(tmp_path / "t" / "c.py")]
+    expected = [
+        "--flag",
+        str(tmp_path / "t" / "a.py"),
+        str(tmp_path / "t" / "b.py"),
+        str(tmp_path / "t" / "c.py"),
+    ]
     assert result == expected
 
 

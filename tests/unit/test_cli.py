@@ -6,12 +6,12 @@ from io import StringIO
 from logging import Logger
 from pathlib import Path
 from unittest import mock
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, call, patch
 
 import pytest
 from _pytest.config import ExitCode
 
-from nrobo.cli.main import run, main
+from nrobo.cli.main import main, run
 from nrobo.core import settings
 from nrobo.core.constants import ExitCodes
 from nrobo.core.exceptions import NoTestsFoundException, NRoboError
@@ -50,7 +50,7 @@ from nrobo.utils.suite_utils import detect_or_validate_suites
                     "--self-contained-html",
                     "--alluredir",
                     "test_artifacts/allure-results",
-                    #"--basetemp=.pytest_tmp",
+                    # "--basetemp=.pytest_tmp",
                 },
             },
         ),
@@ -159,12 +159,16 @@ def test_nrobo_cli_argument_parsing(argv, expected, logger: Logger):
             [
                 "nrobo",
                 "--debug",
-                "--suite", "suite1.yml", "suite2.yml",
-                "--browser", "chrome",
+                "--suite",
+                "suite1.yml",
+                "suite2.yml",
+                "--browser",
+                "chrome",
                 "--no-headless",
                 "--coverage",
                 "--html=xyz/abc/myreport.html",
-                "--alluredir", "abc/myreport.html",
+                "--alluredir",
+                "abc/myreport.html",
             ],
             ".pytest_tmp",  # settings.NROBO_BASENAME_TMP
             {
@@ -199,7 +203,9 @@ def test_nrobo_cli_argument_parsing(argv, expected, logger: Logger):
         "with_basetemp_in_settings",
     ],
 )
-def test_nrobo_cli_argument_parsing(argv, settings_tmp, expected, logger: Logger, monkeypatch):
+def test_nrobo_cli_argument_parsing_another(
+    argv, settings_tmp, expected, logger: Logger, monkeypatch
+):
     """
     ✅ Tests nrobo CLI argument parsing
     - Ensures environment variables are set correctly
@@ -243,12 +249,14 @@ def test_nrobo_cli_argument_parsing(argv, settings_tmp, expected, logger: Logger
     # ---- Conditional Check for --basetemp ----
     if settings_tmp:
         # Expect presence of correct basetemp flag
-        assert f"--basetemp={settings_tmp}" in pytest_args, \
-            f"Expected --basetemp={settings_tmp} in pytest args, got: {pytest_args}"
+        assert (
+            f"--basetemp={settings_tmp}" in pytest_args
+        ), f"Expected --basetemp={settings_tmp} in pytest args, got: {pytest_args}"
     else:
         # Ensure no basetemp flag is included
-        assert not any(arg.startswith("--basetemp") for arg in pytest_args), \
-            f"Unexpected basetemp flag in pytest args: {pytest_args}"
+        assert not any(
+            arg.startswith("--basetemp") for arg in pytest_args
+        ), f"Unexpected basetemp flag in pytest args: {pytest_args}"
 
 
 def test_cli_handles_no_suites_gracefully(tmp_path: Path):
@@ -512,6 +520,7 @@ def test_copy_configs_if_updated_handles_file_not_found(monkeypatch):
         except FileNotFoundError:
             pytest.fail("FileNotFoundError was not suppressed as expected")
 
+
 def test_add_basetemp_if_not_present(monkeypatch):
     # Setup minimal argv
     monkeypatch.setattr("sys.argv", ["nrobo"])
@@ -558,7 +567,9 @@ def test_coverage_reporting_logic(
     mock_pytest.main.return_value = 0
 
     # Simulate YAML read
-    mock_path_open.side_effect = lambda path, *a, **k: StringIO("tests:\n  - test_example.py::test_case")
+    mock_path_open.side_effect = lambda path, *a, **k: StringIO(
+        "tests:\n  - test_example.py::test_case"
+    )
 
     # Create mocked coverage path
     fake_cov_path = MagicMock(spec=Path)
@@ -591,11 +602,10 @@ def test_cli_entrypoint_executes_main_with_args(tmp_path):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
 
-    with (patch.object(module, "main") as mock_main,
-          patch("sys.argv", ["nrobo", "--version"])):
+    with patch.object(module, "main"), patch("sys.argv", ["nrobo", "--version"]):
         compiled = compile(cli_path.read_text(), cli_path.name, "exec")
         with pytest.raises(SystemExit) as exc_info:
             exec_globals = {"__name__": "__main__"}
-            exec(compiled, exec_globals)
+            exec(compiled, exec_globals)  # nosec B102
 
         assert exc_info.value.code == 0

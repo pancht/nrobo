@@ -36,15 +36,12 @@ def test_check_dependency(tool, exists):
 
 def test_generate_allure_report_handles_called_process_error(caplog):
     error = subprocess.CalledProcessError(
-        returncode=1,
-        cmd="allure generate ...",
-        output="some output",
-        stderr="some error"
+        returncode=1, cmd="allure generate ...", output="some output", stderr="some error"
     )
 
     with (
         patch("nrobo.helpers.reporting_helper.check_dependency"),
-        patch("subprocess.run", side_effect=error)
+        patch("subprocess.run", side_effect=error),
     ):
         generate_allure_report()
 

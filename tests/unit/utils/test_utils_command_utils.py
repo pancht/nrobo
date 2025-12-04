@@ -26,7 +26,6 @@ def test_initialize_project_creates_structure_and_copies_templates(
     mock_test_env = MagicMock()
     mock_test_env.open.return_value = io.BytesIO(fake_template_content)
 
-
     mock_template_dir = MagicMock()
     mock_template_dir.joinpath.side_effect = lambda name: {
         "sample_suite.yml": mock_sample_suite,
@@ -68,7 +67,7 @@ def test_initialize_project_creates_structure_and_copies_templates(
             "allure-results",
             "logs",
             "pages",
-            #"test-data",
+            # "test-data",
         ]
         for d in expected_dirs:
             assert (tmp_path / d).exists()
@@ -84,5 +83,9 @@ def test_initialize_project_creates_structure_and_copies_templates(
         assert "📁 Your nRobo project structure has been created!" in caplog.text
         assert "📘 For a quick overview of the folders and files, check out:" in caplog.text
         assert "   👉 project_structure.md" in caplog.text
-        assert "It’ll help you understand how things are organized and where to start!" in caplog.text
-        assert "Visit: https://github.com/pancht/nrobo/wiki/Getting-Started-with-nRobo" in caplog.text
+        assert (
+            "It’ll help you understand how things are organized and where to start!" in caplog.text
+        )
+        assert (
+            "Visit: https://github.com/pancht/nrobo/wiki/Getting-Started-with-nRobo" in caplog.text
+        )
