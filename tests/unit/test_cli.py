@@ -37,7 +37,7 @@ from nrobo.utils.suite_utils import detect_or_validate_suites
                     "NROBO_BROWSER": "chrome",
                     "NROBO_DEBUG": "False",
                     "NROBO_HEADLESS": "True",
-                    "NROBO_BASENAME_TMP": None,
+                    "NROBO_BASENAME_TMP": ".pytest_tmp",
                 },
                 "args": {
                     "debug": False,
@@ -86,7 +86,7 @@ from nrobo.utils.suite_utils import detect_or_validate_suites
                 },
                 "pytest_args": {
                     "--cov=nrobo",
-                    "--cov-report=html",
+                    "--html=test_artifacts/html_report/myreport.html",
                     "--cov-report=term-missing",
                     "--cov-fail-under=90",
                     "--html=test_artifacts/html_report/myreport.html",

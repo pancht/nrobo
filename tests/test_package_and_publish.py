@@ -29,10 +29,10 @@ def test_get_latest_pypi_version_failure(mock_get):
 
 
 @patch("builtins.input", return_value="n")
-@patch("pypi_uploader.subprocess.run")
-@patch("pypi_uploader.clear_dist_folder")
-@patch("pypi_uploader.update_version_file")
-@patch("pypi_uploader.tomlkit.parse")
+@patch("nrobo.pypi_uploader.subprocess.run")
+@patch("nrobo.pypi_uploader.clear_dist_folder")
+@patch("nrobo.pypi_uploader.update_version_file")
+@patch("nrobo.pypi_uploader.tomlkit.parse")
 def test_main_dry_run_cancel_upload(mock_parse, mock_update, mock_clear, mock_run, mock_input):
     mock_doc = {"project": {"name": "nrobo", "version": "0.1.0"}}
     mock_parse.return_value = mock_doc
@@ -41,8 +41,8 @@ def test_main_dry_run_cancel_upload(mock_parse, mock_update, mock_clear, mock_ru
     with (
         patch("pathlib.Path.read_text", return_value="dummy-toml"),
         patch("pathlib.Path.write_text") as mock_write,
-        patch("pypi_uploader.get_latest_pypi_version", return_value="0.0.1"),
-        patch("pypi_uploader.show_git_changelog"),
+        patch("nrobo.pypi_uploader.get_latest_pypi_version", return_value="0.0.1"),
+        patch("nrobo.pypi_uploader.show_git_changelog"),
         patch("sys.argv", ["script", "--level", "minor", "--dry"]),
     ):
         pypi_uploader.main()
@@ -51,10 +51,10 @@ def test_main_dry_run_cancel_upload(mock_parse, mock_update, mock_clear, mock_ru
 
 
 @patch("builtins.input", return_value="y")
-@patch("pypi_uploader.subprocess.run")
-@patch("pypi_uploader.clear_dist_folder")
-@patch("pypi_uploader.update_version_file")
-@patch("pypi_uploader.tomlkit.parse")
+@patch("nrobo.pypi_uploader.subprocess.run")
+@patch("nrobo.pypi_uploader.clear_dist_folder")
+@patch("nrobo.pypi_uploader.update_version_file")
+@patch("nrobo.pypi_uploader.tomlkit.parse")
 def test_main_real_flow(mock_parse, mock_update, mock_clear, mock_run, mock_input):
     mock_doc = {"project": {"name": "nrobo", "version": "0.1.0"}}
     mock_parse.return_value = mock_doc
@@ -63,8 +63,8 @@ def test_main_real_flow(mock_parse, mock_update, mock_clear, mock_run, mock_inpu
     with (
         patch("pathlib.Path.read_text", return_value="dummy-toml"),
         patch("pathlib.Path.write_text") as mock_write,
-        patch("pypi_uploader.get_latest_pypi_version", return_value="0.0.1"),
-        patch("pypi_uploader.show_git_changelog"),
+        patch("nrobo.pypi_uploader.get_latest_pypi_version", return_value="0.0.1"),
+        patch("nrobo.pypi_uploader.show_git_changelog"),
         patch("sys.argv", ["script", "--level", "minor", "--no-git-log"]),
     ):
         pypi_uploader.main()
