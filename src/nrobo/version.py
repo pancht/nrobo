@@ -1,1 +1,1 @@
-__version__ = "2025.4.4"  # noqa: W292
+__version__ = "2025.5.0"  # noqa: W292
