@@ -10,6 +10,7 @@ Usage:
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from argparse import ArgumentParser
 from pathlib import Path
@@ -69,46 +70,69 @@ def upload_package(repo: str):
 
 
 def smoke_test_install(package_name: str, version_tag: str) -> bool:
-    cprint("🧪 Smoke-testing install...", "cyan")
-    venv_dir = Path(".tmp_test_env")
-    if venv_dir.exists():
-        shutil.rmtree(venv_dir)
+    cprint("🧪 Smoke-testing install in isolated temp project...", "cyan")
 
-    subprocess.run([sys.executable, "-m", "venv", str(venv_dir)], check=True)
+    # Create isolated temp dir for full project + venv
+    with tempfile.TemporaryDirectory(prefix=".smoke_test_") as project_dir:
+        project_dir = Path(project_dir)
+        venv_dir = project_dir / ".venv"
 
-    bin_dir = "Scripts" if sys.platform.startswith("win") else "bin"
-    pip = venv_dir / bin_dir / "pip"
-    python = venv_dir / bin_dir / "python"
+        # Step 1: Create venv
+        subprocess.run([sys.executable, "-m", "venv", str(venv_dir)], check=True)
 
-    install_cmd = [
-        str(pip),
-        "install",
-        "-i",
-        "https://test.pypi.org/simple/",
-        "--extra-index-url",
-        "https://pypi.org/simple",
-        version_tag,
-    ]
+        bin_dir = "Scripts" if sys.platform.startswith("win") else "bin"
+        pip = venv_dir / bin_dir / "pip"
+        python = venv_dir / bin_dir / "python"
+        nrobo_cmd = venv_dir / bin_dir / "nrobo"
 
-    for attempt in range(2):
-        result = subprocess.run(install_cmd, capture_output=True, text=True)
-        if result.returncode == 0:
-            break
-        cprint(f"⚠️ Install failed (attempt {attempt + 1}): {result.stderr}", "yellow")
-        time.sleep(5)
-    else:
-        cprint("❌ Failed to install package from TestPyPI", "red")
-        return False
+        # Step 2: Install from TestPyPI
+        install_cmd = [
+            str(pip),
+            "install",
+            "-i",
+            "https://test.pypi.org/simple/",
+            "--extra-index-url",
+            "https://pypi.org/simple",
+            version_tag,
+        ]
+        for attempt in range(2):
+            result = subprocess.run(install_cmd, capture_output=True, text=True)
+            if result.returncode == 0:
+                break
+            cprint(f"⚠️ Install failed (attempt {attempt + 1}): {result.stderr}", "yellow")
+            time.sleep(5)
+        else:
+            cprint("❌ Failed to install package from TestPyPI", "red")
+            return False
 
-    test_code = f"from {package_name}.version import __version__; print(__version__)"
-    result = subprocess.run([str(python), "-c", test_code], capture_output=True, text=True)
+        # Step 3: Import test
+        import_test = f"from {package_name}.version import __version__; print(__version__)"
+        result = subprocess.run([str(python), "-c", import_test], capture_output=True, text=True)
+        if result.returncode != 0:
+            cprint(f"❌ Import test failed:\n{result.stderr}", "red")
+            return False
 
-    if result.returncode != 0:
-        cprint(f"❌ Import test failed:\n{result.stderr}", "red")
-        return False
+        # Step 4: `nrobo init --app demo` inside temp project dir
+        cprint("🔧 Running `nrobo init --app demo`...", "cyan")
+        result = subprocess.run(
+            [str(nrobo_cmd), "init", "--app", "demo"],
+            cwd=project_dir,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            cprint(f"❌ `nrobo init` failed:\n{result.stderr}", "red")
+            return False
 
-    cprint("✅ Smoke test passed!", "green")
-    return True
+        # Step 5: run `nrobo` to verify CLI
+        cprint("🚀 Running `nrobo` to confirm CLI works...", "cyan")
+        result = subprocess.run([str(nrobo_cmd)], cwd=project_dir, capture_output=True, text=True)
+        if result.returncode != 0:
+            cprint(f"❌ `nrobo` CLI failed:\n{result.stderr}", "red")
+            return False
+
+        cprint("✅ Smoke test passed — install, init, and CLI ran successfully!", "green")
+        return True
 
 
 def main():
