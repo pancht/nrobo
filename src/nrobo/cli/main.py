@@ -22,7 +22,7 @@ logger = get_logger(name=settings.NROBO_APP)
 
 
 def has_non_execution_args(unknown_args) -> bool:
-    return any(any(arg in key for key in pytest_non_execution_keys) for arg in unknown_args)
+    return any(any(key in arg for key in pytest_non_execution_keys) for arg in unknown_args)
 
 
 def run_pytest_safely(pytest_options) -> pytest.ExitCode:
@@ -62,24 +62,25 @@ def run() -> int:
     # Execution banner
     if is_ui_test:
         mode = "headed" if args.no_headless else "headless"
-        logger_msg.extend(
+        logger_msg.append(
             f"🚀 Starting {settings.NROBO_APP} test execution on browser: {browser} ({mode})"
         )
     else:
-        logger_msg.extend("🧪 Running non-browser tests...")
+        logger_msg.append("🧪 Running non-browser tests...")
 
-    logger_msg.extend(f"🗂 Suites to execute: {suites}")
-    logger_msg.extend(f"Pytest args received: {pytest_args}")
+    logger_msg.append(f"🗂 Suites to execute: {suites}")
+    logger_msg.append(f"Pytest args received: {pytest_args}")
 
     pytest_options = prepare_pytest_cli_options(suites=suites, pytest_args=pytest_args)
     logger.debug(f"Final Pytest CLI options: {pytest_options}")
 
     if has_non_execution_args(pytest_options):
         run_pytest_safely(pytest_options)
-        sys.exit(0)
+        return ExitCodes.SUCCESS
 
     for msg in logger_msg:
         logger.info(msg)
+
     exit_code = run_pytest_safely(pytest_options)
 
     if should_proceed(exit_code) and not no_execution_key_found(pytest_options):

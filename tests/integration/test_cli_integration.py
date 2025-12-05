@@ -64,7 +64,7 @@ def test_cli_run_executes_tests_and_returns_correct_exit_code(
         _create_a_failing_ui_test(fake_tests)
 
         with (
-            patch.object(settings, "ALLURE_RESULTS_DIR", fake_allure_results_dir),
+            patch.object(settings, "ALLURE_RESULTS_DIR", str(fake_allure_results_dir.resolve())),
             patch.object(
                 sys,
                 "argv",

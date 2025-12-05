@@ -1,5 +1,4 @@
 import hashlib
-import os
 import subprocess
 from pathlib import Path
 
@@ -88,10 +87,11 @@ def test_reuse_or_launch_allure_nginx_reuse(monkeypatch, dummy_allure_dir, tmp_p
     }
     save_state(prev_state)
 
-    # Mock port check and process check
-    monkeypatch.setattr(nginx_service, "is_port_in_use", lambda port, host="127.0.0.1": True)
-    # Patch os.kill to raise no exception (pretend process exists)
-    monkeypatch.setattr(os, "kill", lambda pid, sig: None)
+    # 👇 Patch exactly where nginx_service imports these
+    monkeypatch.setattr(
+        "nrobo.services.nginx_service.is_port_in_use", lambda port, host="127.0.0.1": True
+    )
+    monkeypatch.setattr("nrobo.services.nginx_service.os.kill", lambda pid, sig: None)
 
     result = nginx_service.reuse_or_launch_allure_nginx(str(dummy_allure_dir), open_browser=False)
 
