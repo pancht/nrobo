@@ -6,3 +6,19 @@ class ExitCodes:
     NO_TESTS_FOUND = 204
     INTERRUPTED = 130  # KeyboardInterrupt
     INTERNAL_ERROR = 99  # Generic unhandled exception
+
+
+pytest_non_execution_keys = [
+    "--collect-only",
+    "--co",
+    "--fixtures",
+    "--fixtures-per-test",
+    "--markers",
+    "--help",
+    "--version",
+    "--trace-config",
+    "--setup-plan",
+    "--setup-only",
+    "--setup-show",
+    "--confcutdir",  # "--confcutdir=DIR",
+]
