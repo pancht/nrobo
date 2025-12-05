@@ -24,13 +24,14 @@
 - 🖥️ **Selenium Web Integration** – cross-browser support (Chrome, Firefox, Edge)
 - 🧱 **Modular Architecture** – decoupled loader, executor, and reporter components
 - 📜 **YAML-Based Test Suites** – write tests in a human-readable format
-## 🚀 Upcoming Features
-- 🔧 **Reusable Steps & Configs** – DRY principle applied across suites
-- 🔁 **Data-Driven Testing** – externalize inputs for flexible test coverage
 - 🧪 **Self-Tested Framework** – internal tests for reliability
 - 📦 **Modern Packaging** – install via `pip`, structured with `pyproject.toml`
 - 🛡️ **Security Audited** – integrates with `bandit` and `pip-audit`
 - ⚙️ **CI/CD Friendly** – GitHub Actions-ready out of the box
+
+## 🚀 Upcoming Features
+- 🔧 **Reusable Steps & Configs** – DRY principle applied across suites
+- 🔁 **Data-Driven Testing** – externalize inputs for flexible test coverage
 
 ---
 
