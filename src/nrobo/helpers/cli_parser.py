@@ -16,8 +16,7 @@ from nrobo.version import __version__
 logger = get_logger(name=settings.NROBO_APP)
 
 
-def parse_nrobo_args(argv):
-    argv = argv or sys.argv
+def _base_parser():
     parser = argparse.ArgumentParser(
         description=f"{settings.NROBO_APP} - Smart Test Runner built on Pytest",
         add_help=True,
@@ -65,34 +64,11 @@ def parse_nrobo_args(argv):
 
     parser.add_argument("-v", "--version", action="version", version=f"nrobo version {__version__}")
 
-    if "--help" in argv:
-        logger.info(f"\n📜 {settings.NROBO_APP} Help Menu:")
-        parser.print_help()
-
-        if nrobo_not_initialized() and not is_dev_machine():
-            sys.exit(0)
-
-        try:
-            user_input = (
-                input(
-                    f"\n❓ {settings.NROBO_APP} is backed by PyTest. Show PyTest options too? (y/n): "  # noqa: E501
-                )  # noqa: E501
-                .strip()
-                .lower()
-            )  # noqa: E501
-        except EOFError:
-            user_input = "n"  # fallback in non-interactive shells
-        print("sss")
-        if user_input.startswith("y"):
-            logger.info("\n📜 Pytest Help Menu:")
-            pytest.main(["--help"], plugins=None)
-        raise SystemExit(0)
-
-    return parser.parse_known_args()
+    return parser
 
 
-def parse_subcommand(argv):
-    parser = argparse.ArgumentParser(description="nrobo subcommands")
+def _sub_commands() -> argparse.ArgumentParser:
+    parser = _base_parser()
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     clean_parser = subparsers.add_parser("clean", help="Clean test_artifacts/")
@@ -114,7 +90,46 @@ def parse_subcommand(argv):
         help="Arguments for nginx subcommands (start/stop/status)",
     )
 
+    return parser
+
+
+def _parse_subcommand(argv):
+    parser = _sub_commands()
     return parser.parse_args(argv)
+
+
+def parse_nrobo_args(argv):
+    argv = argv or sys.argv
+
+    if "--help" in argv or "-h" in argv:
+
+        parser = _sub_commands()
+
+        logger.info(f"\n📜 {settings.NROBO_APP} Help Menu:")
+        parser.print_help()
+
+        if nrobo_not_initialized() and not is_dev_machine():
+            sys.exit(0)
+
+        try:
+            user_input = (
+                input(
+                    f"\n❓ {settings.NROBO_APP} is backed by PyTest. Show PyTest options too? (y/n): "  # noqa: E501
+                )  # noqa: E501
+                .strip()
+                .lower()
+            )  # noqa: E501
+        except EOFError:
+            user_input = "n"  # fallback in non-interactive shells
+
+        if user_input.startswith("y"):
+            logger.info("\n📜 Pytest Help Menu:")
+            pytest.main(["--help"], plugins=None)
+        raise SystemExit(0)
+
+    parser = _base_parser()
+
+    return parser.parse_known_args()
 
 
 def get_nrobo_arg_parser(argv=None):
@@ -123,7 +138,7 @@ def get_nrobo_arg_parser(argv=None):
     if len(argv) > 1 and argv[1] in ["clean", "init", "nginx"]:
 
         # Run subcommand parser only
-        sub_args = parse_subcommand(argv[1:])
+        sub_args = _parse_subcommand(argv[1:])
 
         if sub_args.command == "clean":
             clean.run(argv[2:])

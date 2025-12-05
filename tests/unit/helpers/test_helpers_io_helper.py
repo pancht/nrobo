@@ -104,17 +104,14 @@ def test_copy_configs_when_sync_needed(monkeypatch, tmp_path):
     assert (dest_dir / ".nrobo_env").read_text() == "NROBO_DEBUG=True"
 
 
-def test_copy_configs_skips_when_not_needed(monkeypatch, tmp_path):
+def test_copy_configs_skips_when_not_needed(monkeypatch, tmp_path, caplog):
     source_dir = tmp_path / "configs"
     source_dir.mkdir(parents=True)
     (source_dir / ".env").write_text("mock")
 
     monkeypatch.setattr(Path, "cwd", lambda: tmp_path)
 
-    with (
-        patch("nrobo.helpers.io_helper.is_sync_needed", return_value=False),
-        patch("builtins.print") as mock_print,
-    ):
+    with patch("nrobo.helpers.io_helper.is_sync_needed", return_value=False):
         copy_configs_if_updated()
 
-        mock_print.assert_called_with("🟢 Skipped copy (configs already up to date).")
+    assert "🟢 Skipped copy (configs already up to date)." in caplog.text

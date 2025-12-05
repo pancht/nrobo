@@ -379,7 +379,7 @@ def test_parse_nrobo_args_with_unknown_args():
 
 
 @patch("nrobo.helpers.cli_parser.init.run")
-@patch("nrobo.helpers.cli_parser.parse_subcommand")
+@patch("nrobo.helpers.cli_parser._parse_subcommand")
 def test_subcommand_init_triggers_init_run(mock_parse_subcommand, mock_init_run):
     # Simulate CLI input: nrobo init --app testapp
     test_args = ["nrobo", "init", "--app", "testapp"]
