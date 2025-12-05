@@ -34,7 +34,7 @@ def detect_or_validate_suites(
                 None  # meaning: run all detected suites (logic continues elsewhere) # noqa: E501
             )
         else:
-            logger.warning("⚠️ No suite specified and no suite files found!")
+            logger.debug("⚠️ No suite specified and no suite files found!")
             if not has_pytest_tests(settings.TESTS_DIR):  # noqa: E501
                 raise NoTestsFoundException(search_path=settings.TESTS_DIR)
             suites = None

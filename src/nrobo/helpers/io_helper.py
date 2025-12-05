@@ -1,7 +1,12 @@
 import shutil
 from pathlib import Path
 
+from nrobo.core import settings
+from nrobo.helpers.logging_helper import get_logger
+
 include_files = [".env"]
+
+logger = get_logger(name=settings.NROBO_APP)
 
 
 def is_sync_needed(source: Path, dest: Path) -> bool:
@@ -40,8 +45,8 @@ def copy_configs_if_updated():
             if file.is_file() and file.name in include_files:
                 _file_name = ".nrobo_env" if file.name == ".env" else file.name
                 shutil.copy2(file, dest_dir / _file_name)
-                print(f"✅ Copied {file.name} → {dest_dir}")
-                print("✅ Configs copied (updates detected).")
+                logger.debug(f"✅ Copied {file.name} → {dest_dir}")
+                logger.debug("✅ Configs copied (updates detected).")
 
     else:
-        print("🟢 Skipped copy (configs already up to date).")
+        logger.debug("🟢 Skipped copy (configs already up to date).")
