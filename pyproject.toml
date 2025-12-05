@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nrobo"
-version = "2025.4.2"
+version = "2025.4.3"
 description = "A Pytest-powered Smart Test Runner CLI tool."
 readme = "README.md"
 license = { text = "MIT" }
@@ -95,7 +95,7 @@ omit = [
     "*/node_modules/*",
     "*/backup/*",
     "*/selenium_wrappers/*",
-    "build_and_publish.py",
+    "*/pypi_uploader.py",
     "*/nrobo/services/*",
     "*/network_utils.py"
 ]

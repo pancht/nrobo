@@ -1,28 +1,28 @@
 #!/usr/bin/env python3
 """
 Auto-fetch latest version from PyPI/TestPyPI,
-bump version, build package, and upload — with confirmation.
+bump version, build package, upload — with optional smoke-test before real PyPI upload.
 
 Usage:
-  python build_and_publish.py [--level patch|minor|major] [--test] [--dry]
+  python build_and_publish.py [--level patch|minor|major] [--test] [--smoke] [--dry]
 """
 
 import shutil
 import subprocess
 import sys
+import time
 from argparse import ArgumentParser
 from pathlib import Path
 
 import requests
 import tomlkit
-from packaging.version import parse as parse_version
 from termcolor import cprint
 
 from nrobo.utils.update_version_utils import update_version_file
 
 PYPROJECT = Path("pyproject.toml").resolve()
 PACKAGE_NAME = "nrobo"
-VERSION_FILE = Path("src").resolve() / PACKAGE_NAME / "version.py"
+VERSION_FILE = Path("src") / PACKAGE_NAME / "version.py"
 
 
 def bump_version(version: str, level: str = "patch") -> str:
@@ -38,105 +38,144 @@ def bump_version(version: str, level: str = "patch") -> str:
     return f"{major}.{minor}.{patch}"
 
 
-def get_latest_pypi_version(package: str, test=False) -> str:
-    url = (
-        f"https://test.pypi.org/pypi/{package}/json"
-        if test
-        else f"https://pypi.org/pypi/{package}/json"
-    )
+def get_latest_version(package: str, test=False) -> str:
+    url = f"https://{'test.' if test else ''}pypi.org/pypi/{package}/json"
     try:
-        resp = requests.get(url, timeout=5)
-        if resp.status_code == 200:
-            return resp.json().get("info", {}).get("version", "0.0.0")
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
+        return response.json().get("info", {}).get("version", "0.0.0")
     except Exception as e:
-        cprint(f"⚠️ Could not fetch latest version: {e}", "yellow")
-    return "0.0.0"
+        cprint(f"⚠️ Could not fetch version from {'Test' if test else ''}PyPI: {e}", "yellow")
+        return "0.0.0"
 
 
 def clear_dist_folder():
-    dist_path = Path("../../dist")
-    if dist_path.exists() and dist_path.is_dir():
+    dist = Path("dist")
+    if dist.exists():
         cprint("🧹 Clearing old dist/ directory...", "cyan")
-        shutil.rmtree(dist_path)
-
-
-def show_git_changelog():
-    cprint("\n📝 Last 5 commits:", "blue")
-    subprocess.run(["git", "log", "--oneline", "HEAD~5..HEAD"])
+        shutil.rmtree(dist)
 
 
 def build_package():
-    cprint("\n🔧 Building package...", "cyan")
+    cprint("🔧 Building package...", "cyan")
     subprocess.run([sys.executable, "-m", "build"], check=True)
 
 
 def upload_package(repo: str):
-    cprint(f"\n📤 Uploading to {repo}...", "cyan")
+    cprint(f"📤 Uploading to {repo}...", "cyan")
     subprocess.run(
         [sys.executable, "-m", "twine", "upload", "--repository", repo, "dist/*"], check=True
     )
 
 
+def smoke_test_install(package_name: str, version_tag: str) -> bool:
+    cprint("🧪 Smoke-testing install...", "cyan")
+    venv_dir = Path(".tmp_test_env")
+    if venv_dir.exists():
+        shutil.rmtree(venv_dir)
+
+    subprocess.run([sys.executable, "-m", "venv", str(venv_dir)], check=True)
+
+    bin_dir = "Scripts" if sys.platform.startswith("win") else "bin"
+    pip = venv_dir / bin_dir / "pip"
+    python = venv_dir / bin_dir / "python"
+
+    install_cmd = [
+        str(pip),
+        "install",
+        "-i",
+        "https://test.pypi.org/simple/",
+        "--extra-index-url",
+        "https://pypi.org/simple",
+        version_tag,
+    ]
+
+    for attempt in range(2):
+        result = subprocess.run(install_cmd, capture_output=True, text=True)
+        if result.returncode == 0:
+            break
+        cprint(f"⚠️ Install failed (attempt {attempt + 1}): {result.stderr}", "yellow")
+        time.sleep(5)
+    else:
+        cprint("❌ Failed to install package from TestPyPI", "red")
+        return False
+
+    test_code = f"from {package_name}.version import __version__; print(__version__)"
+    result = subprocess.run([str(python), "-c", test_code], capture_output=True, text=True)
+
+    if result.returncode != 0:
+        cprint(f"❌ Import test failed:\n{result.stderr}", "red")
+        return False
+
+    cprint("✅ Smoke test passed!", "green")
+    return True
+
+
 def main():
-    parser = ArgumentParser(description="Build and upload nrobo to PyPI/TestPyPI.")
-    parser.add_argument(
-        "--level", choices=["patch", "minor", "major"], default="patch", help="Version bump level"
-    )
-    parser.add_argument("--test", action="store_true", help="Upload to TestPyPI instead of PyPI")
-    parser.add_argument(
-        "--dry", action="store_true", help="Dry-run: simulate actions without executing them"
-    )
-    parser.add_argument("--no-git-log", action="store_true", help="Skip showing last Git commits")
+    parser = ArgumentParser()
+    parser.add_argument("--level", choices=["patch", "minor", "major"], default="patch")
+    parser.add_argument("--test", action="store_true", help="Upload to TestPyPI")
+    parser.add_argument("--smoke", action="store_true", help="Smoke test after TestPyPI upload")
+    parser.add_argument("--dry", action="store_true", help="Dry run (skip build/upload)")
+    parser.add_argument("--no-git-log", action="store_true", help="Skip showing recent git log")
 
     args = parser.parse_args()
 
-    repo = "testpypi" if args.test else "pypi"
-    dry = args.dry
-
-    # Load current version
     doc = tomlkit.parse(PYPROJECT.read_text())
     local_version = doc["project"]["version"]
 
-    # Fetch latest version online
-    latest_version = get_latest_pypi_version(PACKAGE_NAME, test=args.test)
-    cprint(f"\n📦 Latest {PACKAGE_NAME} on {repo}: {latest_version}", "green")
-    cprint(f"🧩 Local pyproject.toml version: {local_version}", "cyan")
+    latest_pypi = get_latest_version(PACKAGE_NAME)
+    latest_testpypi = get_latest_version(PACKAGE_NAME, test=True)
 
-    # Decide on bump
-    if parse_version(local_version) <= parse_version(latest_version):
-        new_version = bump_version(latest_version, args.level)
-        cprint(f"⬆️  Auto-bumping to version: {new_version}", "magenta")
-    else:
-        new_version = local_version
-        cprint(f"✅ Local version is newer ({local_version}) — keeping as-is", "green")
+    bump_pypi = bump_version(latest_pypi, args.level)
+    bump_testpypi = bump_version(latest_testpypi, args.level)
 
-    update_version_file(version_file_path=VERSION_FILE, new_version=new_version)
+    cprint(f"\n📦 Local: {local_version}", "cyan")
+    cprint(f"🌐 PyPI: {latest_pypi}, TestPyPI: {latest_testpypi}", "green")
+    cprint(f"⬆️  New versions → PyPI: {bump_pypi}, TestPyPI: {bump_testpypi}", "magenta")
 
     if not args.no_git_log:
-        show_git_changelog()
+        subprocess.run(["git", "log", "--oneline", "HEAD~5..HEAD"])
 
-    if dry:
-        cprint("\n💡 Dry-run mode enabled — no files written, no build or upload done.\n", "yellow")
+    if args.dry:
+        cprint("💡 Dry run: skipping build/upload", "yellow")
         return
 
-    # Update pyproject.toml
-    doc["project"]["version"] = new_version
+    # Update files for TestPyPI first
+    update_version_file(VERSION_FILE, bump_testpypi)
+    doc["project"]["version"] = bump_testpypi
     PYPROJECT.write_text(tomlkit.dumps(doc))
 
-    # Clean and build
     clear_dist_folder()
     build_package()
+    upload_package("testpypi")
 
-    # Confirm upload
-    cprint(f"\n⚠️ Ready to upload version {new_version} to {repo}.", "red")
-    confirm = input("Do you want to continue? (y/N): ").strip().lower()
+    tag = f"{PACKAGE_NAME}=={bump_testpypi}"
+    if not smoke_test_install(PACKAGE_NAME, tag):
+        cprint("❌ Smoke test failed — aborting", "red")
+        sys.exit(1)
+    confirm = input("Proceed building package for pypi? [y/N]: ").strip().lower()
     if confirm not in ("y", "yes"):
-        cprint("❌ Upload cancelled.", "red")
+        cprint("🚫 Uploading to pypi cancelled", "red")
         return
 
-    upload_package(repo)
+    if not args.test:
+        cprint("✅ Test upload complete. Proceeding to PyPI...", "cyan")
+        update_version_file(VERSION_FILE, bump_pypi)
+        doc["project"]["version"] = bump_pypi
+        PYPROJECT.write_text(tomlkit.dumps(doc))
 
-    cprint(f"\n✅ Version {new_version} successfully uploaded to {repo}!", "green")
+        clear_dist_folder()
+        build_package()
+
+        cprint(f"\n⚠️ Confirm upload to PyPI for version {bump_pypi}", "red")
+        confirm = input("Proceed uploading to pypi? [y/N]: ").strip().lower()
+        if confirm not in ("y", "yes"):
+            cprint("🚫 Uploading to pypi cancelled", "red")
+            return
+
+        upload_package("pypi")
+        cprint(f"🎉 Uploaded {PACKAGE_NAME} v{bump_pypi} to PyPI", "green")
 
 
 if __name__ == "__main__":
