@@ -95,7 +95,7 @@ omit = [
     "*/node_modules/*",
     "*/backup/*",
     "*/selenium_wrappers/*",
-    "build_and_publish.py",
+    "*/pypi_uploader.py",
     "*/nrobo/services/*",
     "*/network_utils.py"
 ]
