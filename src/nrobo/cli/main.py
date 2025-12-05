@@ -24,7 +24,6 @@ logger = get_logger(name=settings.NROBO_APP)
 def has_non_execution_args(unknown_args) -> bool:
     return any(any(key in arg for key in pytest_non_execution_keys) for arg in unknown_args)
 
-
 def run_pytest_safely(pytest_options) -> pytest.ExitCode:
     """
     Run pytest with given options, returning the exit code.
