@@ -2,6 +2,7 @@
 import builtins
 import subprocess
 import sys
+import urllib.parse
 
 import pytest
 import requests
@@ -54,7 +55,8 @@ def fake_requests(monkeypatch):
             return self._data
 
     def fake_get(url, timeout):
-        if "test.pypi.org" in url:
+        parsed = urllib.parse.urlparse(url)
+        if parsed.hostname and parsed.hostname.lower() == "test.pypi.org":
             return DummyResp(200, {"info": {"version": "1.2.3"}})
         else:
             # simulate non-200 for main PyPI
