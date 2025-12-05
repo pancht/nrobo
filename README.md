@@ -19,10 +19,12 @@
 ## 🚀 Features
 
 - ✅ **PyTest-Powered Engine** – built on the rock-solid `pytest` foundation
+- 📊 **Allure + HTML Reporting** – customizable test reports with logs and screenshots
+- 🌀 **Integrated Nginx Allure Server** – serves Allure reports without needing the Allure CLI, and includes simple start, status, and stop commands for hassle-free report hosting
+- 🖥️ **Selenium Web Integration** – cross-browser support (Chrome, Firefox, Edge)
 - 🧱 **Modular Architecture** – decoupled loader, executor, and reporter components
 - 📜 **YAML-Based Test Suites** – write tests in a human-readable format
-- 🖥️ **Selenium Web Integration** – cross-browser support (Chrome, Firefox, Edge)
-- 📊 **Allure + HTML Reporting** – customizable test reports with logs and screenshots
+## 🚀 Upcoming Features
 - 🔧 **Reusable Steps & Configs** – DRY principle applied across suites
 - 🔁 **Data-Driven Testing** – externalize inputs for flexible test coverage
 - 🧪 **Self-Tested Framework** – internal tests for reliability
@@ -37,51 +39,57 @@
 
 - Install Python (3.11 or higher)
   - python --version
-- Install Java (11  or higher)
-- Install allure command line tool.
-  - Check [Install guide](https://allurereport.org/docs/gettingstarted-installation/)
-        - Run the following command to check if allure cli is installed
-
-```bash
-  allure --version
-````
-
 
 ## 📦 Installation
 
-- Make a directory for automation project
+### Make a directory for automation project
 ```bash
-  mkdir dream
-  cd dream
+  mkdir <test_project_name>
+  cd <test_project_name>
 ```
-- Install **virtualenv** package
+### Install ***venv*** package
+  - 🔵 macOS: No installation needed — macOS Python includes venv.
+  - 🟢 Ubuntu / Debian Linux:
+    - `sudo apt update`
+    - `sudo apt install python3-venv`
+  - 🔶 RedHat / CentOS / Fedora:
+    - `sudo dnf install python3-venv`
+  - 🟣 Windows: No installation needed — Also included by default.
+
+###   Create virtual environment - `.venv`
 
 ```bash
-  pip install virtualenv
+  python -m venv .venv
 ```
-- Create virtual environment - `.venv`
-
-```bash
-  virtualenv .venv
-```
-- Activate virtual environment
+### Activate virtual environment
   - Unix/Mac/Linux
     - `source .venv/bin/activate`
   - Windows
     - `.\\.venv\\Scripts\\activate`
 
-- Install *nrobo*
+### Install *nrobo*
 
 ```bash
+  # Install nrobo
   pip install nrobo
-  nrobo --init
+
+  # initialize project
+  nrobo init --app <project_name>
+
+  # run sample tests
   nrobo # This will run sample tests
 ```
 
-- Other ways to work with `nrobo`
+#### Other ways to work with `nrobo`
 ```bash
+    # run tests disabled output capturing
+    # means prints will not be captured and shows up on console right away
     nrobo -s
+
+    # run 2 tests in parallel with disabled output capturing
     nrobo -n 2 -s
+
+    # collect tests and show them on console. do not execute them!
     nrobo --co
 ```
 **Or** Setup local development environment:
@@ -90,13 +98,14 @@
 
 
 
-🧪 Quick Start
+## 🧪 Quick Start
 
 ```bash
+# run login_test test suite only
 nrobo --suite suites/login_test.yaml
 ```
 
-**Or** run via `pytest` if testing a local implementation:
+## **Or** run via `pytest` if testing a local implementation:
 
 ```bash
 nrobo -suite=suites/login_test.yaml
@@ -114,19 +123,15 @@ nrobo/
 └── build_and_publish.py
 ```
 
-📊 Reports
+# 📊 Reports
 
-After execution, you'll get rich test reports:
+After execution, nrobo will generate html and allure report through integrated **pytest-html** and **pytest-allure** plugins.
+nRobo will share following in console:
+1. Link of html report
+2. Link of allure report
+3. Sets up local nginx server, and serve allure report for visualization with localhost url.
 
-- **Allure Report:**
-
-```bash
-allure serve results/
-```
-
-- **HTML Report:**
-
-Open **reports/report.html** in your browser.
+![img.png](images/img.png)
 
 🛠️ Developer Guide
 
