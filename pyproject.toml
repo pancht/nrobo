@@ -14,6 +14,7 @@ authors = [
 requires-python = ">=3.10"
 dependencies = [
   "pytest>=7.0",
+  "pytest-playwright",
   "pyyaml",
   "typer>=0.9",
   "rich",
