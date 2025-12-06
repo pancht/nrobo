@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from nrobo.cli.commands import clean, init, nginx
+from nrobo.cli.commands import clean, init, nginx, update
 from nrobo.core import settings
 from nrobo.helpers.io_helper import copy_configs_if_updated
 from nrobo.helpers.logging_helper import get_logger, set_logger_level
@@ -90,6 +90,16 @@ def _sub_commands() -> argparse.ArgumentParser:
         help="Arguments for nginx subcommands (start/stop/status)",
     )
 
+    update_parser = subparsers.add_parser(
+        "update",
+        help="Update given dependencies",
+    )
+    update_parser.add_argument(
+        "--playwright",
+        action="store_true",
+        help="Update playwright + pytest-playwright + install browsers",
+    )
+
     return parser
 
 
@@ -135,7 +145,7 @@ def parse_nrobo_args(argv):
 def get_nrobo_arg_parser(argv=None):
     argv = argv or sys.argv
 
-    if len(argv) > 1 and argv[1] in ["clean", "init", "nginx"]:
+    if len(argv) > 1 and argv[1] in ["clean", "init", "nginx", "update"]:
 
         # Run subcommand parser only
         sub_args = _parse_subcommand(argv[1:])
@@ -146,6 +156,8 @@ def get_nrobo_arg_parser(argv=None):
             init.run(argv[2:])
         elif sub_args.command == "nginx":
             nginx.run(sys.argv[2:])
+        elif sub_args.command == "update":
+            update.run(argv[2:])
 
         sys.exit(0)
     args, unknown_args = parse_nrobo_args(argv[1:])
