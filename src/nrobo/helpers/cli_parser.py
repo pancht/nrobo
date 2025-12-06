@@ -92,12 +92,12 @@ def _sub_commands() -> argparse.ArgumentParser:
 
     update_parser = subparsers.add_parser(
         "update",
-        help="Update given dependencies",
+        help="Update nrobo dependencies",
     )
     update_parser.add_argument(
-        "--playwright",
-        action="store_true",
-        help="Update playwright + pytest-playwright + install browsers",
+        "update_args",
+        nargs=argparse.REMAINDER,
+        help="Arguments for update subcommands (--playwright, --selenium, --self)",
     )
 
     return parser
