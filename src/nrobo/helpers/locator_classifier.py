@@ -21,7 +21,7 @@ class LocatorClassifier:
             return LocatorType.PLAYWRIGHT
 
         # XPath: starts with / or .//
-        if locator.startswith(("/", ".//", "//")) or "(@" in locator:
+        if locator.startswith(("/", ".//", "//", "..")) or "(@" in locator:
             return LocatorType.XPATH
 
         # CSS: contains .class, #id, > child selectors, attributes, or :pseudo
