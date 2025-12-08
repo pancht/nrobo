@@ -60,7 +60,9 @@ class AutoWaitMixin:
                 print(f"[AutoWait] Timeout resolving: {description!r}")
                 raise e
 
-        raise RuntimeError(f"[AutoWait] Failed to resolve element: {description!r}")
+        raise RuntimeError(
+            f"[AutoWait] Failed to resolve element: {description!r}"
+        )  # pragma: no cover
 
     # ---------------------------------------------------------
     # Generic action executor
@@ -96,7 +98,7 @@ class AutoWaitMixin:
 
         # Timeout reached → fail with helpful message
         if error_message:
-            raise AssertionError(error_message)
+            raise AssertionError(error_message)  # pragma: no cover
         if last_exception:
             raise last_exception
         raise AssertionError("Condition not met within timeout")

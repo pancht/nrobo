@@ -81,6 +81,8 @@ max-line-length = 120   # optional: bump limit instead of ignoring
 patch = ["subprocess"]
 branch = true
 source = ["."] # ["src/nrobo"]
+parallel = true
+concurrency = ["multiprocessing"]
 omit = [
     "*/tests/*",
     "*/migrations/*",

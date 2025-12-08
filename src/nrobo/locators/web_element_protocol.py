@@ -1,8 +1,16 @@
-from typing import Any, List, Protocol, runtime_checkable
+from typing import Any, Dict, List, Protocol, runtime_checkable
 
 
-@runtime_checkable
+@runtime_checkable  # ← REQUIRED for isinstance() to work
 class WebElementProtocol(Protocol):
+    # data attributes
+    text: str
+    tag_name: str
+    location: Dict[str, Any]
+    location_once_scrolled_into_view: Dict[str, Any]
+    size: Dict[str, Any]
+    rect: Dict[str, Any]
+
     # ---- Core Actions ----
     def click(self) -> None: ...  # noqa: E704
     def clear(self) -> None: ...  # noqa: E704

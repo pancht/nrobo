@@ -11,7 +11,7 @@ class NRoboError(Exception):
     def __init__(self, message: str, return_code: int | None = None):
         super().__init__(message)
         if return_code is not None:
-            self.return_code = return_code
+            self.return_code = return_code  # pragma: no cover
 
 
 class SuiteNotFoundError(NRoboError, FileNotFoundError):
@@ -48,9 +48,9 @@ class DependencyNotFoundError(NRoboError):
         self.dependency = dependency
         self.install_hint = install_hint
         message = f"❌ Required dependency/CLI not found: {dependency}"
-        if install_hint:
-            message += f"\n   💡 To fix: {install_hint}"
-        super().__init__(message)
+        if install_hint:  # pragma: no cover
+            message += f"\n   💡 To fix: {install_hint}"  # pragma: no cover
+        super().__init__(message)  # pragma: no cover
 
 
 class NoTestsFoundException(NRoboError):

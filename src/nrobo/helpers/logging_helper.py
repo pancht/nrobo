@@ -45,6 +45,9 @@ def get_logger(
     logger.addHandler(ch)
     logger.addHandler(fh)
 
+    # CRITICAL FIX: prevent root logger from duplicating messages
+    # logger.propagate = False
+
     return logger
 
 

@@ -21,45 +21,49 @@ class LocatorClassifier:
     def detect(locator: str) -> LocatorType:
         locator = locator.strip()
 
-        # Explicit playwright-style locators
+        # PLAYWRIGHT
         if "=" in locator and locator.split("=")[0] in {"text", "role", "label"}:
             return LocatorType.PLAYWRIGHT
 
-        # XPath: starts with / or .//
+        # XPATH
         if locator.startswith(("/", ".//", "//", "..")) or "(@" in locator:
             return LocatorType.XPATH
 
-        # CSS: contains .class, #id, > child selectors, attributes, or :pseudo
-        if re.search(r"[.#>:\[\]=]", locator):
-            return LocatorType.CSS
-
-        # Fallback: simple ID or NAME guess (alphanumeric, underscores)
-        if re.match(r"^[a-zA-Z0-9_-]+$", locator):
-            # This could be id or name — depends on DOM usage
-            return LocatorType.ID
-
+        # SHADOW
         if ">>>" in locator or "shadow::" in locator:
             return LocatorType.SHADOW
 
+        # TEXT explicit
         if locator.startswith("text="):
             return LocatorType.TEXT
 
-        # quoted literal text e.g. "Login"
+        # TEXT quoted
         if (locator.startswith('"') and locator.endswith('"')) or (
             locator.startswith("'") and locator.endswith("'")
         ):
             return LocatorType.TEXT
 
+        # HAS-TEXT
         if ":has-text(" in locator:
             return LocatorType.HAS_TEXT
 
+        # HAS
         if ":has(" in locator:
             return LocatorType.HAS
 
+        # PSEUDO (must be BEFORE CSS)
         if any(
             p in locator
             for p in [":visible", ":hidden", ":enabled", ":disabled", ":checked", ":not("]
         ):
             return LocatorType.PSEUDO
+
+        # CSS fallback
+        if re.search(r"[.#>:\[\]=]", locator):
+            return LocatorType.CSS
+
+        # ID
+        if re.match(r"^[a-zA-Z0-9_-]+$", locator):
+            return LocatorType.ID
 
         return LocatorType.UNKNOWN

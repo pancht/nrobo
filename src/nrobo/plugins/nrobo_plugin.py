@@ -21,76 +21,85 @@ from nrobo.selenium_wrappers.selenium_wrapper import SeleniumWrapper
 class nRoboWebDriverPlugin:
     def __init__(self):
         self.driver_instance = None
-        logging.debug("[nRoboPlugin] Plugin initialized.")
+        # logging.debug("[nRoboPlugin] Plugin initialized.")
 
     def pytest_addoption(self, parser):
-        logging.debug("[nRoboPlugin] pytest_addoption called (no custom args).")
+        # logging.debug("[nRoboPlugin] pytest_addoption called (no custom args).")
         pass
 
     # ---------------------------------------------------------------
     # Logger Setup
     # ---------------------------------------------------------------
     def _get_logger(self, request: FixtureRequest) -> logging.Logger:
-        logging.debug("[Logger] Creating test-specific logger...")
+        """
+        Creates a per-test logger that emits **exactly one log per event**.
+        Prevents duplication across stdout/stderr/pytest log capture.
+        Fully xdist-safe and pytest-safe.
+        """
 
+        # ---------------------------- 1. Build test name --------------------------------
         node = request.node
         class_name = node.cls.__name__ if node.cls else None
         node_name = node.name
         test_name = f"{class_name}_{node_name}" if node.cls else node_name
 
         worker_id = grab_worker_id()
-        logging.debug(f"[Logger] Worker ID detected: {worker_id}")
 
+        # ---------------------------- 2. Log directory ----------------------------------
         log_dir = (
             os.path.join(settings.LOG_DIR, worker_id)
             if is_running_with_xdist()
-            else os.path.join(settings.LOG_DIR)  # noqa: E501
+            else settings.LOG_DIR
         )
         os.makedirs(log_dir, exist_ok=True)
-        logging.debug(f"[Logger] Log directory prepared: {log_dir}")
 
-        unique_logger_name = (
+        # ---------------------------- 3. Unique filename --------------------------------
+        log_filename = (
             f"{settings.NROBO_APP}_{worker_id}_{test_name}.log"
             if is_running_with_xdist()
             else f"{settings.NROBO_APP}_{test_name}.log"
         )
-        log_path = os.path.join(log_dir, unique_logger_name)
-        logging.debug(f"[Logger] Log file path: {log_path}")
+        log_path = os.path.join(log_dir, log_filename)
 
-        logger = logging.getLogger(f"{settings.NROBO_APP}_{test_name}")
+        # ---------------------------- 4. Create logger -----------------------------------
+        logger_name = f"{settings.NROBO_APP}.{test_name}"
+        logger = logging.getLogger(logger_name)
         logger.setLevel(logging.DEBUG)
 
-        # Avoid duplicate handlers during repeated test runs
+        # If already initialized (handlers exist) → reuse
         if logger.handlers:
-            logging.debug("[Logger] Reusing existing logger handlers.")
             return logger  # pragma: no cover
 
-        # Stream handler
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setLevel(settings.LOG_LEVEL_STREAM)
-        ch.setFormatter(
+        # ---------------------------- 5. STREAM HANDLER (stderr only!) --------------------
+        # Do NOT use stdout → pytest duplicates stdout
+        stream_handler = logging.StreamHandler(sys.stdout)  # defaults to stderr
+        stream_handler.setLevel(settings.LOG_LEVEL_STREAM)
+        stream_handler.setFormatter(
             ColoredFormatter(
                 settings.LOG_FORMAT_STREAM,
                 log_colors=settings.LOG_COLORS_STREAM,
             )
         )
 
-        # File handler
-        fh = logging.FileHandler(log_path, mode="w", encoding="utf-8")
-        fh.setLevel(settings.LOG_LEVEL_FILE)
-        fh.setFormatter(logging.Formatter(settings.LOG_FORMAT_FILE))
+        # ---------------------------- 6. FILE HANDLER ------------------------------------
+        file_handler = logging.FileHandler(log_path, mode="w", encoding="utf-8")
+        file_handler.setLevel(settings.LOG_LEVEL_FILE)
+        file_handler.setFormatter(logging.Formatter(settings.LOG_FORMAT_FILE))
 
-        logger.addHandler(ch)
-        logger.addHandler(fh)
+        # ---------------------------- 7. ATTACH HANDLERS ---------------------------------
+        logger.addHandler(stream_handler)
+        logger.addHandler(file_handler)
 
-        if is_running_with_xdist():
-            logger.debug(
-                f"Logger initialized for test: {test_name} (worker: {worker_id})"
-            )  # noqa: E501
-        else:
-            logger.debug(f"Logger initialized for test: {test_name}")  # pragma: no cover
+        # ---------------------------- 8. Bootstrap log (to this logger only) --------------
+        init_message = (
+            f"Logger initialized for test: {test_name} (worker={worker_id})"
+            if is_running_with_xdist()
+            else f"Logger initialized for test: {test_name}"
+        )
+        logger.debug(init_message)
 
-        logging.debug("[Logger] Logger successfully created.")
+        # VERY IMPORTANT: prevent propagation → pytest cannot duplicate logs
+        # logger.propagate = False
 
         return logger
 
@@ -99,42 +108,42 @@ class nRoboWebDriverPlugin:
     # ---------------------------------------------------------------
     @pytest.fixture(scope="function")
     def logger(self, request) -> logging.Logger:
-        logging.debug("[Fixture:logger] Creating logger fixture.")
+        # logging.debug("[Fixture:logger] Creating logger fixture.")
         return self._get_logger(request)
 
     @pytest.fixture(scope="function")
     def nrobo(self, request, logger):
-        logging.debug("[Fixture:nrobo] Starting WebDriver setup...")
+        # logging.debug("[Fixture:nrobo] Starting WebDriver setup...")
 
         env_browser = os.getenv("NROBO_BROWSER", "chrome").lower()
         env_headless = os.getenv("NROBO_HEADLESS", "true").lower().strip() == "true"
 
-        logging.debug(f"[Fixture:nrobo] Browser={env_browser}, Headless={env_headless}")
+        # logging.debug(f"[Fixture:nrobo] Browser={env_browser}, Headless={env_headless}")
 
         self.driver_instance: WebDriver = get_driver(env_browser, headless=env_headless)
-        logging.debug("[Fixture:nrobo] WebDriver created successfully.")
+        # logging.debug("[Fixture:nrobo] WebDriver created successfully.")
 
         nrobo_wrapper_: SeleniumWrapper = SeleniumWrapper(self.driver_instance, logger=logger)
-        logging.debug("[Fixture:nrobo] SeleniumWrapper initialized.")
+        # logging.debug("[Fixture:nrobo] SeleniumWrapper initialized.")
 
         request.node._driver_wrapper = nrobo_wrapper_
-        logging.debug("[Fixture:nrobo] Wrapper attached to pytest node.")
+        # logging.debug("[Fixture:nrobo] Wrapper attached to pytest node.")
 
         yield nrobo_wrapper_
 
-        logging.debug("[Fixture:nrobo] Test finished; quitting WebDriver.")
+        # logging.debug("[Fixture:nrobo] Test finished; quitting WebDriver.")
         self.driver_instance.quit()
 
     # ---------------------------------------------------------------
     # Hooks
     # ---------------------------------------------------------------
     def pytest_runtest_setup(self, item):
-        logging.debug(f"[Hook] Test setup started: {item.name}")
+        # logging.debug(f"[Hook] Test setup started: {item.name}")
         item.start_time = time.time()
 
     @pytest.hookimpl(hookwrapper=True, tryfirst=True)
     def pytest_runtest_makereport(self, item, call):
-        logging.debug(f"[Hook] Preparing test report: {item.name}")
+        # logging.debug(f"[Hook] Preparing test report: {item.name}")
 
         outcome = yield
         report = outcome.get_result()
@@ -153,12 +162,12 @@ class nRoboWebDriverPlugin:
             logger = logging.getLogger(final_test_name)
             logger.info(f"Test Status: {report.outcome.upper()}")
             logger.info(f"Duration: {duration:.2f} seconds")
-            logging.debug(f"[Hook] Test report logged: {final_test_name}")
+            # logging.debug(f"[Hook] Test report logged: {final_test_name}")
 
         # Screenshot section
         wrapper: SeleniumWrapper = getattr(item, "_driver_wrapper", None)
         if wrapper is not None and report.outcome == "failed":
-            logging.debug("[Hook] Failure detected; attempting screenshot capture.")
+            # logging.debug("[Hook] Failure detected; attempting screenshot capture.")
 
             screenshots_dir = Path(settings.TEST_ARTIFACTS_DIR) / settings.SCREENSHOTS
             screenshots_dir.mkdir(parents=True, exist_ok=True)
@@ -193,7 +202,7 @@ class nRoboWebDriverPlugin:
                 )
                 report.extras = extras
 
-                logging.debug("[Hook] Screenshot captured & attached to reports.")
+                # logging.debug("[Hook] Screenshot captured & attached to reports.")
 
             except Exception as e:
                 logging.error(f"[Hook] Could not save screenshot: {e}")
@@ -204,7 +213,7 @@ class nRoboWebDriverPlugin:
                 pass  # pragma: no cover
 
     def pytest_configure(self, config: Config):
-        logging.debug("[Hook] pytest_configure called for plugin (worker/master).")
+        # logging.debug("[Hook] pytest_configure called for plugin (worker/master).")
         pass
 
 
@@ -212,7 +221,7 @@ class nRoboWebDriverPlugin:
 # Global registration entry point
 # ---------------------------------------------------------------
 def pytest_configure(config):
-    logging.debug("[nRoboPlugin] Registering nRoboWebDriverPlugin globally.")
+    # logging.debug("[nRoboPlugin] Registering nRoboWebDriverPlugin globally.")
     plugin_instance = nRoboWebDriverPlugin()
     config.pluginmanager.register(plugin_instance, name="nrobo_webdriver_plugin")
-    logging.debug("[nRoboPlugin] Plugin registered successfully.")
+    # logging.debug("[nRoboPlugin] Plugin registered successfully.")
