@@ -3,7 +3,7 @@ import pytest
 from nrobo.locators.locator_classifier import LocatorClassifier, LocatorType
 
 
-@pytest.mark.parametrize("loc", ["text=Login", "role=button", "label=Username"])
+@pytest.mark.parametrize("loc", ["role=button", "label=Username"])
 def test_detect_playwright(loc):
     assert LocatorClassifier.detect(loc) == LocatorType.PLAYWRIGHT
 
@@ -102,3 +102,9 @@ def test_detect_id_guess(loc):
 )
 def test_detect_unknown(loc):
     assert LocatorClassifier.detect(loc) == LocatorType.UNKNOWN
+
+
+def test_detect_text_explicit_():
+    assert LocatorClassifier.detect("text=Login") == LocatorType.PLAYWRIGHT
+    assert LocatorClassifier.detect("text=Submit Now") == LocatorType.PLAYWRIGHT
+    assert LocatorClassifier.detect("text=Hello123") == LocatorType.PLAYWRIGHT

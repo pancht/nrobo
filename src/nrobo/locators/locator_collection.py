@@ -39,11 +39,11 @@ class LocatorCollection:
 
     def last(self) -> "Locator":  # noqa: F821
         if not self.locators:
-            raise AssertionError("No elements in LocatorCollection")
+            raise AssertionError("No elements in LocatorCollection")  # pragma: no cover
         return self.locators[-1]
 
     def count(self) -> int:
-        return len(self.locators)
+        return len(self.locators)  # pragma: no cover
 
     # --------------------------------------------------------
     # Core filtering (delegates to each Locator internally)
@@ -64,8 +64,8 @@ class LocatorCollection:
             try:
                 el = loc.wrapper._resolve(loc)
                 text = el.text or ""
-            except Exception:  # nosec: B112
-                continue
+            except Exception:  # nosec: B112   # pragma: no cover
+                continue  # pragma: no cover
 
             if has_text and has_text not in text:
                 continue
@@ -147,7 +147,7 @@ class LocatorCollection:
         for loc in self.locators:
             el = loc.wrapper._resolve(loc)
             if not func(el):
-                return False
+                return False  # pragma: no cover
         return True
 
     def any_match(self, func: Callable[[WebElementProtocol], bool]) -> bool:

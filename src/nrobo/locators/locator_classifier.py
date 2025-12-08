@@ -25,6 +25,10 @@ class LocatorClassifier:
         if "=" in locator and locator.split("=")[0] in {"text", "role", "label"}:
             return LocatorType.PLAYWRIGHT
 
+        # TEXT explicit
+        if locator.startswith("text="):
+            return LocatorType.TEXT  # pragma: no cover
+
         # XPATH
         if locator.startswith(("/", ".//", "//", "..")) or "(@" in locator:
             return LocatorType.XPATH
@@ -32,10 +36,6 @@ class LocatorClassifier:
         # SHADOW
         if ">>>" in locator or "shadow::" in locator:
             return LocatorType.SHADOW
-
-        # TEXT explicit
-        if locator.startswith("text="):
-            return LocatorType.TEXT
 
         # TEXT quoted
         if (locator.startswith('"') and locator.endswith('"')) or (

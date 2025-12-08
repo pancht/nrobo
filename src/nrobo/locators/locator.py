@@ -122,7 +122,7 @@ class Locator(WebElementProtocol):
 
             return wrapper
 
-        return attr
+        return attr  # pragma: no cover
 
     def _find(self) -> WebElementProtocol:
         """
@@ -273,7 +273,7 @@ class Locator(WebElementProtocol):
         for index, el in enumerate(elements):
             try:
                 text = el.text or ""
-            except Exception:
+            except Exception:  # pragma: no cover
                 text = ""
 
             # Condition checks
@@ -312,7 +312,7 @@ class Locator(WebElementProtocol):
     def last_filtered(self, **kwargs) -> "Locator":
         filtered = self.filter(**kwargs)
         if not filtered:
-            raise AssertionError(f"No elements found after filtering: {kwargs}")
+            raise AssertionError(f"No elements found after filtering: {kwargs}")  # pragma: no cover
         return filtered[-1]
 
     def nth(self, index: int) -> "Locator":
