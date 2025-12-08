@@ -21,13 +21,13 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin):
 
     def wait_for_element_to_be_present(
         self, by: AnyBy, value: Optional[str] = None, wait: int = 0
-    ):  # noqa: E501
+    ) -> bool:  # noqa: E501
         """Wait for element to be visible"""
 
         if wait:
             try:
                 WebDriverWait(self.driver, wait).until(
-                    expected_conditions.presence_of_element_located([by, value])  # noqa: E501
+                    expected_conditions.presence_of_element_located((by, value))  # noqa: E501
                 )
                 return True
             except Exception:  # pylint: disable=W0718  # noqa: W0718
