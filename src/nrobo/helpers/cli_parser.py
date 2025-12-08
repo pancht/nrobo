@@ -119,7 +119,7 @@ def _parse_subcommand(argv):
     return parser.parse_args(argv)
 
 
-def parse_nrobo_args(argv):
+def _parse_nrobo_args(argv):
     argv = argv or sys.argv
 
     if "--help" in argv or "-h" in argv:
@@ -153,7 +153,7 @@ def parse_nrobo_args(argv):
     return parser.parse_known_args()
 
 
-def get_nrobo_arg_parser(argv=None):
+def _handle_subcommand_if_any(argv=None):
     argv = argv or sys.argv
 
     command = argv[1] if len(argv) > 1 else None
@@ -171,7 +171,14 @@ def get_nrobo_arg_parser(argv=None):
             update.run(argv[2:])
 
         sys.exit(0)
-    args, unknown_args = parse_nrobo_args(argv[1:])
+
+
+def get_nrobo_arg_parser(argv=None):
+    argv = argv or sys.argv
+
+    _handle_subcommand_if_any(argv)
+
+    args, unknown_args = _parse_nrobo_args(argv[1:])
 
     # Handle `nrobo --init`
     if args.init:

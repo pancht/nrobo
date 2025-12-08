@@ -9,10 +9,10 @@ from nrobo.cli.commands import clean, init
 from nrobo.core import settings
 from nrobo.helpers import cli_parser
 from nrobo.helpers.cli_parser import (
+    _parse_nrobo_args,
     check_if_nrobo_initialized,
     get_nrobo_arg_parser,
     nrobo_not_initialized,
-    parse_nrobo_args,
 )
 from nrobo.utils.common_utils import normalize_cli_output
 
@@ -361,7 +361,7 @@ def test_check_if_nrobo_initialized_skips_on_dev_env():
 def test_parse_nrobo_args_defaults_and_flags():
     test_argv = ["nrobo", "--suite", "smoke", "--browser", "chrome"]
     with patch("sys.argv", test_argv):
-        args, unknown = parse_nrobo_args(sys.argv[1:])
+        args, unknown = _parse_nrobo_args(sys.argv[1:])
         assert args.suite == ["smoke"]
         assert args.browser == "chrome"
         assert args.debug is False
@@ -373,7 +373,7 @@ def test_parse_nrobo_args_defaults_and_flags():
 def test_parse_nrobo_args_with_unknown_args():
     test_argv = ["nrobo", "--foo", "bar"]
     with patch("sys.argv", test_argv):
-        args, unknown = parse_nrobo_args(sys.argv[1:])
+        args, unknown = _parse_nrobo_args(sys.argv[1:])
         assert args.suite is None
         assert unknown == ["--foo", "bar"]
 
@@ -407,7 +407,7 @@ def test_parse_nrobo_args_handles_eoferror(monkeypatch):
     monkeypatch.setattr("pytest.main", lambda *a, **kw: 0)
 
     with pytest.raises(SystemExit) as exc_info:
-        parse_nrobo_args(test_args)
+        _parse_nrobo_args(test_args)
 
     assert exc_info.value.code == 0
 
