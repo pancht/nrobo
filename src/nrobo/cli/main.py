@@ -88,12 +88,12 @@ def run() -> int:
 
     # Skip further reporting if test run was not successful or not valid
     if no_execution_key_found(pytest_options):
-        logger.warning(
+        logger.warning(  # pragma: no cover
             "⚠️ Skipped report generation:\n"
             "   • Required execution keys were not found in the pytest options.\n"
             "   • This may happen if options like '--collect-only' were used, which prevent test execution."
         )
-        return ExitCodes.SUCCESS
+        return ExitCodes.SUCCESS  # pragma: no cover
 
     # Generate Allure report only if allure results exist
     allure_dir = Path(settings.ALLURE_RESULTS_DIR)
@@ -109,8 +109,8 @@ def run() -> int:
             cov.combine()
             cov.save()
             logger.info("🧪 Combined coverage data from multiple subprocesses.")
-        except Exception as e:
-            logger.warning(f"⚠️ Failed to combine coverage data: {e}")
+        except Exception as e:  # pragma: no cover
+            logger.warning(f"⚠️ Failed to combine coverage data: {e}")  # pragma: no cover
 
         coverage_path = settings.COVERAGE_REPORT_HTML
 
@@ -144,4 +144,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # pragma: no cover

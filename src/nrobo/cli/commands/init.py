@@ -5,6 +5,7 @@ import yaml
 from jinja2 import Template
 
 from nrobo.core import settings
+from nrobo.helpers.playwright_helper import install_playwright_browsers
 from nrobo.utils.command_utils import initialize_project
 
 PROJECT_TEMPLATE_PATH = (
@@ -49,6 +50,8 @@ def init_project(template_path, app_name, base_path="."):
     create_files(base_path, files)
 
     initialize_project()
+
+    install_playwright_browsers()
 
     print("✅ Initialization complete!")
 

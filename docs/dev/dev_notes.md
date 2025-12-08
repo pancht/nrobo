@@ -28,3 +28,7 @@ rm -rf .venv
 python -m venv .venv
 source .venv/bin/activate # or .venv\Scripts\activate on Windows
 ```
+
+
+# installation from test.pypi
+`pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple nrobo==2025.5.2`

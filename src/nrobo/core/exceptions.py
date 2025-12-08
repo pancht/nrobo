@@ -67,3 +67,9 @@ class NoTestsFoundException(NRoboError):
             message += f"\n   🔍 Searched in: {self.search_path}"
 
         super().__init__(message)
+
+
+class NoSubCommandFoundByArgParser(NRoboError):
+    """Raised when no valid subcommand is found by CLI parser."""
+
+    pass

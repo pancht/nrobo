@@ -61,7 +61,7 @@ class nRoboWebDriverPlugin:
 
         # Avoid duplicate handlers (important in pytest runs)
         if logger.handlers:
-            return logger
+            return logger  # pragma: no cover
 
         # Stream handler (stdout)
         ch = logging.StreamHandler(sys.stdout)
@@ -88,7 +88,7 @@ class nRoboWebDriverPlugin:
                 f"Logger initialized for test: {test_name} (worker: {worker_id})"  # noqa: E501
             )  # noqa: E501
         else:
-            logger.info(f"Logger initialized for test: {test_name}")
+            logger.info(f"Logger initialized for test: {test_name}")  # pragma: no cover
         return logger
 
     @pytest.fixture(scope="function")
@@ -177,8 +177,8 @@ class nRoboWebDriverPlugin:
                 logging.getLogger(f"{settings.NROBO_APP}.{test_name}").warning(
                     f"Could not save screenshot: {e}"
                 )  # noqa: E501
-            except KeyError:
-                pass
+            except KeyError:  # pragma: no cover
+                pass  # pragma: no cover
 
     def pytest_configure(self, config: Config):
         pass

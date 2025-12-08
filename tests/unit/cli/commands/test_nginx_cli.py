@@ -1,8 +1,14 @@
+import argparse
+import os
+import sys
+from contextlib import redirect_stdout
+from io import StringIO
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 
+from nrobo.cli.commands import nginx
 from nrobo.cli.commands.nginx import _pid_running, cmd_start, cmd_status, cmd_stop
 
 
@@ -103,3 +109,158 @@ def test__pid_running_true():
 def test__pid_running_false_on_exception():
     with patch("psutil.Process", side_effect=Exception("Boom")):
         assert _pid_running(1234) is False
+
+
+class DummyState:
+    def __init__(self, runtime_dir, url="http://dummy", port=1234, served_dir="/some/dir"):
+        self.data = {
+            "runtime_dir": str(runtime_dir),
+            "url": url,
+            "port": port,
+            "served_dir": served_dir,
+        }
+
+    def to_dict(self):
+        return self.data.copy()
+
+
+# Monkeypatch for load_state / clear_state
+@pytest.fixture(autouse=True)
+def no_real_state(monkeypatch, tmp_path):
+    # Ensure clear_state doesn't mess with real FS
+    monkeypatch.setattr(nginx, "clear_state", lambda: None)
+    return tmp_path
+
+
+def test_status_pid_exists_but_not_running(monkeypatch, tmp_path, capsys):
+    # Create dummy state with fake pid file
+    runtime = tmp_path / "runtime"
+    logs = runtime / "logs"
+    logs.mkdir(parents=True)
+    pid_file = logs / "nginx.pid"
+    pid_file.write_text("999999")  # some pid that does not exist
+
+    # monkeypatch load_state to return our dummy
+    monkeypatch.setattr(
+        nginx,
+        "load_state",
+        lambda: {
+            "runtime_dir": str(runtime),
+            "url": "http://localhost",
+            "port": 8080,
+            "served_dir": "/some/dir",
+        },
+    )
+
+    # Also monkeypatch _pid_running to return False
+    monkeypatch.setattr(nginx, "_pid_running", lambda pid: False)
+
+    # Call status
+    with redirect_stdout(StringIO()) as buf:
+        nginx.cmd_status(argparse.Namespace())  # args not used
+
+    out = buf.getvalue()
+    assert "Alive:       No ❌" in out
+    assert "Nginx PID exists but not active or listening." in out
+
+
+def test_stop_no_pid_file(monkeypatch, tmp_path, capsys):
+    runtime = tmp_path / "runtime"
+    (runtime / "logs").mkdir(parents=True)
+    # do not create pid file
+
+    monkeypatch.setattr(
+        nginx,
+        "load_state",
+        lambda: {
+            "runtime_dir": str(runtime),
+        },
+    )
+
+    with redirect_stdout(StringIO()) as buf:
+        nginx.cmd_stop(argparse.Namespace())
+
+    out = buf.getvalue()
+    assert "PID file missing — cleaning stale state." in out
+
+
+def test_stop_pid_exists_but_process_missing(monkeypatch, tmp_path, capsys):
+    runtime = tmp_path / "runtime"
+    logs = runtime / "logs"
+    logs.mkdir(parents=True)
+    pid_file = logs / "nginx.pid"
+    pid_file.write_text("12345")
+
+    monkeypatch.setattr(
+        nginx,
+        "load_state",
+        lambda: {
+            "runtime_dir": str(runtime),
+        },
+    )
+
+    # monkeypatch os.kill to raise ProcessLookupError
+    monkeypatch.setattr(os, "kill", lambda pid, sig: (_ for _ in ()).throw(ProcessLookupError()))
+
+    with redirect_stdout(StringIO()) as buf:
+        nginx.cmd_stop(argparse.Namespace())
+
+    out = buf.getvalue()
+    assert "Process not found — removing stale state." in out
+
+
+def test_run_no_args_prints_help(monkeypatch, capsys):
+    # If no sub‑command (empty list or None), run() should just print help and return
+    # We capture stdout
+    with pytest.raises(SystemExit):
+        nginx.run(argv=[])  # no command
+    out = capsys.readouterr().out
+    assert "usage:" in out or "Manage" in out  # basic help printed
+
+
+def test_run_exception_handling(monkeypatch, capsys):
+    def boom(args):
+        raise RuntimeError("Something exploded")
+
+    monkeypatch.setattr(nginx, "cmd_start", boom)
+
+    monkeypatch.setattr(nginx, "reuse_or_launch_allure_nginx", lambda x: {"url": "fake"})
+
+    # Inject parser hook for the subcommand
+    def patched_parser(*args, **kwargs):
+        parser = argparse.ArgumentParser()
+        sub = parser.add_subparsers(dest="command")
+        start_cmd = sub.add_parser("start")
+        start_cmd.add_argument("--dir")
+        start_cmd.set_defaults(func=boom)
+        return parser
+
+    monkeypatch.setattr(nginx, "argparse", argparse)
+
+    with monkeypatch.context() as m:
+        m.setattr(sys, "argv", ["nginx.py", "start", "--dir", "some_dir"])
+        nginx.run(["start", "--dir", "some_dir"])
+
+    out = capsys.readouterr().out
+    assert "nginx server could not be started due to error: Something exploded" in out
+
+
+def test_stop_pid_exists_but_kill_fails(monkeypatch, tmp_path):
+    runtime = tmp_path / "runtime"
+    logs = runtime / "logs"
+    logs.mkdir(parents=True)
+    pid_file = logs / "nginx.pid"
+    pid_file.write_text("99999")
+
+    monkeypatch.setattr(nginx, "load_state", lambda: {"runtime_dir": str(runtime)})
+
+    def fake_kill(pid, signal):
+        raise PermissionError("not allowed")
+
+    monkeypatch.setattr(os, "kill", fake_kill)
+
+    with redirect_stdout(StringIO()) as buf:
+        nginx.cmd_stop(argparse.Namespace())
+
+    out = buf.getvalue()
+    assert "❌ Failed to stop nginx: not allowed" in out
