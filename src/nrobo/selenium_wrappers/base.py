@@ -3,10 +3,8 @@
 
 import logging
 import typing
-from abc import ABC
 
 from selenium.common import TimeoutException
-from selenium.common.exceptions import UnexpectedAlertPresentException
 from selenium.webdriver.common.alert import Alert
 from selenium.webdriver.common.print_page_options import (  # pylint: disable=C0412, C0412 # noqa: E501
     PrintOptions,
@@ -22,6 +20,10 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 
+from nrobo.drivers.base_driver import BaseDriver
+from nrobo.mixins.screenshot_mixin import ScreenshotMixin
+from nrobo.mixins.timeout_mixin import TimeoutMixin
+from nrobo.mixins.window_mixin import WindowMixin
 from nrobo.selenium_wrappers.nrobo_types import AnyBy, AnyDriver
 from nrobo.utils.driver_utils import is_mobile_session
 
@@ -29,7 +31,9 @@ PAGE_LOAD_TIMEOUT = 30
 ELE_WAIT_TIMEOUT = 10
 
 
-class SeleniumWrapperBase(ABC):  # pylint: disable=R0904
+class SeleniumWrapperBase(
+    WindowMixin, TimeoutMixin, ScreenshotMixin, BaseDriver
+):  # pylint: disable=R0904
 
     def __init__(
         self, driver: AnyDriver, logger: logging.Logger
@@ -37,6 +41,9 @@ class SeleniumWrapperBase(ABC):  # pylint: disable=R0904
         self.driver = driver
         self.logger = logger
         self._windows = {}
+
+    def __getattr__(self, name):
+        return getattr(self.driver, name)
 
     # Following are selenium webdriver wrapper methods and properties
     @property
@@ -47,44 +54,6 @@ class SeleniumWrapperBase(ABC):  # pylint: disable=R0904
     def windows(self, _windows: {str: str}):
         """windows."""
         self._windows = _windows
-
-    def update_windows(  # pylint: disable=R1710
-        self, _window_handles: list[str] = None
-    ):  # pylint: disable=R1710
-        """update windows."""
-
-        if is_mobile_session(self.driver):
-            return
-
-        try:
-            __cur_window_handle = self.current_window_handle
-        except Exception:  # pylint: disable=W0718
-            return
-
-        self.windows = {}
-        for _wh in _window_handles:
-            # switch to current window
-            self.switch_to_window(_wh)
-            # add title and handle to windows
-            try:
-                self.windows[self.title] = _wh
-            except UnexpectedAlertPresentException:
-                pass
-
-        self.switch_to_window(__cur_window_handle)
-
-        return self.windows
-
-    @property
-    def name(self) -> str:
-        """Returns the name of the underlying browser for this instance.
-
-        :Usage:
-            ::
-
-                name = <obj>.name"""
-
-        return self.driver.name
 
     def _wait_page_load(self):
         if is_mobile_session(self.driver):
@@ -117,43 +86,6 @@ class SeleniumWrapperBase(ABC):  # pylint: disable=R0904
 
         self.update_windows(self.window_handles)
 
-    def execute(self, driver_command: str, params: dict = None) -> dict:
-        """selenium webdriver wrapper method: execute"""
-
-        self.logger.info("Executing script...")
-        return self.driver.execute(driver_command, params)
-
-    @property
-    def title(self) -> str:
-        """Returns the title of the current page.
-
-        :Usage:
-            ::
-
-                title = <obj>.title"""
-
-        return self.driver.title
-
-    @property
-    def current_url(self) -> str:
-        """Gets the URL of the current page.
-
-        :Usage:
-            ::
-
-                <obj>.current_url"""
-        return self.driver.current_url
-
-    @property
-    def page_source(self) -> str:
-        """Gets the source of the current page.
-
-        :Usage:
-            ::
-
-               <obj>.page_source"""
-        return self.driver.page_source
-
     def close(self, title: str = None) -> None:
         """selenium webdriver wrapper method: close
 
@@ -183,7 +115,7 @@ class SeleniumWrapperBase(ABC):  # pylint: disable=R0904
         self.switch_to_window(self.windows[title])
 
         # close given window/tab
-        self.driver.close()
+        self.close()
 
         # switch to parent window/tab
         self.switch_to_window(self.window_handles[__parent_window_handle_idx])
@@ -191,14 +123,14 @@ class SeleniumWrapperBase(ABC):  # pylint: disable=R0904
         # updated nRoBo windows attribute
         self.update_windows(self.window_handles)
 
-    def quit(self) -> None:
-        """Quits the driver and closes every associated window.
-
-        :Usage:
-            ::
-
-                driver.quit()"""
-        self.driver.quit()
+    # def quit(self) -> None:
+    #     """Quits the driver and closes every associated window.
+    #
+    #     :Usage:
+    #         ::
+    #
+    #             driver.quit()"""
+    #     self.driver.quit()
 
     @property
     def current_window_handle(self) -> str:
@@ -320,19 +252,6 @@ class SeleniumWrapperBase(ABC):  # pylint: disable=R0904
         """
         self.driver.switch_to.parent_frame()
 
-    def switch_to_window(self, window_name: str) -> None:
-        """Switches focus to the specified window.
-
-        :Args:
-         - window_name: The name or window handle of the window to switch to.
-
-        :Usage:
-            ::
-
-                switch_to_window('main')
-        """
-        self.driver.switch_to.window(window_name)
-
     # Navigation
     def back(self) -> None:
         """Goes one step backward in the browser history.
@@ -431,35 +350,6 @@ class SeleniumWrapperBase(ABC):  # pylint: disable=R0904
         self.driver.add_cookie(cookie_dict)
 
     # Timeouts
-    def implicitly_wait(self, time_to_wait: float) -> None:
-        """Sets a sticky timeout to implicitly wait for an element to be found,
-        or a command to complete. This method only needs to be called one time
-        per session. To set the timeout for calls to execute_async_script, see
-        set_script_timeout.
-
-        :Args:
-         - time_to_wait: Amount of time to wait (in seconds)
-
-        :Usage:
-            ::
-
-                implicitly_wait(30)
-        """
-        self.driver.implicitly_wait(time_to_wait)
-
-    def set_script_timeout(self, time_to_wait: float) -> None:
-        """Set the amount of time that the script should wait during an
-        execute_async_script call before throwing an error.
-
-        :Args:
-         - time_to_wait: The amount of time to wait (in seconds)
-
-        :Usage:
-            ::
-
-                set_script_timeout(30)
-        """
-        self.driver.set_script_timeout(time_to_wait)
 
     def set_page_load_timeout(self, time_to_wait: float) -> None:
         """Set the amount of time to wait for a page load to complete before
@@ -556,22 +446,6 @@ class SeleniumWrapperBase(ABC):  # pylint: disable=R0904
                 get_screenshot_as_file('/Screenshots/foo.png')
         """
         return self.driver.get_screenshot_as_file(filename)
-
-    def save_screenshot(self, filename) -> bool:
-        """Saves a screenshot of the current window to a PNG image file.
-        Returns False if there is any IOError, else returns True. Use full
-        paths in your filename.
-
-        :Args:
-         - filename: The full path you wish to save your screenshot to. This
-           should end with a `.png` extension.
-
-        :Usage:
-            ::
-
-                save_screenshot('/Screenshots/foo.png')
-        """
-        return self.driver.save_screenshot(filename)
 
     def get_screenshot_as_png(self) -> bytes:
         """Gets the screenshot of the current window as a binary data.

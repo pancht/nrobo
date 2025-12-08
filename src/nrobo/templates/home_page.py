@@ -2,18 +2,13 @@ import time
 
 from selenium.webdriver.common.by import By
 
-from nrobo.selenium_wrappers.nrobo_selenium_wrapper import (  # noqa: E501
-    NRoboSeleniumWrapperClass,
-)
-from nrobo.selenium_wrappers.nrobo_types import AnyDevice
+from nrobo.selenium_wrappers.selenium_wrapper import SeleniumWrapper
 
 
-class PageHome(NRoboSeleniumWrapperClass):  # pylint: disable=R0901
+class PageHome(SeleniumWrapper):  # pylint: disable=R0901
     def __init__(
         self,
-        nrobo: NRoboSeleniumWrapperClass,
-        duration: int = 250,
-        devices: list[AnyDevice] | None = None,
+        nrobo: SeleniumWrapper,
     ):
         """constructor"""
         # call parent constructor
@@ -23,8 +18,6 @@ class PageHome(NRoboSeleniumWrapperClass):  # pylint: disable=R0901
         super().__init__(
             nrobo.driver,
             nrobo.logger,
-            duration=duration,
-            devices=devices,  # noqa: E501
         )
 
     # page elements

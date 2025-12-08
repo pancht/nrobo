@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nrobo"
-version = "2025.5.3"
+version = "2025.5.2"
 description = "A Pytest-powered Smart Test Runner CLI tool."
 readme = "README.md"
 license = { text = "MIT" }
@@ -81,6 +81,8 @@ max-line-length = 120   # optional: bump limit instead of ignoring
 patch = ["subprocess"]
 branch = true
 source = ["."] # ["src/nrobo"]
+parallel = true
+concurrency = ["multiprocessing"]
 omit = [
     "*/tests/*",
     "*/migrations/*",

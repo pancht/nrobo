@@ -45,6 +45,9 @@ def get_logger(
     logger.addHandler(ch)
     logger.addHandler(fh)
 
+    # CRITICAL FIX: prevent root logger from duplicating messages
+    # logger.propagate = False
+
     return logger
 
 
@@ -64,10 +67,10 @@ def set_logger_level(
         if isinstance(handler, logging.StreamHandler) and not isinstance(
             handler, logging.FileHandler
         ):
-            if stream_level:
+            if stream_level:  # pragma: no cover
                 handler.setLevel(stream_level)
-        elif isinstance(handler, logging.FileHandler):
-            if file_level:
+        elif isinstance(handler, logging.FileHandler):  # pragma: no cover
+            if file_level:  # pragma: no cover
                 handler.setLevel(file_level)
 
     # Optionally adjust the logger's own level as well

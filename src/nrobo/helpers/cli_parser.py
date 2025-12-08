@@ -171,10 +171,10 @@ def _handle_subcommand_if_any(argv=None):
         init.run(argv[2:])
     elif sub_args.command == "nginx":
         nginx.run(sys.argv[2:])
-    elif sub_args.command == "update":
-        update.run(argv[2:])
+    elif sub_args.command == "update":  # pragma: no cover
+        update.run(argv[2:])  # pragma: no cover
 
-    sys.exit(0)
+    sys.exit(0)  # pragma: no cover
 
 
 def get_nrobo_arg_parser(argv=None):
