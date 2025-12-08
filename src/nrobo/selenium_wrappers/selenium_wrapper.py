@@ -35,7 +35,7 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin):
 
         try:
             WebDriverWait(self.driver, PAGE_LOAD_TIMEOUT).until(
-                expected_conditions.presence_of_element_located([by, value])
+                expected_conditions.presence_of_element_located((by, value))
             )
             return True
         except Exception:  # pylint: disable=W0718

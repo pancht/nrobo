@@ -9,5 +9,5 @@ from selenium.webdriver.common.by import By
 from nrobo.selenium_wrappers.selenium_webdriver_protocol import SeleniumDriverProtocol
 
 AnyBy = Union[By, AppiumBy]
-AnyDriver = Union[SeleniumDriverProtocol]  # For future where playwright protocol will be added
+AnyDriver = SeleniumDriverProtocol  # For future where playwright protocol will be added
 AnyDevice = Union[PointerInput, KeyInput, WheelInput]
