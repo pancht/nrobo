@@ -109,8 +109,8 @@ def run() -> int:
             cov.combine()
             cov.save()
             logger.info("🧪 Combined coverage data from multiple subprocesses.")
-        except Exception as e:
-            logger.warning(f"⚠️ Failed to combine coverage data: {e}")
+        except Exception as e:  # pragma: no cover
+            logger.warning(f"⚠️ Failed to combine coverage data: {e}")  # pragma: no cover
 
         coverage_path = settings.COVERAGE_REPORT_HTML
 

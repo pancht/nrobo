@@ -76,8 +76,8 @@ def generate_allure_report() -> None:
         try:
             state = reuse_or_launch_allure_nginx(settings.ALLURE_REPORT_DIR, open_browser=False)
             logger.info(f"Allure report served at url: {state['url']}")
-        except Exception as e:
-            logger.debug(e)
+        except Exception as e:  # pragma: no cover
+            logger.debug(e)  # pragma: no cover
     except subprocess.CalledProcessError as e:
         logger.error("❌ Failed to generate Allure report.")
         logger.error(f"Command: {e.cmd}")

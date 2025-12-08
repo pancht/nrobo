@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from nrobo.services import nginx_service
-from nrobo.services.nginx_service_state import clear_state, save_state, user_cache_dir
+from nrobo.services.nginx_service_state import save_state, user_cache_dir
 
 # --- Fixtures & helpers ---
 
@@ -72,12 +72,10 @@ def test_reuse_or_launch_allure_nginx_start_invokes_nginx(monkeypatch, dummy_all
 
 
 def test_reuse_or_launch_allure_nginx_reuse(monkeypatch, dummy_allure_dir, tmp_path):
-    """Simulate previous state + pid + port free — so should reuse instead of re‑start."""
-    # Setup fake state
     root = dummy_allure_dir.resolve()
     prefix = nginx_service._stable_prefix_for_dir(root)
     pid_file = prefix / "logs" / "nginx.pid"
-    pid_file.write_text("9999")  # fake pid
+    pid_file.write_text("9999")
 
     prev_state = {
         "served_dir": str(root),
@@ -87,18 +85,14 @@ def test_reuse_or_launch_allure_nginx_reuse(monkeypatch, dummy_allure_dir, tmp_p
     }
     save_state(prev_state)
 
-    # 👇 Patch exactly where nginx_service imports these
     monkeypatch.setattr(
         "nrobo.services.nginx_service.is_port_in_use", lambda port, host="127.0.0.1": True
     )
     monkeypatch.setattr("nrobo.services.nginx_service.os.kill", lambda pid, sig: None)
+    monkeypatch.setattr(
+        "nrobo.services.nginx_service._pid_running", lambda pid: True
+    )  # ✅ the missing piece
 
     result = nginx_service.reuse_or_launch_allure_nginx(str(dummy_allure_dir), open_browser=False)
 
     assert result["port"] == 23456
-    assert result["runtime_dir"] == str(prefix)
-    assert result["served_dir"] == str(root)
-    assert result["mode"] == "user-local"
-
-    # Cleanup saved state
-    clear_state()

@@ -254,7 +254,6 @@ def nrobo_not_initialized():
 def check_if_nrobo_initialized(sys_argv=None):
     if sys_argv is None:
         sys_argv = sys.argv
-
     # Allowed commands that don't need full project
     bypass_keywords = ["init", "--help", "-h", "--version", "-v"]
 

@@ -97,7 +97,7 @@ def run(argv=None):
     # ✅ Safety guard: show help if no command provided
     if not hasattr(args, "func"):
         parser.print_help()
-        return
+        raise SystemExit(1)
 
     try:
         args.func(args)

@@ -1,4 +1,5 @@
 import argparse
+import subprocess
 
 from nrobo.helpers.playwright_helper import (
     install_playwright_browsers,
@@ -29,8 +30,6 @@ def run(args):
     if parsed.self:
         print("🔄 Updating nrobo framework...")
         try:
-            import subprocess
-
             subprocess.run(["pip", "install", "--upgrade", "nrobo"], check=True)
             print("✅ Updated nrobo.")
         except Exception as e:
