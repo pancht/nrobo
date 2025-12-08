@@ -21,6 +21,9 @@ class Locator(WebElementProtocol):
         self.description = description or locator
         self.by, self.value = self.wrapper.resolve_locator(locator)
 
+        self.index = None  # means "single element"
+        self.multiple = False  # helps distinguish single vs multiple retrieval
+
     # -------------------------------------------------------------------------
     # EXPLICIT METHODS (ensure IDE autocomplete + chaining)
     # These call wrapper methods, which use AutoWaitMixin under the hood.
@@ -117,3 +120,120 @@ class Locator(WebElementProtocol):
             return wrapper
 
         return attr
+
+    def _find(self) -> WebElementProtocol:
+        """
+        Fetch element:
+        - If index is None: return first matching element
+        - If index >= 0: return nth element
+        """
+        prefix = (  # noqa: F841
+            f"{self.description}[{self.index}]" if self.index is not None else self.description
+        )
+
+        if self.index is None:
+            # single element: auto-wait for visibility
+            return self.wrapper._resolve(self)
+
+        else:
+            # multiple: resolve list, pick index, auto-scroll, auto-stale-retry
+            return self.wrapper._resolve_nth(self, self.index)
+
+    def should_be_visible(self, timeout=5) -> "Locator":
+        self.wrapper.should_be_visible(self, timeout)
+        return self
+
+    def should_have_text(self, expected: str, timeout=5) -> "Locator":
+        self.wrapper.should_have_text(self, expected, timeout)
+        return self
+
+    def should_be_enabled(self, timeout=5) -> "Locator":
+        self.wrapper.should_be_enabled(self, timeout)
+        return self
+
+    def should_be_disabled(self, timeout=5) -> "Locator":
+        self.wrapper.should_be_disabled(self, timeout)
+        return self
+
+    def should_contain_text(self, substring: str, timeout=5) -> "Locator":
+        self.wrapper.should_contain_text(self, substring, timeout)
+        return self
+
+    def should_not_be_visible(self, timeout=5) -> "Locator":
+        self.wrapper.should_not_be_visible(self, timeout)
+        return self
+
+    def should_be_checked(self, timeout=5) -> "Locator":
+        self.wrapper.should_be_checked(self, timeout)
+        return self
+
+    def should_not_be_checked(self, timeout=5) -> "Locator":
+        self.wrapper.should_not_be_checked(self, timeout)
+        return self
+
+    def should_not_have_text(self, unexpected, timeout=5) -> "Locator":
+        self.wrapper.should_not_have_text(self, unexpected, timeout)
+        return self
+
+    def should_have_exact_text(self, expected, timeout=5) -> "Locator":
+        self.wrapper.should_have_exact_text(self, expected, timeout)
+        return self
+
+    def should_have_attribute(self, name, expected, timeout=5) -> "Locator":
+        self.wrapper.should_have_attribute(self, name, expected, timeout)
+        return self
+
+    def should_have_property(self, name, expected, timeout=5) -> "Locator":
+        self.wrapper.should_have_property(self, name, expected, timeout)
+        return self
+
+    def should_have_value(self, expected, timeout=5) -> "Locator":
+        self.wrapper.should_have_value(self, expected, timeout)
+        return self
+
+    def should_have_css(self, prop, expected, timeout=5) -> "Locator":
+        self.wrapper.should_have_css(self, prop, expected, timeout)
+        return self
+
+    def should_match_regex(self, pattern, timeout=5) -> "Locator":
+        self.wrapper.should_match_regex(self, pattern, timeout)
+        return self
+
+    def all(self) -> list["Locator"]:
+        """
+        Return list of Locators for all matching elements.
+        Each Locator has an index assigned.
+        """
+        elements = self.wrapper.find_all(self)
+        locators = []
+
+        for i, _ in enumerate(elements):
+            new_loc = Locator(self.wrapper, self.locator, f"{self.description}[{i}]")
+            new_loc.by = self.by
+            new_loc.value = self.value
+            new_loc.index = i
+            locators.append(new_loc)
+
+        return locators
+
+    def nth(self, index: int) -> "Locator":
+        """
+        Return Locator for nth matching element.
+        """
+        new_loc = Locator(self.wrapper, self.locator, f"{self.description}[{index}]")
+        new_loc.by = self.by
+        new_loc.value = self.value
+        new_loc.index = index
+        return new_loc
+
+    def first(self) -> "Locator":
+        return self.nth(0)
+
+    def last(self) -> "Locator":
+        count = self.count()
+        if count == 0:
+            raise AssertionError(f"No elements found for locator {self.locator}")
+        return self.nth(count - 1)
+
+    def count(self) -> int:
+        return len(self.wrapper.find_all(self))
