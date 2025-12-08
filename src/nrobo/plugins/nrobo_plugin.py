@@ -105,13 +105,15 @@ class nRoboWebDriverPlugin:
         )  # noqa: E501
 
         # Inject logger
-        nrobo_wrapper_: SeleniumWrapper = SeleniumWrapper(self.driver_instance, logger=logger)
+        nrobo_selenium_wrapper_: SeleniumWrapper = SeleniumWrapper(
+            self.driver_instance, logger=logger
+        )
 
         # Attach to item so that it wrapper can be accessed in pytest_runtest_makereport(item: Item, call) # noqa: E501
         # for capturing screenshot of the failure
-        request.node._driver_wrapper = nrobo_wrapper_
+        request.node._driver_wrapper = nrobo_selenium_wrapper_
 
-        yield nrobo_wrapper_
+        yield nrobo_selenium_wrapper_
 
         self.driver_instance.quit()
 
