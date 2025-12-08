@@ -298,3 +298,6 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin):
                         f"Nth element vanished: index={index}, locator={locator.locator}"
                     )
         return el  # final fallback
+
+    def count(self, locator) -> int:
+        return len(self.find_all(locator))

@@ -200,7 +200,7 @@ class Locator(WebElementProtocol):
         self.wrapper.should_match_regex(self, pattern, timeout)
         return self
 
-    def all(self) -> list["Locator"]:
+    def all(self) -> "LocatorCollection":  # noqa: F821
         """
         Return list of Locators for all matching elements.
         Each Locator has an index assigned.
@@ -215,7 +215,9 @@ class Locator(WebElementProtocol):
             new_loc.index = i
             locators.append(new_loc)
 
-        return locators
+        from nrobo.locators.locator_collection import LocatorCollection
+
+        return LocatorCollection(locators)
 
     def filter(
         self,
@@ -224,7 +226,7 @@ class Locator(WebElementProtocol):
         has_attribute: tuple[str, str] | None = None,
         has_regex: str | None = None,
         has: Callable[[WebElementProtocol], bool] | None = None,
-    ) -> list["Locator"]:
+    ) -> "LocatorCollection":  # noqa: F821
         """
         Filter all matching elements using conditions:
         - has_text="Login"
