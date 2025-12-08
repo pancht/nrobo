@@ -1,117 +1,126 @@
-from typing import Any, List
+from unittest.mock import MagicMock
 
 from nrobo.locators.web_element_protocol import WebElementProtocol
 
 
-class FakeWebElement(WebElementProtocol):
-    def __init__(self):
-        # Data fields
-        self._text = "hello"
-        self._tag_name = "div"
-        self._location = {"x": 0, "y": 0}
-        self._location_once_scrolled_into_view = {"x": 0, "y": 0}
-        self._size = {"width": 10, "height": 10}
-        self._rect = {"width": 10, "height": 10}
-
-    # --- Properties ---
+# ---------------------------------------------------------------------------
+# A single clean Fake implementation of WebElementProtocol
+# ---------------------------------------------------------------------------
+class FakeWebElement:
+    # ---- Element Metadata ----
     @property
-    def text(self) -> str:
-        return self._text
+    def text(self):
+        return "hello"
 
     @property
-    def tag_name(self) -> str:
-        return self._tag_name
+    def tag_name(self):
+        return "div"
+
+    # ---- Layout ----
+    @property
+    def location(self):
+        return {"x": 1}
 
     @property
-    def location(self) -> dict:
-        return self._location
+    def location_once_scrolled_into_view(self):
+        return {"y": 2}
 
     @property
-    def location_once_scrolled_into_view(self) -> dict:
-        return self._location_once_scrolled_into_view
+    def size(self):
+        return {"w": 100}
 
     @property
-    def size(self) -> dict:
-        return self._size
+    def rect(self):
+        return {"w": 100, "h": 50}
 
-    @property
-    def rect(self) -> dict:
-        return self._rect
-
-    # --- Core Actions ---
-    def click(self) -> None:
+    # ---- Core Actions ----
+    def click(self):
         pass
 
-    def clear(self) -> None:
+    def clear(self):
         pass
 
-    def submit(self) -> None:
+    def submit(self):
         pass
 
-    def send_keys(self, *value: Any) -> None:
+    def send_keys(self, *value):
         pass
 
-    # --- State Queries ---
-    def is_displayed(self) -> bool:
+    # ---- State Queries ----
+    def is_displayed(self):
         return True
 
-    def is_enabled(self) -> bool:
+    def is_enabled(self):
         return True
 
-    def is_selected(self) -> bool:
+    def is_selected(self):
         return False
 
-    # --- Metadata ---
-    def get_attribute(self, name: str) -> Any:
+    # ---- DOM / CSS ----
+    def get_attribute(self, name):
         return None
 
-    def get_property(self, name: str) -> Any:
+    def get_property(self, name):
         return None
 
-    def get_dom_attribute(self, name: str) -> Any:
+    def get_dom_attribute(self, name):
         return None
 
-    def get_dom_property(self, name: str) -> Any:
+    def get_dom_property(self, name):
         return None
 
-    def value_of_css_property(self, property_name: str) -> str:
-        return ""
+    def value_of_css_property(self, prop):
+        return "blue"
 
-    # --- Screenshots ---
-    def screenshot(self, filename: str) -> bool:
+    # ---- Screenshots ----
+    def screenshot(self, filename):
         return True
 
-    def screenshot_as_png(self) -> bytes:
-        return b""
+    def screenshot_as_png(self):
+        return b"png"
 
-    def screenshot_as_base64(self) -> str:
-        return ""
+    def screenshot_as_base64(self):
+        return "base64"
 
-    # --- Children ---
-    def find_element(self, by: str, value: str) -> "WebElementProtocol":
-        return FakeWebElement()
+    # ---- Children ----
+    def find_element(self, by, value):
+        return self
 
-    def find_elements(self, by: str, value: str) -> List["WebElementProtocol"]:
-        return [FakeWebElement()]
-
-
-def test_webelement_protocol_accepts_valid_object():
-
-    obj = FakeWebElement()
-
-    assert isinstance(obj, WebElementProtocol)
+    def find_elements(self, by, value):
+        return [self]
 
 
-def test_webelement_protocol_rejects_invalid_object():
-    class IncompleteElement:
-        def click(self):
-            pass  # missing many required methods
-
-    obj = IncompleteElement()
-
-    assert not isinstance(obj, WebElementProtocol)
+# ---------------------------------------------------------------------------
+# TESTS
+# ---------------------------------------------------------------------------
 
 
-def test_webelement_protocol_accepts_fake_element():
+def test_fake_webelement_satisfies_protocol():
     el = FakeWebElement()
     assert isinstance(el, WebElementProtocol)
+
+
+def test_magicmock_with_spec_satisfies_protocol():
+    el = MagicMock(spec=WebElementProtocol)
+
+    # instance attribute overrides
+    el.text = "txt"
+    el.tag_name = "tag"
+
+    assert isinstance(el, WebElementProtocol)
+    # ensure required methods exist
+    el.click()
+    el.clear()
+    el.send_keys("A")
+
+
+def test_protocol_rejects_simple_magicmock():
+    bad = MagicMock()
+    assert not isinstance(bad, WebElementProtocol)
+
+
+def test_protocol_rejects_incomplete_custom_class():
+    class Incomplete:
+        pass
+
+    assert not isinstance(Incomplete(), WebElementProtocol)
