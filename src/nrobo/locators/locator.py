@@ -25,6 +25,8 @@ class Locator(WebElementProtocol):
         self.index = None  # means "single element"
         self.multiple = False  # helps distinguish single vs multiple retrieval
 
+        self.is_shadow = ">>>" in locator or "shadow::" in locator
+
     # -------------------------------------------------------------------------
     # EXPLICIT METHODS (ensure IDE autocomplete + chaining)
     # These call wrapper methods, which use AutoWaitMixin under the hood.
@@ -132,6 +134,18 @@ class Locator(WebElementProtocol):
             f"{self.description}[{self.index}]" if self.index is not None else self.description
         )
 
+        if self.is_shadow:
+            return self.wrapper._find_shadow(self)
+
+        if self.by == "TEXT":
+            return self.wrapper._find_by_text(self)
+
+        if self.by == "HAS_TEXT":
+            return self.wrapper._find_by_has_text(self)
+
+        if self.by == "HAS":
+            return self.wrapper._find_by_has(self)
+
         if self.index is None:
             # single element: auto-wait for visibility
             return self.wrapper._resolve(self)
@@ -205,7 +219,17 @@ class Locator(WebElementProtocol):
         Return list of Locators for all matching elements.
         Each Locator has an index assigned.
         """
-        elements = self.wrapper.find_all(self)
+        if self.is_shadow:
+            elements = self.wrapper._find_all_shadow(self)
+        elif self.by == "TEXT":
+            elements = self.wrapper._find_all_by_text(self)
+        elif self.by == "HAS_TEXT":
+            elements = self.wrapper._find_all_by_has_text(self)
+        elif self.by == "HAS":
+            elements = self.wrapper._find_all_by_has(self)
+        else:
+            elements = self.wrapper.find_all(self)
+
         locators = []
 
         for i, _ in enumerate(elements):

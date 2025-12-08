@@ -1,5 +1,6 @@
 import logging
 import re
+from pathlib import Path
 from typing import Optional
 
 from selenium.common import StaleElementReferenceException
@@ -7,8 +8,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
+from nrobo.locators.has_selector_parser import HasSelectorParser
 from nrobo.locators.locator import Locator
 from nrobo.locators.locator_classifier import LocatorClassifier, LocatorType
+from nrobo.locators.text_selector_engine import TextSelectorEngine
 from nrobo.locators.web_element_protocol import WebElementProtocol
 from nrobo.mixins.auto_wait_mixin import AutoWaitMixin
 from nrobo.mixins.window_mixin import WindowMixin
@@ -47,6 +50,10 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin):
             return By.ID, locator
         if loc_type == LocatorType.NAME:
             return By.NAME, locator
+        if loc_type == LocatorType.TEXT:
+            return ("TEXT", locator)
+        if loc_type == LocatorType.HAS_TEXT:
+            return ("HAS_TEXT", locator)
         if loc_type == LocatorType.PLAYWRIGHT:
             # TODO: convert Playwright selectors to Selenium
             raise NotImplementedError("Playwright-style locators not supported yet.")
@@ -301,3 +308,112 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin):
 
     def count(self, locator) -> int:
         return len(self.find_all(locator))
+
+    def _find_shadow(self, locator):
+        from nrobo.locators.shadow_selector_parser import ShadowSelectorParser
+
+        steps = ShadowSelectorParser.parse(locator.locator)
+
+        script_path = Path(__file__).parent.parent / "locators/js/shadow_query.js"
+        js = script_path.read_text()
+
+        elements = self.driver.execute_script(js, steps)
+
+        if not elements:
+            raise AssertionError(f"No shadow DOM element found for {locator.locator}")
+
+        # wrap nth logic
+        if locator.index is not None:
+            if locator.index >= len(elements):
+                raise AssertionError(
+                    f"Index {locator.index} out of range in Shadow DOM for {locator.locator}"
+                )
+            return elements[locator.index]
+
+        return elements[0]  # single element behavior
+
+    def _find_all_shadow(self, locator):
+        from nrobo.locators.shadow_selector_parser import ShadowSelectorParser
+
+        steps = ShadowSelectorParser.parse(locator.locator)
+
+        script_path = Path(__file__).parent.parent / "locators/js/shadow_query.js"
+        js = script_path.read_text()
+
+        return self.driver.execute_script(js, steps) or []
+
+    def _find_by_text(self, locator):
+        # text=Login OR "Login"
+        raw = locator.locator
+
+        if raw.startswith("text="):
+            text = raw.split("=", 1)[1]
+        else:
+            text = raw.strip("\"'")
+
+        elements = TextSelectorEngine.find_by_text(self.driver, text)
+
+        if not elements:
+            raise AssertionError(f"No element found with visible text: {text!r}")
+
+        if locator.index is not None:
+            if locator.index >= len(elements):
+                raise AssertionError(f"text selector nth index out of range for: {text!r}")
+            return elements[locator.index]
+
+        return elements[0]
+
+    def _find_by_has_text(self, locator):
+        # e.g. "button:has-text("Save")"
+        loc = locator.locator
+
+        css_selector, text_part = loc.split(":has-text(", 1)
+        text = text_part.rstrip(")").strip("\"'")
+
+        elements = TextSelectorEngine.find_has_text(self.driver, css_selector.strip(), text)
+
+        if not elements:
+            raise AssertionError(f"No element found for {css_selector} containing text {text!r}")
+
+        if locator.index is not None:
+            return elements[locator.index]
+
+        return elements[0]
+
+    def _find_all_by_text(self, locator):
+        raw = locator.locator
+        text = raw.split("=", 1)[1] if raw.startswith("text=") else raw.strip("\"'")
+        return TextSelectorEngine.find_by_text(self.driver, text)
+
+    def _find_all_by_has_text(self, locator):
+        loc = locator.locator
+        css_selector, text_part = loc.split(":has-text(", 1)
+        text = text_part.rstrip(")").strip("\"'")
+        return TextSelectorEngine.find_has_text(self.driver, css_selector.strip(), text)
+
+    def _find_by_has(self, locator):
+        base, inside = HasSelectorParser.split(locator.locator)
+
+        js_path = Path(__file__).parent.parent / "locators/js/has_query.js"
+        js = js_path.read_text()
+
+        elements = self.driver.execute_script(js, base, inside)
+
+        if not elements:
+            raise AssertionError(f"No element found for selector {locator.locator!r}")
+
+        # nth selection
+        if locator.index is not None:
+            if locator.index >= len(elements):
+                raise AssertionError(f":has() nth index out of range for: {locator.locator}")
+            return elements[locator.index]
+
+        return elements[0]
+
+    def _find_all_by_has(self, locator):
+        base, inside = HasSelectorParser.split(locator.locator)
+
+        js_path = Path(__file__).parent.parent / "locators/js/has_query.js"
+        js = js_path.read_text()
+
+        return self.driver.execute_script(js, base, inside) or []

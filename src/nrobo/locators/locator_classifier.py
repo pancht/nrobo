@@ -8,6 +8,10 @@ class LocatorType(str, Enum):
     ID = "id"
     NAME = "name"
     PLAYWRIGHT = "playwright"
+    SHADOW = "shadow"
+    TEXT = "text"
+    HAS_TEXT = "has_text"
+    HAS = "has"
     UNKNOWN = "unknown"
 
 
@@ -32,5 +36,23 @@ class LocatorClassifier:
         if re.match(r"^[a-zA-Z0-9_-]+$", locator):
             # This could be id or name — depends on DOM usage
             return LocatorType.ID
+
+        if ">>>" in locator or "shadow::" in locator:
+            return LocatorType.SHADOW
+
+        if locator.startswith("text="):
+            return LocatorType.TEXT
+
+        # quoted literal text e.g. "Login"
+        if (locator.startswith('"') and locator.endswith('"')) or (
+            locator.startswith("'") and locator.endswith("'")
+        ):
+            return LocatorType.TEXT
+
+        if ":has-text(" in locator:
+            return LocatorType.HAS_TEXT
+
+        if ":has(" in locator:
+            return LocatorType.HAS
 
         return LocatorType.UNKNOWN
