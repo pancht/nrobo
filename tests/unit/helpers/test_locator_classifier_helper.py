@@ -1,6 +1,6 @@
 import pytest
 
-from nrobo.helpers.locator_classifier import LocatorClassifier, LocatorType
+from nrobo.locators.locator_classifier import LocatorClassifier, LocatorType
 
 
 @pytest.mark.parametrize(
