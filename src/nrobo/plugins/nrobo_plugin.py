@@ -111,8 +111,7 @@ class nRoboWebDriverPlugin:
         # logging.debug("[Fixture:logger] Creating logger fixture.")
         return self._get_logger(request)
 
-    @pytest.fixture(scope="function")
-    def nrobo(self, request, logger):
+    def _get_selenium_wrapper(self, request, logger: logging.Logger):
         # logging.debug("[Fixture:nrobo] Starting WebDriver setup...")
 
         env_browser = os.getenv("NROBO_BROWSER", "chrome").lower()
@@ -126,8 +125,25 @@ class nRoboWebDriverPlugin:
         nrobo_wrapper_: SeleniumWrapper = SeleniumWrapper(self.driver_instance, logger=logger)
         # logging.debug("[Fixture:nrobo] SeleniumWrapper initialized.")
 
-        request.node._driver_wrapper = nrobo_wrapper_
+        return nrobo_wrapper_
         # logging.debug("[Fixture:nrobo] Wrapper attached to pytest node.")
+
+    @pytest.fixture(scope="function")
+    def nrobo(self, request, logger):
+
+        nrobo_wrapper_ = self._get_selenium_wrapper(request, logger)
+        request.node._driver_wrapper = nrobo_wrapper_
+
+        yield nrobo_wrapper_
+
+        # logging.debug("[Fixture:nrobo] Test finished; quitting WebDriver.")
+        self.driver_instance.quit()
+
+    @pytest.fixture(scope="function")
+    def page(self, request, logger):
+
+        nrobo_wrapper_ = self._get_selenium_wrapper(request, logger)
+        request.node._driver_wrapper = nrobo_wrapper_
 
         yield nrobo_wrapper_
 

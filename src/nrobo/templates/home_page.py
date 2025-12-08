@@ -8,17 +8,17 @@ from nrobo.selenium_wrappers.selenium_wrapper import SeleniumWrapper
 class PageHome(SeleniumWrapper):  # pylint: disable=R0901
     def __init__(
         self,
-        nrobo: SeleniumWrapper,
+        wrapper: SeleniumWrapper,
     ):
         """constructor"""
-        # call parent constructor
-        self.nrobo = nrobo
-        self.driver = nrobo.driver
-        self.logger = nrobo.logger
         super().__init__(
-            nrobo.driver,
-            nrobo.logger,
+            wrapper.driver,
+            wrapper.logger,
         )
+        # call parent constructor
+        self.nrobo = wrapper
+        self.driver = wrapper.driver
+        self.logger = wrapper.logger
 
     # page elements
     txta_search = (By.NAME, "q")
