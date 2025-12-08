@@ -32,7 +32,6 @@ mdurl==0.1.2
 more-itertools==10.8.0
 nh3==0.3.2
 nodeenv==1.9.1
--e git+ssh://git@github.com/pancht/nrobo.git@f3630f8d553160e408514e265cdffdd927a41cf3#egg=nrobo
 outcome==1.3.0.post0
 packaging==25.0
 platformdirs==4.5.0
