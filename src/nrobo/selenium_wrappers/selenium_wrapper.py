@@ -1,7 +1,7 @@
 import logging
 from typing import Optional
 
-from selenium.webdriver.support import expected_conditions
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
 from nrobo.mixins.window_mixin import WindowMixin
@@ -24,18 +24,11 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin):
     ) -> bool:  # noqa: E501
         """Wait for element to be visible"""
 
-        if wait:
-            try:
-                WebDriverWait(self.driver, wait).until(
-                    expected_conditions.presence_of_element_located((by, value))  # noqa: E501
-                )
-                return True
-            except Exception:  # pylint: disable=W0718  # noqa: W0718
-                return False
+        timeout = wait or PAGE_LOAD_TIMEOUT
 
         try:
-            WebDriverWait(self.driver, PAGE_LOAD_TIMEOUT).until(
-                expected_conditions.presence_of_element_located((by, value))
+            WebDriverWait(self.driver, timeout).until(
+                EC.presence_of_element_located((by, value))  # MUST BE TUPLE
             )
             return True
         except Exception:  # pylint: disable=W0718
