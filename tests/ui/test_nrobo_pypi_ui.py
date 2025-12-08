@@ -1,5 +1,3 @@
-from selenium.webdriver.common.by import By
-
 from nrobo.selenium_wrappers.selenium_wrapper import SeleniumWrapper
 from nrobo.templates.home_page import PageHome
 
@@ -9,6 +7,6 @@ def test_nrobo_pypi_page(nrobo: SeleniumWrapper):  # noqa: E501
     url = "https://pypi.org/project/nrobo/"
     nrobo_pypi_page.logger.info(f"Open {url}")
     nrobo_pypi_page.get(url)
-    nrobo_pypi_page.wait_for_element_to_be_present(By.XPATH, "//h1[@class='package-header__name']")
-
+    # nrobo_pypi_page.wait_for_element_to_be_present(By.XPATH, "//h1[@class='package-header__name']")
+    nrobo_pypi_page.locator("//h1[@class='package-header__name']").is_displayed()
     # assert nrobo_pypi_page.is_page_visible()

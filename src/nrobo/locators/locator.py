@@ -1,7 +1,6 @@
 from typing import Any
 
 from nrobo.locators.web_element_protocol import WebElementProtocol
-from nrobo.selenium_wrappers.selenium_wrapper import SeleniumWrapper
 
 
 class Locator(WebElementProtocol):
@@ -9,8 +8,10 @@ class Locator(WebElementProtocol):
 
     _element: WebElementProtocol
 
-    def __init__(self, wrapper: SeleniumWrapper, locator: str):
-        self.wrapper = wrapper
+    def __init__(self, wrapper, locator: str):
+        from nrobo.selenium_wrappers.selenium_wrapper import SeleniumWrapper
+
+        self.wrapper: SeleniumWrapper = wrapper
         self.locator = locator
 
     # -------------------------------------------------------------------------
