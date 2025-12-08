@@ -16,6 +16,41 @@ from nrobo.version import __version__
 logger = get_logger(name=settings.NROBO_APP)
 
 
+def _add_clean_parser(subparser):
+    clean_parser = subparser.add_parser("clean", help="Clean test_artifacts/")
+    clean_parser.add_argument("-v", "--verbose", action="store_true")
+
+
+def _add_init_parser(subparser):
+    init_parser = subparser.add_parser("init", help=f"{settings.NROBO_APP} project initializer")
+    init_parser.add_argument(
+        "--app", required=True, type=str, help="App name (used as project name)"
+    )
+
+
+def _add_nginx_parser(subparser):
+    # nginx subcommand that forwards all args (start/stop/status/--dir)
+    nginx_parser = subparser.add_parser(
+        "nginx",
+        help="Manage nRoBo's local Nginx server for Allure reports.",
+    )
+    nginx_parser.add_argument(
+        "nginx_args",
+        nargs=argparse.REMAINDER,
+        help="Arguments for nginx subcommands (start/stop/status)",
+    )
+
+
+def _add_update_parser(subparsers):
+    parser = subparsers.add_parser("update", help="Update nrobo dependencies")
+    parser.add_argument(
+        "--playwright", action="store_true", help="Update Playwright and install browsers"
+    )
+    parser.add_argument("--selenium", action="store_true", help="Update Selenium and webdrivers")
+    parser.add_argument("--self", action="store_true", help="Update nrobo itself")
+    return parser
+
+
 def _base_parser():
     parser = argparse.ArgumentParser(
         description=f"{settings.NROBO_APP} - Smart Test Runner built on Pytest",
@@ -71,34 +106,10 @@ def _sub_commands() -> argparse.ArgumentParser:
     parser = _base_parser()
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    clean_parser = subparsers.add_parser("clean", help="Clean test_artifacts/")
-    clean_parser.add_argument("-v", "--verbose", action="store_true")
-
-    init_parser = subparsers.add_parser("init", help=f"{settings.NROBO_APP} project initializer")
-    init_parser.add_argument(
-        "--app", required=True, type=str, help="App name (used as project name)"
-    )
-
-    # nginx subcommand that forwards all args (start/stop/status/--dir)
-    nginx_parser = subparsers.add_parser(
-        "nginx",
-        help="Manage nRoBo's local Nginx server for Allure reports.",
-    )
-    nginx_parser.add_argument(
-        "nginx_args",
-        nargs=argparse.REMAINDER,
-        help="Arguments for nginx subcommands (start/stop/status)",
-    )
-
-    update_parser = subparsers.add_parser(
-        "update",
-        help="Update nrobo dependencies",
-    )
-    update_parser.add_argument(
-        "update_args",
-        nargs=argparse.REMAINDER,
-        help="Arguments for update subcommands (--playwright, --selenium, --self)",
-    )
+    _add_clean_parser(subparsers)
+    _add_init_parser(subparsers)
+    _add_nginx_parser(subparsers)
+    _add_update_parser(subparsers)
 
     return parser
 
@@ -145,8 +156,8 @@ def parse_nrobo_args(argv):
 def get_nrobo_arg_parser(argv=None):
     argv = argv or sys.argv
 
-    if len(argv) > 1 and argv[1] in ["clean", "init", "nginx", "update"]:
-
+    command = argv[1] if len(argv) > 1 else None
+    if command in ["clean", "init", "nginx", "update"]:
         # Run subcommand parser only
         sub_args = _parse_subcommand(argv[1:])
 
