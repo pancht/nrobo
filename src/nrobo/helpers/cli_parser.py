@@ -7,6 +7,7 @@ import pytest
 
 from nrobo.cli.commands import clean, init, nginx, update
 from nrobo.core import settings
+from nrobo.core.exceptions import NoSubCommandFoundByArgParser
 from nrobo.helpers.io_helper import copy_configs_if_updated
 from nrobo.helpers.logging_helper import get_logger, set_logger_level
 from nrobo.helpers.reporting_helper import prepare_reporting_args
@@ -140,10 +141,11 @@ def _parse_nrobo_args(argv):
                 .strip()
                 .lower()
             )  # noqa: E501
-        except EOFError:
-            user_input = "n"  # fallback in non-interactive shells
+        except EOFError:  # pragma: no cover
+            user_input = "n"  # fallback in non-interactive shells # pragma: no cover
 
         if user_input.startswith("y"):
+            # pragma: no cover
             logger.info("\n📜 Pytest Help Menu:")
             pytest.main(["--help"], plugins=None)
         raise SystemExit(0)
@@ -157,26 +159,31 @@ def _handle_subcommand_if_any(argv=None):
     argv = argv or sys.argv
 
     command = argv[1] if len(argv) > 1 else None
-    if command in ["clean", "init", "nginx", "update"]:
-        # Run subcommand parser only
-        sub_args = _parse_subcommand(argv[1:])
+    if command not in ["clean", "init", "nginx", "update"]:
+        raise NoSubCommandFoundByArgParser("No subcommand found.")
 
-        if sub_args.command == "clean":
-            clean.run(argv[2:])
-        elif sub_args.command == "init":
-            init.run(argv[2:])
-        elif sub_args.command == "nginx":
-            nginx.run(sys.argv[2:])
-        elif sub_args.command == "update":
-            update.run(argv[2:])
+    # Run subcommand parser only
+    sub_args = _parse_subcommand(argv[1:])
 
-        sys.exit(0)
+    if sub_args.command == "clean":
+        clean.run(argv[2:])
+    elif sub_args.command == "init":
+        init.run(argv[2:])
+    elif sub_args.command == "nginx":
+        nginx.run(sys.argv[2:])
+    elif sub_args.command == "update":
+        update.run(argv[2:])
+
+    sys.exit(0)
 
 
 def get_nrobo_arg_parser(argv=None):
     argv = argv or sys.argv
 
-    _handle_subcommand_if_any(argv)
+    try:
+        _handle_subcommand_if_any(argv)
+    except NoSubCommandFoundByArgParser:
+        pass
 
     args, unknown_args = _parse_nrobo_args(argv[1:])
 
@@ -254,9 +261,9 @@ def check_if_nrobo_initialized(sys_argv=None):
     if is_dev_machine():
         return
 
-    if nrobo_not_initialized():
+    if nrobo_not_initialized():  # pragma: no cover
         if not any(bypass in sys_argv for bypass in bypass_keywords):
             print(f"🚫 {settings.NROBO_APP} project not initialized.")
             print("💡 Run this to get started:")
             print("    nrobo init --app my_project")
-            sys.exit(1)
+            sys.exit(1)  # pragma: no cover

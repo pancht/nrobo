@@ -1,11 +1,12 @@
 import subprocess
 import sys
 from pathlib import Path
+from unittest import mock
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from nrobo.cli.commands import clean, init
+from nrobo.cli.commands import clean, init, update
 from nrobo.core import settings
 from nrobo.helpers import cli_parser
 from nrobo.helpers.cli_parser import (
@@ -479,3 +480,96 @@ def test_help_shows_pytest_help_when_user_accepts(caplog):
         logs = caplog.text
         assert "Help Menu" in logs
         assert "Pytest Help Menu" in logs
+
+
+def test_nrobo_arg_parser_handles_init(monkeypatch):
+    monkeypatch.setattr(sys, "argv", ["nrobo", "--init"])
+    with pytest.raises(SystemExit) as excinfo:
+        get_nrobo_arg_parser()
+    assert excinfo.value.code == 0
+
+
+@mock.patch("nrobo.cli.commands.update.run")
+def test_update_subcommand_calls_update_run(mock_update_run, monkeypatch):
+    monkeypatch.setattr(sys, "argv", ["nrobo", "update", "--playwright"])
+    with pytest.raises(SystemExit):
+        get_nrobo_arg_parser()
+    mock_update_run.assert_called_once_with(["--playwright"])
+
+
+@mock.patch("nrobo.cli.commands.nginx.run")
+def test_nginx_subcommand(mock_nginx_run, monkeypatch):
+    monkeypatch.setattr(sys, "argv", ["nrobo", "nginx", "status"])
+    with pytest.raises(SystemExit):
+        get_nrobo_arg_parser()
+    mock_nginx_run.assert_called_once_with(["status"])
+
+
+def test_browser_arg_defaults(monkeypatch):
+    monkeypatch.setattr(sys, "argv", ["nrobo"])
+    suites, browser, args, unknown = get_nrobo_arg_parser()
+    assert browser == "chrome"  # or whatever your default is
+
+
+def test_help_menu_eoferror_triggers_fallback(monkeypatch):
+    monkeypatch.setattr(sys, "argv", ["nrobo", "--help"])
+
+    with patch("builtins.input", side_effect=EOFError), patch("pytest.main") as mock_pytest_help:
+        with pytest.raises(SystemExit) as exc_info:
+            cli_parser.get_nrobo_arg_parser()
+
+    assert exc_info.value.code == 0
+    mock_pytest_help.assert_not_called()  # because user_input = 'n'
+
+
+def test_update_command(monkeypatch):
+    called = {}
+
+    # Simulate update.run being called
+    def mock_update_run(args):
+        called["update_run"] = args
+
+    monkeypatch.setattr(update, "run", mock_update_run)
+
+    # Simulate CLI call: nrobo update --self
+    test_args = ["nrobo", "update", "--self"]
+
+    with pytest.raises(SystemExit):
+        get_nrobo_arg_parser(test_args)
+
+    assert "update_run" in called
+    assert "--self" in called["update_run"]
+
+
+def test_check_if_nrobo_initialized(monkeypatch, tmp_path, capsys):
+    # Simulate non-initialized project
+    monkeypatch.setattr(cli_parser.settings, "CONFIGS", str(tmp_path / "configs"))
+    monkeypatch.setattr(cli_parser.settings, "TESTS_DIR", str(tmp_path / "tests"))
+    monkeypatch.setattr(cli_parser.settings, "SUITES_DIR", str(tmp_path / "suites"))
+    monkeypatch.setattr(cli_parser.settings, "BASE_DIR", tmp_path)
+
+    # Simulate command without bypass
+    monkeypatch.setattr(sys, "argv", ["nrobo", "run"])
+
+    try:
+        cli_parser.check_if_nrobo_initialized()
+    except SystemExit as e:
+        assert e.code == 1
+
+    captured = capsys.readouterr()
+    assert "project not initialized" in captured.out
+
+
+def test_show_pytest_help_menu(monkeypatch):
+    # Simulate `--help` argument
+    test_args = ["nrobo", "--help"]
+
+    # Simulate user input as 'y' to trigger Pytest help
+    monkeypatch.setattr("builtins.input", lambda _: "y")
+
+    # Patch sys.exit to catch exit without stopping the test
+    with pytest.raises(SystemExit) as e:
+        get_nrobo_arg_parser(test_args)
+
+    # Optional: assert exit code
+    assert e.value.code == 0
