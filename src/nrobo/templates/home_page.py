@@ -6,9 +6,10 @@ from nrobo.selenium_wrappers.nrobo_selenium_wrapper import (  # noqa: E501
     NRoboSeleniumWrapperClass,
 )
 from nrobo.selenium_wrappers.nrobo_types import AnyDevice
+from nrobo.selenium_wrappers.selenium_wrapper import SeleniumWrapper
 
 
-class PageHome(NRoboSeleniumWrapperClass):  # pylint: disable=R0901
+class PageHome(SeleniumWrapper):  # pylint: disable=R0901
     def __init__(
         self,
         nrobo: NRoboSeleniumWrapperClass,

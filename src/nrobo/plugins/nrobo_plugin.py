@@ -18,6 +18,7 @@ from nrobo.helpers._pytest_xdist import grab_worker_id, is_running_with_xdist
 from nrobo.selenium_wrappers.nrobo_selenium_wrapper import (  # noqa: E501
     NRoboSeleniumWrapperClass,
 )
+from nrobo.selenium_wrappers.selenium_wrapper import SeleniumWrapper
 
 
 class nRoboWebDriverPlugin:
@@ -104,9 +105,7 @@ class nRoboWebDriverPlugin:
         )  # noqa: E501
 
         # Inject logger
-        nrobo_wrapper_: NRoboSeleniumWrapperClass = NRoboSeleniumWrapperClass(
-            self.driver_instance, logger=logger
-        )
+        nrobo_wrapper_: SeleniumWrapper = SeleniumWrapper(self.driver_instance, logger=logger)
 
         # Attach to item so that it wrapper can be accessed in pytest_runtest_makereport(item: Item, call) # noqa: E501
         # for capturing screenshot of the failure
