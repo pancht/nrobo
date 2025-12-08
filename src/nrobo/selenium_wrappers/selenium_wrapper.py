@@ -7,6 +7,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from nrobo.locators.locator import Locator
 from nrobo.locators.locator_classifier import LocatorClassifier, LocatorType
+from nrobo.mixins.auto_wait_mixin import AutoWaitMixin
 from nrobo.mixins.window_mixin import WindowMixin
 from nrobo.selenium_wrappers.base import SeleniumWrapperBase
 from nrobo.selenium_wrappers.nrobo_types import AnyBy, AnyDriver
@@ -16,7 +17,7 @@ PAGE_LOAD_TIMEOUT = 30
 ELE_WAIT_TIMEOUT = 10
 
 
-class SeleniumWrapper(SeleniumWrapperBase, WindowMixin):
+class SeleniumWrapper(SeleniumWrapperBase, AutoWaitMixin, WindowMixin):
     driver: SeleniumDriverProtocol  # helps autocompletion
 
     def __init__(self, driver: AnyDriver, logger: logging.Logger):

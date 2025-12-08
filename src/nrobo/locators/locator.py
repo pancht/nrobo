@@ -8,19 +8,21 @@ class Locator(WebElementProtocol):
 
     _element: WebElementProtocol
 
-    def __init__(self, wrapper, locator: str):
+    def __init__(self, wrapper, locator: str, description: str = None):
         from nrobo.selenium_wrappers.selenium_wrapper import SeleniumWrapper
 
         self.wrapper: SeleniumWrapper = wrapper
         self.locator = locator
+        self.description = description or locator
+        self.by, self.value = self.wrapper.resolve_locator(locator)
 
     # -------------------------------------------------------------------------
     # Internal Helper
     # -------------------------------------------------------------------------
     def _find(self) -> WebElementProtocol:
         """Fetch the underlying Selenium WebElement each time."""
-        by, value = self.wrapper.resolve_locator(self.locator)
-        return self.wrapper.find_element(by, value)
+
+        return self.wrapper.find_element(self.by, self.value)
 
     # -------------------------------------------------------------------------
     # AUTOCOMPLETE-ENABLED EXPLICIT WRAPPER METHODS
