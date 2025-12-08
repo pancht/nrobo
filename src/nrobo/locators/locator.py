@@ -1,4 +1,5 @@
-from typing import Any, cast
+import re
+from typing import Any, Callable, cast
 
 from nrobo.locators.web_element_protocol import WebElementProtocol
 
@@ -215,6 +216,73 @@ class Locator(WebElementProtocol):
             locators.append(new_loc)
 
         return locators
+
+    def filter(
+        self,
+        has_text: str | None = None,
+        has_not_text: str | None = None,
+        has_attribute: tuple[str, str] | None = None,
+        has_regex: str | None = None,
+        has: Callable[[WebElementProtocol], bool] | None = None,
+    ) -> list["Locator"]:
+        """
+        Filter all matching elements using conditions:
+        - has_text="Login"
+        - has_not_text="Error"
+        - has_attribute=("role", "button")
+        - has_regex=r"User \d+"  # noqa: W605
+        - has=lambda el: custom condition
+        """
+
+        elements = self.wrapper.find_all(self)
+        results = []
+
+        regex = re.compile(has_regex) if has_regex else None
+
+        for index, el in enumerate(elements):
+            try:
+                text = el.text or ""
+            except Exception:
+                text = ""
+
+            # Condition checks
+            if has_text and has_text not in text:
+                continue
+
+            if has_not_text and has_not_text in text:
+                continue
+
+            if has_attribute:
+                attr_name, attr_value = has_attribute
+                if (el.get_attribute(attr_name) or "") != attr_value:
+                    continue
+
+            if regex and not regex.search(text):
+                continue
+
+            if has and not has(el):
+                continue
+
+            # Passed all filters — create new Locator
+            new_loc = Locator(self.wrapper, self.locator, f"{self.description}[filtered:{index}]")
+            new_loc.by = self.by
+            new_loc.value = self.value
+            new_loc.index = index
+            results.append(new_loc)
+
+        return results
+
+    def first_filtered(self, **kwargs) -> "Locator":
+        filtered = self.filter(**kwargs)
+        if not filtered:
+            raise AssertionError(f"No elements found after filtering: {kwargs}")
+        return filtered[0]
+
+    def last_filtered(self, **kwargs) -> "Locator":
+        filtered = self.filter(**kwargs)
+        if not filtered:
+            raise AssertionError(f"No elements found after filtering: {kwargs}")
+        return filtered[-1]
 
     def nth(self, index: int) -> "Locator":
         """
