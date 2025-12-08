@@ -146,6 +146,9 @@ class Locator(WebElementProtocol):
         if self.by == "HAS":
             return self.wrapper._find_by_has(self)
 
+        if self.by == "PSEUDO":
+            return self.wrapper._find_by_pseudo(self)
+
         if self.index is None:
             # single element: auto-wait for visibility
             return self.wrapper._resolve(self)
@@ -227,6 +230,8 @@ class Locator(WebElementProtocol):
             elements = self.wrapper._find_all_by_has_text(self)
         elif self.by == "HAS":
             elements = self.wrapper._find_all_by_has(self)
+        elif self.by == "PSEUDO":
+            elements = self.wrapper._find_all_by_pseudo(self)
         else:
             elements = self.wrapper.find_all(self)
 

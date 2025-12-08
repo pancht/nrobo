@@ -12,6 +12,7 @@ class LocatorType(str, Enum):
     TEXT = "text"
     HAS_TEXT = "has_text"
     HAS = "has"
+    PSEUDO = "pseudo"
     UNKNOWN = "unknown"
 
 
@@ -54,5 +55,11 @@ class LocatorClassifier:
 
         if ":has(" in locator:
             return LocatorType.HAS
+
+        if any(
+            p in locator
+            for p in [":visible", ":hidden", ":enabled", ":disabled", ":checked", ":not("]
+        ):
+            return LocatorType.PSEUDO
 
         return LocatorType.UNKNOWN

@@ -11,6 +11,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from nrobo.locators.has_selector_parser import HasSelectorParser
 from nrobo.locators.locator import Locator
 from nrobo.locators.locator_classifier import LocatorClassifier, LocatorType
+from nrobo.locators.pseudo_selector_parser import PseudoSelectorParser
 from nrobo.locators.text_selector_engine import TextSelectorEngine
 from nrobo.locators.web_element_protocol import WebElementProtocol
 from nrobo.mixins.auto_wait_mixin import AutoWaitMixin
@@ -417,3 +418,29 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin):
         js = js_path.read_text()
 
         return self.driver.execute_script(js, base, inside) or []
+
+    def _find_by_pseudo(self, locator):
+        base, pseudos = PseudoSelectorParser.split(locator.locator)
+
+        js_path = Path(__file__).parent.parent / "locators/js/pseudo_query.js"
+        js = js_path.read_text()
+
+        elements = self.driver.execute_script(js, base, pseudos)
+
+        if not elements:
+            raise AssertionError(f"No element found for pseudo selector {locator.locator}")
+
+        if locator.index is not None:
+            if locator.index >= len(elements):
+                raise AssertionError(f"Index out of range for {locator.locator}")
+            return elements[locator.index]
+
+        return elements[0]
+
+    def _find_all_by_pseudo(self, locator):
+        base, pseudos = PseudoSelectorParser.split(locator.locator)
+
+        js_path = Path(__file__).parent.parent / "locators/js/pseudo_query.js"
+        js = js_path.read_text()
+
+        return self.driver.execute_script(js, base, pseudos) or []
