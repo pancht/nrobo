@@ -114,15 +114,13 @@ class nRoboWebDriverPlugin:
         self.driver_instance: WebDriver = get_driver(env_browser, headless=env_headless)
         logging.debug("[Fixture:nrobo] WebDriver created successfully.")
 
-        nrobo_selenium_wrapper_: SeleniumWrapper = SeleniumWrapper(
-            self.driver_instance, logger=logger
-        )
+        nrobo_wrapper_: SeleniumWrapper = SeleniumWrapper(self.driver_instance, logger=logger)
         logging.debug("[Fixture:nrobo] SeleniumWrapper initialized.")
 
-        request.node._driver_wrapper = nrobo_selenium_wrapper_
+        request.node._driver_wrapper = nrobo_wrapper_
         logging.debug("[Fixture:nrobo] Wrapper attached to pytest node.")
 
-        yield nrobo_selenium_wrapper_
+        yield nrobo_wrapper_
 
         logging.debug("[Fixture:nrobo] Test finished; quitting WebDriver.")
         self.driver_instance.quit()
@@ -199,6 +197,11 @@ class nRoboWebDriverPlugin:
 
             except Exception as e:
                 logging.error(f"[Hook] Could not save screenshot: {e}")
+                logging.getLogger(f"{settings.NROBO_APP}.{test_name}").warning(
+                    f"Could not save screenshot: {e}"
+                )  # noqa: E501
+            except KeyError:  # pragma: no cover
+                pass  # pragma: no cover
 
     def pytest_configure(self, config: Config):
         logging.debug("[Hook] pytest_configure called for plugin (worker/master).")
