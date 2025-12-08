@@ -50,126 +50,113 @@ It brings stability, expressiveness, and speed to UI test automation — all pow
 
 ## 🚀 Features
 
-### ✅ **PyTest-Powered Engine** – built on the rock-solid `pytest` foundation
-### 📊 **Allure + HTML Reporting** – customizable test reports with logs and screenshots
-### 🌀 **Integrated Nginx Allure Server** – serves Allure reports without needing the Allure CLI, and includes simple start, status, and stop commands for hassle-free report hosting
-### 🖥️ **Selenium Web Integration** – cross-browser support (Chrome, Firefox, Edge)
-### 🧱 **Modular Architecture** – decoupled loader, executor, and reporter components
-### 📸 Screenshots on Failure
-Automatically captures and attaches browser screenshots when a test fails — works with both HTML reports and Allure reports for instant visual debugging.
-### 🕒 Logs & Timestamps
-Every test run includes detailed logs with timestamps, durations, and structured formatting — making it easy to trace failures, slow steps, and unexpected behavior.
-### 📜 **YAML-Based Test Suites** – write tests in a human-readable format
-### 🧪 **Self-Tested Framework** – internal tests for reliability
-### 📦 **Modern Packaging** – install via `pip`, structured with `pyproject.toml`
-### 🛡️ **Security Audited** – integrates with `bandit` and `pip-audit`
-### ⚙️ **CI/CD Friendly** – GitHub Actions-ready out of the box
-### 🧠 Powercharged Selenium with the following:
-#### 1. Advanced Selector Engine (Playwright-Level)
+1. ✅ **PyTest-Powered Engine** – built on the rock-solid `pytest` foundation
+2. 📊 **Allure + HTML Reporting** – customizable test reports with logs and screenshots
+3. 🌀 **Integrated Nginx Allure Server** – serves Allure reports without needing the Allure CLI, and includes simple start, status, and stop commands for hassle-free report hosting
+4. 🖥️ **Selenium Web Integration** – cross-browser support (Chrome, Firefox, Edge)
+5. 🧱 **Modular Architecture** – decoupled loader, executor, and reporter components
+6. 📸 **Screenshots on Failure** - Automatically captures and attaches browser screenshots when a test fails — works with both HTML reports and Allure reports for instant visual debugging.
+7. 🕒 **Logs & Timestamps** - Every test run includes detailed logs with timestamps, durations, and structured formatting — making it easy to trace failures, slow steps, and unexpected behavior.
+8. 📜 **YAML-Based Test Suites** – write tests in a human-readable format
+9. 🧪 **Self-Tested Framework** – internal tests for reliability
+10. 📦 **Modern Packaging** – install via `pip`, structured with `pyproject.toml`
+11. 🛡️ **Security Audited** – integrates with `bandit` and `pip-audit`
+12. ⚙️ **CI/CD Friendly** – GitHub Actions-ready out of the box
+13. 🧠 Powercharged Selenium with the following:
+    1. **Advanced Selector Engine (Playwright-Level)** - Supports everything you know from Playwright — but works on Selenium:
+       - text=Login, "Login", regex /login/i
+       - button:visible, input:enabled, :checked, :not(.disabled)
+       - :has() nested selectors
+       - :has-text()
+       - shadow:: pierce selectors (>>>)
+    ```css
+    form:has(input[name=email]) >> button:visible
+    shadow::todo-app >>> li:has-text("Done")
+    ```
+    2. 🧩 **Smart Locator & Collection API** - Like Playwright, but runs on Selenium:
+    ```python
+    page.locator("#email").fill("admin@example.com").press("Enter")
+    page.locator("div.card:has(.price)").nth(2).click()
+    page.locator("li.item").all().filter(has_text="Active").first().click()
+    ```
+    3. **Collection features:**
+       - .all()
+       - .first(), .last(), .nth(i)
+       - .filter(), .map(), .slice()
+       - Set operations: union, intersection, difference
+       - .random()
 
-Supports everything you know from Playwright — but works on Selenium:
+    1. ⚙️ **AutoWait & Stability Engine** - Eliminates 95% of test flakiness:
 
-- text=Login, "Login", regex /login/i
-- button:visible, input:enabled, :checked, :not(.disabled)
-- :has() nested selectors
-- :has-text()
-- shadow:: pierce selectors (>>>)
-```css
-form:has(input[name=email]) >> button:visible
-shadow::todo-app >>> li:has-text("Done")
-```
+       - Built-in retries
 
-#### 🧩 2. Smart Locator & Collection API
-Like Playwright, but runs on Selenium:
-```python
-page.locator("#email").fill("admin@example.com").press("Enter")
-page.locator("div.card:has(.price)").nth(2).click()
-page.locator("li.item").all().filter(has_text="Active").first().click()
-```
+       - Scroll into view before action
 
-Collection features:
+       - Automatic visibility checks
 
-- .all()
-- .first(), .last(), .nth(i)
-- .filter(), .map(), .slice()
-- Set operations: union, intersection, difference
-- .random()
+       - Stale element recovery
 
-#### ⚙️ 3. AutoWait & Stability Engine
+       - WebDriverWait built into every action
 
-Eliminates 95% of test flakiness:
+       - No sleeps, no explicit waits needed
 
-- Built-in retries
+        Example:
 
-- Scroll into view before action
+        ```python
+        page.locator("#login").click()   # waits automatically
+        page.locator("#email").fill("user")
+        ```
 
-- Automatic visibility checks
+    1. 🌐 **Deep Selenium Compatibility Layer**
+       - Works with all WebDrivers (Chrome, Edge, Firefox, Safari)
 
-- Stale element recovery
+       - Full WebElement support through __getattr__
 
-- WebDriverWait built into every action
+       - ActionChains support (hover, drag, double_click)
 
-- No sleeps, no explicit waits needed
+       - Selenium-based typing (Protocol) ensures autocomplete
 
-Example:
+        You can always fall back to raw Selenium if needed:
 
-```python
-page.locator("#login").click()   # waits automatically
-page.locator("#email").fill("user")
-```
+        ```python
+        page.locator("#submit")._find().get_attribute("class")
+        ```
 
-#### 🌐 4. Deep Selenium Compatibility Layer
-- Works with all WebDrivers (Chrome, Edge, Firefox, Safari)
+    1. 📚 **Developer Experience & Extensibility**
+       - Clean, modern API design
 
-- Full WebElement support through __getattr__
+       - Fully typed (Protocol-based)
 
-- ActionChains support (hover, drag, double_click)
+       - Modular selector engine (easy to extend)
 
-- Selenium-based typing (Protocol) ensures autocomplete
+       - Add your own pseudo selectors
 
-You can always fall back to raw Selenium if needed:
+       - Build your own condition helpers
 
-```python
-page.locator("#submit")._find().get_attribute("class")
-```
+       - Elegant plugin architecture (coming soon)
 
-#### 📚 5. Developer Experience & Extensibility
-- Clean, modern API design
+    1. 🔍 **Example: Complex Selecto**
 
-- Fully typed (Protocol-based)
+        Playwright-style selectors on Selenium:
 
-- Modular selector engine (easy to extend)
+        ```python
+        page.locator(
+            "form:has(input[name=email]) >> button:has-text('Submit'):visible"
+        ).click()
+        ```
 
-- Add your own pseudo selectors
+    1. **Shadow DOM support:**
 
-- Build your own condition helpers
+        ```python
+        page.locator("shadow::todo-app >>> li:has-text('Completed')").click()
+        ```
 
-- Elegant plugin architecture (coming soon)
+    1. **Nested filters:**
 
-##### 🔍 Example: Complex Selecto
-
-Playwright-style selectors on Selenium:
-
-```python
-page.locator(
-    "form:has(input[name=email]) >> button:has-text('Submit'):visible"
-).click()
-```
-
-Shadow DOM support:
-
-```python
-page.locator("shadow::todo-app >>> li:has-text('Completed')").click()
-```
-
-Nested filters:
-
-```python
-rows = page.locator("tr:visible").all()
-rows.filter(has_text="Active").nth(0).click()
-```
-
-
+        ```python
+        rows = page.locator("tr:visible").all()
+        rows.filter(has_text="Active").nth(0).click()
+        ```
 
 ## 🚀 Upcoming Features
 - 🔧 **Reusable Steps & Configs** – DRY principle applied across suites
@@ -177,7 +164,7 @@ rows.filter(has_text="Active").nth(0).click()
 
 ---
 
-### 🔥 Feature Comparison
+## 🔥 Feature Comparison
 | Feature                | Selenium    | Playwright  | nRobo |
 | ---------------------- |-------------|-------------|-------|
 | CSS Selectors          | ✅          | ✅          | ✅    |
