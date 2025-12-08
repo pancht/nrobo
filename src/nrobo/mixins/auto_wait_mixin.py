@@ -1,5 +1,5 @@
 import time
-from typing import Callable, cast
+from typing import Any, Callable, cast
 
 from selenium.common import StaleElementReferenceException, TimeoutException
 from selenium.webdriver.support import expected_conditions as EC
@@ -73,20 +73,34 @@ class AutoWaitMixin:
         el = self._resolve(locator)
         return action(el)
 
-    def _wait_for_condition(self, locator, condition_fn, timeout=5, message="Condition not met"):
-        end_time = time.time() + timeout
+    def _wait_for_condition(
+        self,
+        locator,
+        condition_fn: Callable[[Any], bool],
+        timeout: int = 5,
+        error_message: str = None,
+    ):
+        """
+        Generic wait logic for conditions on resolved elements.
+        Called by should_have_text(), should_be_visible(), etc.
+        """
+        end = time.time() + timeout
+
         last_exception = None
 
-        while True:
+        while time.time() < end:
             try:
-                el = self._resolve(locator)
-                if condition_fn(el):
-                    return True
-            except Exception as exc:
-                last_exception = exc
-
-            if time.time() > end_time:
-                # TODO: Add screenshot attachment hook
-                raise AssertionError(f"{message}: {locator.description}") from last_exception
+                element = self._resolve(locator)
+                if condition_fn(element):
+                    return locator
+            except Exception as e:  # noqa
+                last_exception = e
 
             time.sleep(0.2)
+
+        # Timeout reached → fail with helpful message
+        if error_message:
+            raise AssertionError(error_message)
+        if last_exception:
+            raise last_exception
+        raise AssertionError("Condition not met within timeout")

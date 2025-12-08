@@ -261,7 +261,7 @@ class Locator(WebElementProtocol):
         - has_text="Login"
         - has_not_text="Error"
         - has_attribute=("role", "button")
-        - has_regex=r"User \d+"  # noqa: W605
+        - has_regex=r"User \\d+"  # noqa: W605
         - has=lambda el: custom condition
         """
 
