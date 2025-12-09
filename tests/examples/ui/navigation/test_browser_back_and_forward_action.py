@@ -13,6 +13,7 @@ def test_browser_back_action(page: SeleniumWrapper):
 
     page.logger.info("Click on A/B testing link")
     page.locator("link=A/B Testing").click()
+    page.locator("role=h3").should_have_exact_text("A/B Test Variation 1")
 
     page.logger.info("Perform browser back action")
     page.back()
