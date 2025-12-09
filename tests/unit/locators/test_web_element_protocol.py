@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-from nrobo.locators.web_element_protocol import WebElementProtocol
+from nrobo.protocols.web_element_protocol import WebElementProtocol
 
 
 # ---------------------------------------------------------------------------

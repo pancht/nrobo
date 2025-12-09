@@ -5,7 +5,7 @@ import re
 import time
 from typing import Any, Callable, List
 
-from nrobo.locators.web_element_protocol import WebElementProtocol
+from nrobo.protocols.web_element_protocol import WebElementProtocol
 
 
 class LocatorCollection:

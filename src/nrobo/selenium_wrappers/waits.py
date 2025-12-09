@@ -8,7 +8,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 
-from nrobo.selenium_wrappers.base import ELE_WAIT_TIMEOUT, PAGE_LOAD_TIMEOUT
+from nrobo.core.settings import ELE_WAIT_TIMEOUT, PAGE_LOAD_TIMEOUT
 from nrobo.selenium_wrappers.element import WebElementWrapper
 from nrobo.selenium_wrappers.nrobo_types import AnyBy, AnyDriver
 from nrobo.utils.driver_utils import is_mobile_session
@@ -30,7 +30,7 @@ class WaitsClassWrapper(WebElementWrapper, ABC):
         """
         super().__init__(driver, logger)
 
-    def wait_for_page_to_be_loaded(self):
+    def wait_for_page_load(self):
         """Waits for give timeout time for page to completely load.
         timeout time is configurable in nrobo-config.yaml"""
 

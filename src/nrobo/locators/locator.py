@@ -1,7 +1,7 @@
 import re
 from typing import Any, Callable, cast
 
-from nrobo.locators.web_element_protocol import WebElementProtocol
+from nrobo.protocols.web_element_protocol import WebElementProtocol
 
 
 class Locator(WebElementProtocol):
@@ -148,6 +148,9 @@ class Locator(WebElementProtocol):
 
         if self.by == "PSEUDO":
             return self.wrapper._find_by_pseudo(self)
+
+        if self.by == "JS_TEXT":
+            return self.wrapper.find_by_text(self.value)
 
         if self.index is None:
             # single element: auto-wait for visibility

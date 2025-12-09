@@ -13,6 +13,7 @@ class LocatorType(str, Enum):
     HAS_TEXT = "has_text"
     HAS = "has"
     PSEUDO = "pseudo"
+    JS_TEXT = "js_text"
     UNKNOWN = "unknown"
 
 
@@ -21,13 +22,16 @@ class LocatorClassifier:
     def detect(locator: str) -> LocatorType:
         locator = locator.strip()
 
-        # PLAYWRIGHT
-        if "=" in locator and locator.split("=")[0] in {"text", "role", "label"}:
+        # --------------------------------------
+        # PLAYWRIGHT-style selectors: text= link= role= label= etc.
+        # --------------------------------------
+        prefix = locator.split("=", 1)[0]
+        if "=" in locator and prefix in {"text", "role", "label", "link", "partial-text"}:
             return LocatorType.PLAYWRIGHT
 
         # TEXT explicit
         if locator.startswith("text="):
-            return LocatorType.TEXT  # pragma: no cover
+            return LocatorType.TEXT  # # pragma: no cover
 
         # XPATH
         if locator.startswith(("/", ".//", "//", "..")) or "(@" in locator:
@@ -37,7 +41,7 @@ class LocatorClassifier:
         if ">>>" in locator or "shadow::" in locator:
             return LocatorType.SHADOW
 
-        # TEXT quoted
+        # QUOTED TEXT
         if (locator.startswith('"') and locator.endswith('"')) or (
             locator.startswith("'") and locator.endswith("'")
         ):
@@ -51,18 +55,18 @@ class LocatorClassifier:
         if ":has(" in locator:
             return LocatorType.HAS
 
-        # PSEUDO (must be BEFORE CSS)
+        # PSEUDO (Playwright-style filters)
         if any(
             p in locator
-            for p in [":visible", ":hidden", ":enabled", ":disabled", ":checked", ":not("]
+            for p in (":visible", ":hidden", ":enabled", ":disabled", ":checked", ":not(")
         ):
             return LocatorType.PSEUDO
 
-        # CSS fallback
+        # CSS fallback (contains CSS tokens)
         if re.search(r"[.#>:\[\]=]", locator):
             return LocatorType.CSS
 
-        # ID
+        # ID (simple alphanumerics)
         if re.match(r"^[a-zA-Z0-9_-]+$", locator):
             return LocatorType.ID
 

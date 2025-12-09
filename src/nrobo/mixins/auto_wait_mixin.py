@@ -5,7 +5,9 @@ from selenium.common import StaleElementReferenceException, TimeoutException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
-from nrobo.locators.web_element_protocol import WebElementProtocol
+from nrobo.helpers.selenium_helper import _safe_ready_state
+from nrobo.protocols.web_element_protocol import WebElementProtocol
+from nrobo.utils.driver_utils import is_mobile_session
 
 
 class AutoWaitMixin:
@@ -26,16 +28,14 @@ class AutoWaitMixin:
     # Resolve (by,value,description) → WebElement (with wait + retry)
     # ---------------------------------------------------------
     def _resolve(self, locator) -> WebElementProtocol:
-        by = locator.by
-        value = locator.value
-        description = locator.description
+        by, value, desc = locator.by, locator.value, locator.description
 
         for attempt in range(1, self.RETRY_STALE_ATTEMPTS + 1):
             try:
-                print(f"[AutoWait] Resolving locator: {description!r}")
+                print(f"[AutoWait] Resolving locator: {desc!r}")
                 element = WebDriverWait(self.driver, self.DEFAULT_TIMEOUT).until(
                     EC.visibility_of_element_located((by, value)),
-                    message=f"Timeout waiting for: {description!r}",
+                    message=f"Timeout waiting for: {desc!r}",
                 )
                 # Scroll into view (best-effort)
                 try:
@@ -44,25 +44,23 @@ class AutoWaitMixin:
                         element,
                     )
                 except Exception:
-                    print(f"[AutoWait] Scroll not critical for {description!r}")
+                    print(f"[AutoWait] Scroll not critical for {desc!r}")
 
                 return cast(WebElementProtocol, element)
 
             except StaleElementReferenceException:
                 print(
-                    f"[AutoWait] StaleElement on attempt {attempt}/{self.RETRY_STALE_ATTEMPTS} for {description!r}"
+                    f"[AutoWait] StaleElement on attempt {attempt}/{self.RETRY_STALE_ATTEMPTS} for {desc!r}"
                 )
                 if attempt == self.RETRY_STALE_ATTEMPTS:
                     raise
                 time.sleep(0.2)
 
             except TimeoutException as e:
-                print(f"[AutoWait] Timeout resolving: {description!r}")
+                print(f"[AutoWait] Timeout resolving: {desc!r}")
                 raise e
 
-        raise RuntimeError(
-            f"[AutoWait] Failed to resolve element: {description!r}"
-        )  # pragma: no cover
+        raise RuntimeError(f"[AutoWait] Failed to resolve element: {desc!r}")  # pragma: no cover
 
     # ---------------------------------------------------------
     # Generic action executor
@@ -102,3 +100,71 @@ class AutoWaitMixin:
         if last_exception:
             raise last_exception
         raise AssertionError("Condition not met within timeout")
+
+    # ----------------- navigation helpers -----------------
+    def _url(self):
+        try:
+            return self.driver.current_url
+        except Exception:
+            return ""
+
+    def _maybe_wait_for_nav(self, before_url: str, pre_state: str | None, mode: str):
+        """
+        mode: 'none' (no wait), 'load' (always wait),
+              'auto' (wait only if URL changed or readyState dropped)
+        """
+        if mode == "none" or is_mobile_session(self.driver):
+            return
+
+        if mode == "load":
+            return self.wait_for_page_load()
+
+        # auto-detect
+        now_url = self._url()
+        now_state = _safe_ready_state(self.driver)
+        nav_detected = (now_url and now_url != before_url) or (
+            pre_state == "complete" and now_state in ("loading", None)
+        )
+        if nav_detected:
+            self.logger.debug("[AutoWait] navigation detected → waiting for load")
+            self.wait_for_page_load()
+
+    # ----------------- actions with integrated waits -----------------
+    def goto(self, url: str, wait: str = "load"):
+        """
+        Navigate to URL, then optionally wait:
+        - wait='load' (default): always wait for readyState 'complete'
+        - wait='none': return immediately
+        """
+        self.logger.info(f"Go to: {url}")
+        self.driver.get(url)
+        self._maybe_wait_for_nav(
+            before_url="", pre_state=None, mode="load" if wait != "none" else "none"
+        )
+
+    def click(self, locator, wait: str = "auto"):
+        """
+        Click element and optionally wait for navigation:
+        - wait='auto' (default): wait only if nav likely occurred (URL changed or state fell to 'loading')
+        - wait='load': always wait for full load after click
+        - wait='none': never wait
+        """
+        desc = locator.description
+        before_url = self._url()
+        pre_state = _safe_ready_state(self.driver)
+
+        el = self._resolve(locator)
+        self.logger.debug(f"[AutoWait] click → {desc}")
+        el.click()
+
+        self._maybe_wait_for_nav(before_url, pre_state, wait)
+
+        return locator
+
+    def back(self, wait="auto"):
+        before_url = self.driver.current_url
+        pre_state = _safe_ready_state(self.driver)
+
+        self.driver.back()
+
+        self._maybe_wait_for_nav(before_url, pre_state, wait)

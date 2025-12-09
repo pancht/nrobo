@@ -8,23 +8,21 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
+from nrobo.core.settings import PAGE_LOAD_TIMEOUT
 from nrobo.locators.has_selector_parser import HasSelectorParser
 from nrobo.locators.locator import Locator
 from nrobo.locators.locator_classifier import LocatorClassifier, LocatorType
 from nrobo.locators.pseudo_selector_parser import PseudoSelectorParser
 from nrobo.locators.text_selector_engine import TextSelectorEngine
-from nrobo.locators.web_element_protocol import WebElementProtocol
 from nrobo.mixins.auto_wait_mixin import AutoWaitMixin
 from nrobo.mixins.window_mixin import WindowMixin
-from nrobo.selenium_wrappers.base import SeleniumWrapperBase
-from nrobo.selenium_wrappers.nrobo_types import AnyBy, AnyDriver
-from nrobo.selenium_wrappers.selenium_webdriver_protocol import SeleniumDriverProtocol
-
-PAGE_LOAD_TIMEOUT = 30
-ELE_WAIT_TIMEOUT = 10
+from nrobo.protocols.web_driver_protocol import SeleniumDriverProtocol
+from nrobo.protocols.web_element_protocol import WebElementProtocol
+from nrobo.selenium_wrappers.nrobo_types import AnyBy
+from nrobo.selenium_wrappers.selenium_wrapper_base import SeleniumWrapperBase
 
 
-class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin):
+class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin, SeleniumDriverProtocol):
     """Final Selenium wrapper:
     - driver delegation via SeleniumWrapperBase.__getattr__
     - window helpers from WindowMixin
@@ -34,10 +32,63 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin):
 
     driver: SeleniumDriverProtocol  # enables IDE autocompletion
 
-    def __init__(self, driver: AnyDriver, logger: logging.Logger):
+    def __init__(self, driver: SeleniumDriverProtocol, logger: logging.Logger):
         super().__init__(driver, logger)
         self.driver: SeleniumDriverProtocol = driver
         self.logger = logger
+
+    def _resolve_playwright_selector(self, locator: str):
+        """
+        Translates Playwright-style selectors to Selenium selectors.
+        Supports:
+            link=Text
+            link:Partial
+            text=Something
+            "Quoted Text"
+            'Quoted Text'
+        """
+        s = locator.strip()
+
+        # ----------------------------------
+        # 1. link=Exact text
+        # ----------------------------------
+        if s.startswith("link="):
+            text = s.split("=", 1)[1].strip()
+            return (By.LINK_TEXT, text)
+
+        # ----------------------------------
+        # 2. link:Partial text
+        # ----------------------------------
+        if s.startswith("link:"):
+            text = s.split(":", 1)[1].strip()
+            return (By.PARTIAL_LINK_TEXT, text)
+
+        # ----------------------------------
+        # 3. text=Something
+        #    → JS-based text search (Playwright style)
+        # ----------------------------------
+        if s.startswith("text="):
+            text = s.split("=", 1)[1].strip()
+            return ("JS_TEXT", text)  # you handle JS_TEXT in locator._find()
+
+        # ----------------------------------
+        # 4. "Quoted Text"
+        # ----------------------------------
+        if (s.startswith('"') and s.endswith('"')) or (s.startswith("'") and s.endswith("'")):
+            text = s[1:-1]
+            return ("JS_TEXT", text)
+
+        # ----------------------------------
+        # 5. Partial text: bareword (Playwright-like)
+        # ----------------------------------
+        # If contains whitespace & not CSS-like → treat as text search
+        if " " in s and not re.search(r"[,>#\[\]:]", s):
+            return ("JS_TEXT", s)
+
+        # ----------------------------------
+        # Fallback
+        # ----------------------------------
+        raise NotImplementedError(f"Unsupported Playwright selector: {locator}")
 
     # -------------------------------------------------------------------------
     # Locator resolution (string → (By, value))
@@ -58,9 +109,7 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin):
         if loc_type == LocatorType.HAS_TEXT:
             return ("HAS_TEXT", locator)
         if loc_type == LocatorType.PLAYWRIGHT:
-            # TODO: convert Playwright selectors to Selenium
-            raise NotImplementedError("Playwright-style locators not supported yet.")
-
+            return self._resolve_playwright_selector(locator)
         # Fallback: treat as CSS
         return By.CSS_SELECTOR, locator
 
@@ -459,3 +508,6 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin):
 
         self.driver.get(url)
         return self  # chainable, like Playwright
+
+    def find_by_text(self, text: str):
+        return TextSelectorEngine.find_by_text(self.driver, text)
