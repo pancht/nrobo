@@ -6,6 +6,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
 from nrobo.helpers.selenium_helper import _safe_ready_state
+from nrobo.protocols.web_driver_protocol import SeleniumDriverProtocol as wd
 from nrobo.protocols.web_element_protocol import WebElementProtocol
 from nrobo.utils.driver_utils import is_mobile_session
 
@@ -167,4 +168,11 @@ class AutoWaitMixin:
 
         self.driver.back()
 
+        self._maybe_wait_for_nav(before_url, pre_state, wait)
+
+    def forward(self, wait="auto"):
+        before_url = wd(self.driver).current_url
+        pre_state = _safe_ready_state(self.driver)
+
+        wd(self.driver).forward()
         self._maybe_wait_for_nav(before_url, pre_state, wait)
