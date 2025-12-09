@@ -36,6 +36,8 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin):
 
     def __init__(self, driver: AnyDriver, logger: logging.Logger):
         super().__init__(driver, logger)
+        self.driver: SeleniumDriverProtocol = driver
+        self.logger = logger
 
     # -------------------------------------------------------------------------
     # Locator resolution (string → (By, value))
