@@ -446,3 +446,16 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin):
         js = js_path.read_text()
 
         return self.driver.execute_script(js, base, pseudos) or []
+
+    # ---------------------------------------------------------------------------
+    #
+    # Playwright like methods in nrobo
+    #
+    # ---------------------------------------------------------------------------
+    def goto(self, url: str, timeout: int = None):
+        """Playwright-style navigation method."""
+        if timeout:
+            self.driver.set_page_load_timeout(timeout)
+
+        self.driver.get(url)
+        return self  # chainable, like Playwright
