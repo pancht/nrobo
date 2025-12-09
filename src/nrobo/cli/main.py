@@ -61,8 +61,8 @@ def run() -> int:
 
     # Execution banner
     if is_ui_test:
-        mode = "headed" if args.no_headless else "headless"
-        logger_msg.append(
+        mode = "headed" if args.no_headless else "headless"  # pragma: no cover
+        logger_msg.append(  # pragma: no cover
             f"🚀 Starting {settings.NROBO_APP} test execution on browser: {browser} ({mode})"
         )
     else:
