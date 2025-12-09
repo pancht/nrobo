@@ -10,6 +10,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from nrobo.core.settings import PAGE_LOAD_TIMEOUT
 from nrobo.locators.has_selector_parser import HasSelectorParser
+from nrobo.locators.has_text_selector_parser import HasTextEngine, HasTextParser
 from nrobo.locators.locator import Locator
 from nrobo.locators.locator_classifier import LocatorClassifier, LocatorType
 from nrobo.locators.pseudo_selector_parser import PseudoSelectorParser
@@ -107,7 +108,9 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin, SeleniumD
         if loc_type == LocatorType.TEXT:
             return ("TEXT", locator)
         if loc_type == LocatorType.HAS_TEXT:
-            return ("HAS_TEXT", locator)
+            base, text_value = HasTextParser.parse(locator)
+            xpath = HasTextEngine.to_xpath(base, text_value)
+            return (By.XPATH, xpath)
         if loc_type == LocatorType.PLAYWRIGHT:
             return self._resolve_playwright_selector(locator)
         # Fallback: treat as CSS
