@@ -615,12 +615,526 @@ page.locator(".toast").should_be_visible().should_contain_text("Success")
 
 nRobo gives you **Playwright-level assertion power with Selenium compatibility**.
 
-## Page objects
-## Shadow DOM
-## Filters
-## Collections
-## Custom wait methods
-## Browser setup and teardown
+## 🧩 Page Objects
+The **Page Object Model (POM)** in nRobo organizes your UI automation code into reusable, readable, and maintainable components.
+
+Each **Page Object** represents a specific page or screen of your application.
+It encapsulates both the locators (selectors used to find elements) and the actions (methods that operate on those elements) in a single class.
+
+📂 Directory Structure
+```python
+pages/
+ ├─ login_page.py
+ ├─ login_page_locators.py
+ ├─ dashboard_page.py
+ └─ dashboard_page_locators.py
+```
+
+Each page has two files:
+
+- `<page_name>.py` — defines the Page Object class extending `BasePage`
+
+- `<page_name>_locators.py` — defines a corresponding `Locators` class
+
+### 🧱 Example: Login Page
+
+**File:** `pages/login_page.py`
+
+```python
+from nrobo.pages.base_page import BasePage
+from pages.login_page_locators import LoginPageLocators
+
+class LoginPage(BasePage):
+    """Page Object for Login Page."""
+
+    loc = LoginPageLocators()
+
+    def open_page(self):
+        return self.open("https://example.com/login")
+
+    def login(self, username, password):
+        self.locator(self.loc.USERNAME).fill(username)
+        self.locator(self.loc.PASSWORD).fill(password)
+        self.locator(self.loc.LOGIN_BTN).click()
+        return self
+```
+
+**File:** `pages/login_page_locators.py`
+
+```python
+"""Locators for Login Page."""
+
+class LoginPageLocators:
+    USERNAME = "#username"
+    PASSWORD = "#password"
+    LOGIN_BTN = "button:has-text('Login')"
+```
+
+### ⚙️ Generating Page Objects Automatically
+
+You can auto-generate a new Page Object and its locator file using:
+
+```bash
+nrobo generate page <PageName>
+```
+
+Example:
+```bash
+nrobo generate page LoginPage
+```
+
+**Creates:**
+
+```bash
+✔ Created page: pages/login_page.py
+✔ Created locator file: pages/login_page_locators.py
+```
+
+### 💡 Best Practices
+
+- Keep selectors centralized in locator files.
+
+- Add clear docstrings and method names for all actions.
+
+- Follow consistent naming: `LoginPage`, `DashboardPage`, `SettingsPage`, etc.
+
+- Use methods like `.open()`, `.click()`, `.fill()`, and `.should_have_text()` from `BasePage` or `SeleniumWrapper`.
+
+## 🔍 Filters
+
+**Filters** in nRobo provide a concise and chainable way to refine element collections and perform targeted assertions on groups of DOM elements.
+They enable expressive querying and bulk operations while maintaining readable, declarative test code.
+
+### 💡 Concept
+
+When a locator matches **multiple elements**, a filter allows you to:
+
+- Narrow down the matched set (by index, text, or attribute)
+
+- Retrieve specific elements (`first()`, `last()`, `nth(n)`)
+
+- Chain actions or assertions on the filtered element(s)
+
+Filters are available on any `Locator` instance returned from:
+
+```python
+page.locator("selector")
+```
+
+### ⚙️ Common Filter Methods
+| Method                       | Description                                          | Example                                                   |
+| :--------------------------- | :--------------------------------------------------- | :-------------------------------------------------------- |
+| `.all()`                     | Returns all matched elements as a list               | `page.locator(".card").all()`                             |
+| `.first()`                   | Selects the first matching element                   | `page.locator(".item").first().click()`                   |
+| `.last()`                    | Selects the last matching element                    | `page.locator(".item").last().should_have_text("Logout")` |
+| `.nth(index)`                | Selects the element at the specified index (0-based) | `page.locator(".row").nth(2).click()`                     |
+| `.filter(text="...")`        | Filters elements containing the given text           | `page.locator("button").filter(text="Submit").click()`    |
+| `.filter(attribute="value")` | Filters elements by attribute value                  | `page.locator("input").filter(placeholder="Email")`       |
+
+### 🧱 Example Usage
+```python
+def test_filter_usage(page):
+    page.goto("https://example.com")
+
+    # Select first card
+    page.locator(".card").first().should_be_visible()
+
+    # Select last product name
+    page.locator(".product-name").last().should_have_text("Deluxe Edition")
+
+    # Select third button
+    page.locator("button").nth(2).click()
+
+    # Filter by text content
+    page.locator("button").filter(text="Login").click()
+
+    # Filter by attribute
+    page.locator("input").filter(placeholder="Search").fill("nRobo")
+```
+
+### 🧠 Notes & Best Practices
+
+- Always prefer `semantic selectors` (data-test-id, aria-label, etc.) over nth-based selection.
+
+- Use filters when multiple identical elements exist and you want to clarify intent.
+
+- Filters can be chained with assertions:
+
+```python
+page.locator(".menu-item").filter(text="Settings").should_be_visible()
+```
+
+- Combine `.all()` with loops for batch assertions:
+```python
+for item in page.locator(".product").all():
+    item.should_be_visible()
+```
+
+### 🧩 Integration Example with Locators
+
+You can define reusable locators that leverage filter patterns:
+```python
+class DashboardLocators:
+    MENU_ITEMS = ".menu-item"
+    ACTIVE_MENU_ITEM = ".menu-item.active"
+```
+```python
+class DashboardPage(BasePage):
+    loc = DashboardLocators()
+
+    def open_menu(self, name):
+        self.locator(self.loc.MENU_ITEMS).filter(text=name).click()
+```
+
+### ⚖️ Filter vs Locator — Comparison
+
+| Aspect                          | **Locator**                                                                 | **Filter**                                                                     |
+| :------------------------------ | :-------------------------------------------------------------------------- | :----------------------------------------------------------------------------- |
+| **Purpose**                     | Finds elements on the page using a selector.                                | Narrows down results from an existing locator’s element set.                   |
+| **Scope**                       | Operates at the **DOM query** level — retrieves all matches for a selector. | Operates at the **collection** level — refines already-found elements.         |
+| **Typical Use Case**            | Identify a base set of elements or single unique target.                    | Target a specific element among multiple similar ones.                         |
+| **Definition Style**            | Usually defined in `*_locators.py` classes as constants.                    | Used directly in Page Object methods or test logic for fine-grained selection. |
+| **Return Type**                 | A `Locator` object that can represent one or more elements.                 | A new filtered `Locator` (or list via `.all()`) from the parent locator.       |
+| **Example – Base Selection**    | `page.locator("#username")`                                                 | —                                                                              |
+| **Example – Refined Selection** | —                                                                           | `page.locator(".button").filter(text="Login")`                                 |
+| **Example – Index Access**      | —                                                                           | `page.locator(".row").nth(1)`                                                  |
+| **Example – Chaining**          | `page.locator(".menu-item").click()`                                        | `page.locator(".menu-item").filter(text="Settings").click()`                   |
+| **Performance**                 | Triggers a fresh DOM query each time.                                       | Works on cached element handles within the parent locator’s context.           |
+| **Best For**                    | Stable, reusable element definitions (single source of truth).              | Contextual or dynamic content selection at runtime.                            |
+| **Usage Location**              | Locators are stored in `Locators` classes for maintainability.              | Filters are invoked inline inside Page methods or test steps.                  |
+| **Example in nRobo Project**    | `LoginPageLocators.LOGIN_BTN = "button:has-text('Login')"`                  | `page.locator(LoginPageLocators.LOGIN_BTN).filter(text="Login")`               |
+
+### 🧭 Guidelines
+
+- **Define once, filter many**.
+Keep locators centralized, but apply filters where context demands specificity.
+
+- **Avoid over-filtering**.
+If you routinely use the same filter, consider defining a dedicated locator instead.
+
+- **Chain responsibly**.
+Filters can be combined (.filter(...).first()) but should stay readable.
+
+## 📚 Collections
+
+**Collections** in nRobo represent **groups of elements** located by a shared selector or locator.
+They provide an intuitive way to perform **batch operations**, **aggregated assertions**, or **loop-based verifications** over multiple UI elements returned by a locator query.
+
+A `Collection` is essentially an iterable abstraction built on top of `Locator` results — giving you the power to work with multiple elements in a clean, expressive, and consistent way.
+
+### 💡 Concept
+
+When a locator matches **multiple elements**, nRobo wraps them into a **Collection** object.
+This allows you to:
+
+- Access each element individually (`.first()`, `.last()`, `.nth(i)`)
+
+- Iterate through all elements using `.all()` or a loop
+
+- Apply bulk checks and assertions in a readable style
+
+- Keep your test code declarative and framework-consistent
+
+### ⚙️ Common Collection Methods
+
+| Method              | Description                                               | Example                                                                                   |
+| :------------------ | :-------------------------------------------------------- | :---------------------------------------------------------------------------------------- |
+| `.all()`            | Returns all elements as a list of Locators                | `cards = page.locator(".card").all()`                                                     |
+| `.count()`          | Returns the number of matched elements                    | `count = page.locator(".card").count()`                                                   |
+| `.first()`          | Returns the first element in the collection               | `page.locator(".row").first().click()`                                                    |
+| `.last()`           | Returns the last element in the collection                | `page.locator(".row").last().should_have_text("Summary")`                                 |
+| `.nth(index)`       | Returns the element at the given index (0-based)          | `page.locator(".product").nth(1).click()`                                                 |
+| `.filter(**kwargs)` | Refines elements based on text, attributes, or conditions | `page.locator(".item").filter(text="Buy Now")`                                            |
+| `.map(func)`        | Applies a function or action to each element              | `page.locator(".checkbox").map(lambda el: el.click())` *(if supported in implementation)* |
+
+### 🧱 Example Usage
+
+```python
+def test_product_cards(page):
+    page.goto("https://example.com/products")
+
+    cards = page.locator(".product-card")
+
+    # Verify total number of products
+    assert cards.count() == 5
+
+    # Loop over all product cards
+    for card in cards.all():
+        card.should_be_visible()
+
+    # Click on the second product
+    cards.nth(1).click()
+
+    # Assert last product name
+    cards.last().should_have_text("Deluxe Edition")
+```
+
+🧩 Combined Example: Locator + Collection + Filter
+
+```python
+def test_select_specific_button(page):
+    buttons = page.locator("button")
+
+    # Total buttons
+    assert buttons.count() >= 3
+
+    # Filter the collection by text
+    buttons.filter(text="Submit").first().click()
+
+    # Loop through all visible buttons
+    for btn in buttons.all():
+        btn.should_be_visible()
+```
+
+### 🧠 Best Practices
+
+- Treat a Collection as a **readable**, **iterable set** of elements — not just a list.
+
+- Always use `.count()` or `.all()` before asserting the expected number of elements.
+
+- Prefer `.filter()` + `.first()` over hard-coded indexes for stability.
+
+- Avoid deeply nested loops; instead, encapsulate repetitive logic into Page methods.
+
+
+### 🔗 Related Concepts
+
+| Related Concept | Description                                                    |
+| :-------------- | :------------------------------------------------------------- |
+| **Locator**     | Defines how elements are identified in the DOM.                |
+| **Filter**      | Narrows down matched elements within a collection.             |
+| **Page Object** | Encapsulates locators and actions for a complete page or view. |
+
+
+## ⏳ Custom Wait Methods
+
+**Custom Wait Methods** in `nRobo` provide a powerful and expressive way to handle dynamic page synchronization.
+They abstract the complexity of explicit waits and make your tests **resilient**, **readable**, and **deterministic** across varying network or render conditions.
+
+Unlike generic Selenium or Playwright waits, `nRobo`’s custom wait methods are **built around intelligent polling and auto-timeouts** defined in framework settings — giving every test the right balance between speed and reliability.
+
+### 💡 Purpose
+
+Dynamic web pages often require waiting for elements to appear, disappear, or reach a specific state before performing an action.
+`nRobo` provides high-level custom wait utilities so you can focus on intent, not timing logic.
+
+
+### ⚙️ Common Wait Methods
+
+| Method                                                   | Description                                                           | Example                                                      |
+| :------------------------------------------------------- | :-------------------------------------------------------------------- | :----------------------------------------------------------- |
+| `wait_for_visible(locator, timeout=None)`                | Waits until the element is visible on the page.                       | `page.wait_for_visible("#login")`                            |
+| `wait_for_clickable(locator, timeout=None)`              | Waits until the element becomes visible and enabled for interaction.  | `page.wait_for_clickable(".submit-btn")`                     |
+| `wait_for_disappear(locator, timeout=None)`              | Waits until the element is no longer visible or removed from the DOM. | `page.wait_for_disappear(".loading-spinner")`                |
+| `wait_for_text(locator, text, timeout=None)`             | Waits until the given text appears in the element.                    | `page.wait_for_text(".message", "Success")`                  |
+| `wait_until(condition_fn, timeout=None, interval=0.5)`   | Waits for a custom condition (lambda or function) to return True.     | `page.wait_until(lambda: "Ready" in page.get_status_text())` |
+| `wait_for_attribute(locator, attr, value, timeout=None)` | Waits until an attribute’s value matches expectation.                 | `page.wait_for_attribute(".status", "data-state", "loaded")` |
+
+
+### 🧱 Example Usage
+
+```python
+def test_login_flow(page):
+    page.goto("https://example.com/login")
+
+    page.wait_for_visible("#username")
+    page.locator("#username").fill("nrobo_user")
+    page.locator("#password").fill("secret123")
+
+    page.wait_for_clickable("button:has-text('Login')")
+    page.locator("button:has-text('Login')").click()
+
+    # Wait until dashboard appears
+    page.wait_for_visible("#dashboard")
+    page.wait_for_text("#welcome", "Welcome back")
+```
+
+### 🧩 Advanced Usage — Custom Condition
+
+```python
+def test_dynamic_refresh(page):
+    page.goto("https://example.com/data")
+
+    # Wait for custom condition
+    page.wait_until(
+        lambda: "Updated" in page.locator("#status").text(),
+        timeout=10,
+        interval=0.25
+    )
+
+    page.locator("#status").should_have_text("Updated Successfully")
+```
+
+### ⚙️ AutoWait vs Custom Wait
+
+| Aspect           | **AutoWait (Implicit)**                                                   | **Custom Wait (Explicit)**                               |
+| :--------------- | :------------------------------------------------------------------------ | :------------------------------------------------------- |
+| **Triggered by** | Built-in automatic waiting in locator actions (`click()`, `fill()`, etc.) | Manually called by test code when dynamic sync is needed |
+| **Usage**        | Implicitly happens under the hood                                         | Explicit call: `wait_for_visible()`                      |
+| **Control**      | Framework decides when to pause                                           | Tester defines logic and timeout                         |
+| **Best for**     | Stable UI interactions                                                    | Conditional, delayed, or dynamic elements                |
+| **Example**      | `page.locator("#submit").click()`                                         | `page.wait_for_disappear(".loading")`                    |
+
+
+### 🧠 Best Practices
+
+- Always use **custom waits** for **dynamic content** or **asynchronous loading**.
+
+- Prefer semantic waits (e.g., “wait for success message”) instead of arbitrary sleeps.
+
+- Centralize timeout settings in framework config (`settings.DEFAULT_WAIT_TIMEOUT`).
+
+- Combine waits with assertions for robust test reliability.
+
+- Avoid `time.sleep()` — use `wait_for_*` methods to stay deterministic.
+
+### 🔗 Related Features
+
+| Feature        | Description                                                         |
+| :------------- | :------------------------------------------------------------------ |
+| **AutoWait**   | Built-in element synchronization handled by nRobo’s locator engine. |
+| **Assertions** | Can implicitly use waits (`should_have_text`, `should_be_visible`). |
+| **Settings**   | Configure default wait timeout and polling intervals globally.      |
+
+
+## 🌐 Browser Setup and Teardown
+
+Browser setup and teardown in `nRobo` are fully automated and designed to ensure each test runs in a **clean**, **isolated environment**.
+The framework abstracts driver management, session initialization, and cleanup through unified wrappers and Pytest fixtures — minimizing boilerplate while maximizing reliability.
+
+### 💡 Purpose
+
+Every UI test depends on a browser session.
+`nRobo` ensures consistent browser lifecycle management by automatically handling:
+
+- Launching the browser before test execution
+
+- Initializing driver/session with chosen options
+
+- Managing cookies, storage, and window state
+
+- Gracefully quitting after the test run or on failure
+
+- This approach prevents **session leakage**, ensures **test independence**, and makes local and CI executions **environment-agnostic**.
+
+
+### ⚙️ Default Browser Setup
+
+By default, `nRobo` launches the browser based on CLI or configuration settings.
+
+Example CLI usage:
+```bash
+nrobo --browser chrome
+```
+
+Under the hood:
+```python
+@pytest.fixture(scope="function")
+def page(get_driver):
+    """Fixture that provides a wrapped Selenium or Playwright page object."""
+    driver = get_driver(browser_name="chrome", headless=False)
+    yield driver
+    driver.quit()
+```
+
+The `get_driver()` utility dynamically returns the driver object configured via framework settings (`nrobo.core.settings`) or CLI flags.
+
+### 🧱 Example Setup Flow
+
+1. Configuration Detection
+Framework reads browser and headless mode from CLI or environment variables.
+```bash
+nrobo run --browser edge --headless
+```
+
+2. Driver Initialization
+Driver instance created via `get_driver()`:
+```python
+driver = get_driver(browser_name="edge", headless=True)
+```
+
+3. Session Wrapper Binding
+The driver is wrapped in `SeleniumWrapper` or `PlaywrightWrapper` for higher-level APIs:
+```python
+page = SeleniumWrapper(driver)
+```
+
+4. Test Execution
+Each test runs using the `page`  fixture, which automatically manages wait conditions, assertions, and cleanup hooks.
+
+5. Teardown (Automatic)
+After the test completes (pass or fail), the browser session is closed:
+```python
+driver.quit()
+```
+
+### 🧩 Custom Setup Example
+
+You can override setup or extend preconditions at the test or suite level:
+```python
+@pytest.fixture(scope="function")
+def login_page(get_driver):
+    page = get_driver(browser_name="chrome")
+    page.goto("https://example.com/login")
+    page.locator("#username").fill("demo_user")
+    page.locator("#password").fill("demo_pass")
+    page.locator("button:has-text('Login')").click()
+    yield page
+    page.quit()
+```
+
+
+
+### 🧹 Custom Teardown Logic
+
+You can add teardown logic such as log collection, screenshot capture, or session clearing:
+```python
+def teardown_function(request, page):
+    if request.node.rep_call.failed:
+        page.take_screenshot("failed_test.png")
+    page.quit()
+```
+
+Or integrate it via Pytest hooks:
+```python
+def pytest_runtest_teardown(item):
+    # Custom teardown hook
+    pass
+```
+
+### ⚙️ Supported Browsers
+
+| Browser               | Driver Managed By                                         | CLI Example                   |
+| :-------------------- | :-------------------------------------------------------- | :---------------------------- |
+| **Chrome / Chromium** | `webdriver_manager.chrome.ChromeDriverManager()`          | `nrobo run --browser chrome`  |
+| **Firefox**           | `webdriver_manager.firefox.GeckoDriverManager()`          | `nrobo run --browser firefox` |
+| **Edge**              | `webdriver_manager.microsoft.EdgeChromiumDriverManager()` | `nrobo run --browser edge`    |
+| **Safari**            | Native WebDriver (macOS only)                             | `nrobo run --browser safari`  |
+
+
+Playwright-based sessions can also be configured if your project uses Playwright bindings.
+
+### 🧠 Best Practices
+
+- Always use framework fixtures (page, get_driver) instead of manually instantiating WebDrivers.
+
+- Use **function-level scope** for isolation; use **session-level** only for controlled setups (e.g., global logins).
+
+- Prefer headless=True in CI environments for performance.
+
+- Integrate teardown hooks for screenshots, logs, and Allure attachments.
+
+- Never reuse driver instances between tests unless explicitly scoped.
+
+### 🔗 Related Topics
+
+| Feature                                 | Description                                                                 |
+| :-------------------------------------- | :-------------------------------------------------------------------------- |
+| **SeleniumWrapper / PlaywrightWrapper** | Provides uniform APIs for browser actions and assertions.                   |
+| **Fixtures**                            | Supplies browser/session objects to tests automatically.                    |
+| **CLI Options**                         | Control browser type, headless mode, and suite execution.                   |
+| **Allure Reporting**                    | Integrates screenshots and environment info captured during setup/teardown. |
+
 
 These tests are NOT part of the official test suite and are NOT executed in CI.
 They exist only for users to learn how to use the framework.
