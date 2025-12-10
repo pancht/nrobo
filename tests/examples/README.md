@@ -1,11 +1,109 @@
 # nRobo Example Test Suite
 
 This folder contains demo tests showing how to use every feature of nRobo:
-## 1. Navigation
-- goto()
-- get()
-- back(), forward()
-- refresh()
+## 🌐 Navigation API in nRobo
+nRobo provides a modern, Selenium-compatible navigation API with **automatic page-load waiting**, **navigation detection**, and **Playwright-style ergonomics**.
+Every navigation method integrates with the **AutoWait Engine**, so your tests remain stable without manual sleeps.
+
+### 🚀 Navigation Methods
+
+1. `goto(url, wait="load")` — Recommended
+
+nRobo’s preferred navigation method.
+Wraps `driver.get()` + intelligent auto-wait.
+```python
+page.goto("https://example.com")
+```
+
+Behavior:
+
+| Parameter               | Meaning                                                          |
+| ----------------------- | ---------------------------------------------------------------- |
+| `wait="load"` (default) | Always wait for DOM ready (`document.readyState === "complete"`) |
+| `wait="none"`           | Do not wait after navigating                                     |
+| `wait="auto"`           | Reserved for future use (auto-detect heuristic)                  |
+
+2. `get(url)` — Pure Selenium Equivalent
+Shortcut to raw Selenium `driver.get()`.
+No automatic waits unless AutoWait detects state change (optional).
+```python
+page.get("https://example.com")
+```
+
+3. `back(wait="auto")`
+
+Navigate to previous page in history.
+```python
+page.back()
+```
+
+Behavior:
+
+- Executes `driver.back()`
+
+- Detects navigation automatically
+
+- Waits for page load if URL changed or readyState dropped
+
+Customization:
+```python
+page.back(wait="load")   # always wait
+page.back(wait="none")   # never wait
+```
+
+4. `forward(wait="auto")`
+
+Navigate forward in browser history.
+```python
+page.forward()
+```
+
+Same AutoWait behavior as `.back()`.
+
+5. `refresh(wait="load")`
+
+Refresh current page.
+```python
+page.refresh()
+```
+
+Refresh always triggers a load wait unless explicitly disabled:
+```python
+page.refresh(wait="none")
+```
+
+### 🧠 Why nRobo Navigation Is Better
+
+
+| Action      | Selenium Default     | nRobo Behavior                              |
+| ----------- | -------------------- | ------------------------------------------- |
+| `back()`    | No load wait         | Auto-detects navigation + waits             |
+| `forward()` | No load wait         | Auto-detects navigation + waits             |
+| `refresh()` | May return early     | Guaranteed load wait                        |
+| `get()`     | No stability wrapper | AutoWait stability applied                  |
+| `goto()`    | Not available        | Best-in-class navigation with waiting modes |
+
+### 📘 Examples
+
+**Basic end-to-end navigation**
+```python
+page.goto("https://example.com")
+
+page.locator("text=Login").click()
+
+page.back()
+page.forward()
+
+page.refresh()
+```
+
+**Explicit wait control**
+```python
+page.goto(url, wait="none")
+page.back(wait="load")
+page.forward(wait="none")
+page.refresh(wait="load")
+```
 
 ## 2. Locators
 - CSS, XPath, Shadow DOM, Text selectors
