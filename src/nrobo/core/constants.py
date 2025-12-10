@@ -23,3 +23,20 @@ pytest_non_execution_keys = [
     "--setup-show",
     "--confcutdir",  # "--confcutdir=DIR",
 ]
+
+
+class NRoboCommands:
+    CLEAN = "clean"
+    GENERATE = "generate"
+    INIT = "init"
+    NGINX = "nginx"
+    UPDATE = "update"
+
+
+N_COMMANDS = [
+    NRoboCommands.CLEAN,
+    NRoboCommands.GENERATE,
+    NRoboCommands.INIT,
+    NRoboCommands.NGINX,
+    NRoboCommands.UPDATE,
+]

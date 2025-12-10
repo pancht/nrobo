@@ -5,8 +5,9 @@ from pathlib import Path
 
 import pytest
 
-from nrobo.cli.commands import clean, init, nginx, update
+from nrobo.cli.commands import clean, generate, init, nginx, update
 from nrobo.core import settings
+from nrobo.core.constants import N_COMMANDS, NRoboCommands
 from nrobo.core.exceptions import NoSubCommandFoundByArgParser
 from nrobo.helpers.io_helper import copy_configs_if_updated
 from nrobo.helpers.logging_helper import get_logger, set_logger_level
@@ -18,12 +19,14 @@ logger = get_logger(name=settings.NROBO_APP)
 
 
 def _add_clean_parser(subparser):
-    clean_parser = subparser.add_parser("clean", help="Clean test_artifacts/")
+    clean_parser = subparser.add_parser(NRoboCommands.CLEAN, help="Clean test_artifacts/")
     clean_parser.add_argument("-v", "--verbose", action="store_true")
 
 
 def _add_init_parser(subparser):
-    init_parser = subparser.add_parser("init", help=f"{settings.NROBO_APP} project initializer")
+    init_parser = subparser.add_parser(
+        NRoboCommands.INIT, help=f"{settings.NROBO_APP} project initializer"
+    )
     init_parser.add_argument(
         "--app", required=True, type=str, help="App name (used as project name)"
     )
@@ -32,7 +35,7 @@ def _add_init_parser(subparser):
 def _add_nginx_parser(subparser):
     # nginx subcommand that forwards all args (start/stop/status/--dir)
     nginx_parser = subparser.add_parser(
-        "nginx",
+        NRoboCommands.NGINX,
         help="Manage nRoBo's local Nginx server for Allure reports.",
     )
     nginx_parser.add_argument(
@@ -43,13 +46,25 @@ def _add_nginx_parser(subparser):
 
 
 def _add_update_parser(subparsers):
-    parser = subparsers.add_parser("update", help="Update nrobo dependencies")
+    parser = subparsers.add_parser(NRoboCommands.UPDATE, help="Update nrobo dependencies")
     parser.add_argument(
         "--playwright", action="store_true", help="Update Playwright and install browsers"
     )
     parser.add_argument("--selenium", action="store_true", help="Update Selenium and webdrivers")
     parser.add_argument("--self", action="store_true", help="Update nrobo itself")
     return parser
+
+
+def _add_generate_parser(subparser):
+    generate_parser = subparser.add_parser(
+        NRoboCommands.GENERATE, help="Generate nRobo components (Page, Locators, etc.)"
+    )
+    generate_parser.add_argument(
+        "page", help="Generate a new Page Object class and associated locator file"
+    )
+    generate_parser.add_argument(
+        "name", help="Name of the Page class to generate (e.g., LoginPage)"
+    )
 
 
 def _base_parser():
@@ -111,6 +126,7 @@ def _sub_commands() -> argparse.ArgumentParser:
     _add_init_parser(subparsers)
     _add_nginx_parser(subparsers)
     _add_update_parser(subparsers)
+    _add_generate_parser(subparsers)
 
     return parser
 
@@ -159,20 +175,22 @@ def _handle_subcommand_if_any(argv=None):
     argv = argv or sys.argv
 
     command = argv[1] if len(argv) > 1 else None
-    if command not in ["clean", "init", "nginx", "update"]:
+    if command not in N_COMMANDS:
         raise NoSubCommandFoundByArgParser("No subcommand found.")
 
     # Run subcommand parser only
     sub_args = _parse_subcommand(argv[1:])
 
-    if sub_args.command == "clean":
+    if sub_args.command == NRoboCommands.CLEAN:
         clean.run(argv[2:])
-    elif sub_args.command == "init":
+    elif sub_args.command == NRoboCommands.INIT:
         init.run(argv[2:])
-    elif sub_args.command == "nginx":
+    elif sub_args.command == NRoboCommands.NGINX:
         nginx.run(sys.argv[2:])
-    elif sub_args.command == "update":  # pragma: no cover
+    elif sub_args.command == NRoboCommands.UPDATE:  # pragma: no cover
         update.run(argv[2:])  # pragma: no cover
+    elif sub_args.command == NRoboCommands.GENERATE:
+        generate.run(argv[2:])
 
     sys.exit(0)  # pragma: no cover
 
