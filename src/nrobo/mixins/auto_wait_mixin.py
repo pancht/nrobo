@@ -175,3 +175,10 @@ class AutoWaitMixin:
 
         self.driver.forward()
         self._maybe_wait_for_nav(before_url, pre_state, wait)
+
+    def refresh(self, wait="auto"):
+        before_url = self.driver.current_url
+        pre_state = _safe_ready_state(self.driver)
+
+        self.driver.refresh()
+        self._maybe_wait_for_nav(before_url, pre_state, wait)
