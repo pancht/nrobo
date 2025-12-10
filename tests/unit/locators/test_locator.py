@@ -925,3 +925,31 @@ def test_submit_calls_wrapper_and_is_chainable():
 
     wrapper.submit.assert_called_once_with(loc)
     assert returned is loc  # chainable
+
+
+def test_find_calls_find_by_text_for_js_text_branch():
+    """
+    Ensure that when Locator.by == 'JS_TEXT', _find() calls wrapper.find_by_text(self.value).
+    """
+
+    # Mock SeleniumWrapper-like object
+    mock_wrapper = MagicMock()
+    mock_wrapper.resolve_locator.return_value = ("JS_TEXT", "example text")
+
+    # Create Locator instance
+    locator = Locator(wrapper=mock_wrapper, locator="dummy_locator", description="Dummy")
+
+    # Manually confirm state
+    assert locator.by == "JS_TEXT"
+    assert locator.value == "example text"
+
+    # Mock the wrapper.find_by_text return value
+    expected_element = MagicMock(name="mock_element")
+    mock_wrapper.find_by_text.return_value = expected_element
+
+    # Call _find(), which should trigger the JS_TEXT branch
+    result = locator._find()
+
+    # Verify correct delegation and return value
+    mock_wrapper.find_by_text.assert_called_once_with("example text")
+    assert result is expected_element

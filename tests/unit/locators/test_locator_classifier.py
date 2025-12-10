@@ -108,3 +108,15 @@ def test_detect_text_explicit_():
     assert LocatorClassifier.detect("text=Login") == LocatorType.PLAYWRIGHT
     assert LocatorClassifier.detect("text=Submit Now") == LocatorType.PLAYWRIGHT
     assert LocatorClassifier.detect("text=Hello123") == LocatorType.PLAYWRIGHT
+
+
+@pytest.mark.parametrize(
+    "locator", ["text=Hello", "role=button", "label=Username", "link=Home", "partial-text=Welcome"]
+)
+def test_detect_returns_playwright_for_supported_prefixes(locator):
+    """
+    Ensure detect() returns LocatorType.PLAYWRIGHT when locator has '=' and prefix
+    in {'text', 'role', 'label', 'link', 'partial-text'}.
+    """
+    result = LocatorClassifier.detect(locator)
+    assert result == LocatorType.PLAYWRIGHT

@@ -1,3 +1,4 @@
+import sys
 from unittest.mock import patch
 
 import pytest
@@ -17,19 +18,14 @@ def test_generate_page_invokes_generator(monkeypatch):
         mock_generate.assert_called_once_with("LoginPage")
 
 
-def test_generate_page_shows_help_when_missing_args(capsys):
-    """
-    Test that help message is shown when required arguments are missing.
-    """
+def test_generate_page_shows_help_when_missing_args(capsys, monkeypatch):
+    monkeypatch.setattr(sys, "argv", ["nrobo"])
     with pytest.raises(SystemExit):
         generate.run([])
 
     out, err = capsys.readouterr()
     assert "usage:" in out or "usage:" in err
-    assert (
-        "nrobo: error: the following arguments are required: page, name" in out
-        or "nrobo: error: the following arguments are required: page, name" in err
-    )
+    assert "the following arguments are required: page, name" in (out + err)
 
 
 def test_generate_page_help_output(capsys):

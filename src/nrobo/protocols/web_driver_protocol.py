@@ -1,3 +1,4 @@
+# pragma: no cover
 from typing import Any, Dict, List, Protocol, Tuple
 
 from selenium.webdriver.remote.webelement import WebElement

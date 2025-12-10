@@ -5,6 +5,7 @@ from selenium.common import StaleElementReferenceException, TimeoutException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
+from nrobo.core import settings
 from nrobo.helpers.selenium_helper import _safe_ready_state
 from nrobo.protocols.web_element_protocol import WebElementProtocol
 from nrobo.utils.driver_utils import is_mobile_session
@@ -21,8 +22,9 @@ class AutoWaitMixin:
       - `self.driver` exists (from SeleniumWrapperBase)
     """
 
-    DEFAULT_TIMEOUT = 10
-    RETRY_STALE_ATTEMPTS = 3
+    #
+    # DEFAULT_TIMEOUT = 10
+    # RETRY_STALE_ATTEMPTS = 3
 
     # ---------------------------------------------------------
     # Resolve (by,value,description) → WebElement (with wait + retry)
@@ -30,10 +32,10 @@ class AutoWaitMixin:
     def _resolve(self, locator) -> WebElementProtocol:
         by, value, desc = locator.by, locator.value, locator.description
 
-        for attempt in range(1, self.RETRY_STALE_ATTEMPTS + 1):
+        for attempt in range(1, settings.RETRY_STALE_ATTEMPTS + 1):
             try:
                 print(f"[AutoWait] Resolving locator: {desc!r}")
-                element = WebDriverWait(self.driver, self.DEFAULT_TIMEOUT).until(
+                element = WebDriverWait(self.driver, settings.ELE_WAIT_TIMEOUT).until(
                     EC.visibility_of_element_located((by, value)),
                     message=f"Timeout waiting for: {desc!r}",
                 )
@@ -50,9 +52,9 @@ class AutoWaitMixin:
 
             except StaleElementReferenceException:
                 print(
-                    f"[AutoWait] StaleElement on attempt {attempt}/{self.RETRY_STALE_ATTEMPTS} for {desc!r}"
+                    f"[AutoWait] StaleElement on attempt {attempt}/{settings.RETRY_STALE_ATTEMPTS} for {desc!r}"
                 )
-                if attempt == self.RETRY_STALE_ATTEMPTS:
+                if attempt == settings.RETRY_STALE_ATTEMPTS:
                     raise
                 time.sleep(0.2)
 
@@ -130,6 +132,9 @@ class AutoWaitMixin:
             self.wait_for_page_load()
 
     # ----------------- actions with integrated waits -----------------
+    def get(self, url: str):
+        self.goto(url=url)
+
     def goto(self, url: str, wait: str = "load"):
         """
         Navigate to URL, then optionally wait:

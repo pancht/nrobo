@@ -77,3 +77,4 @@ TEST_DATA_DIR = os.getenv("NROBO_TEST_DATA_DIR", "test_data")
 # Global timeouts
 PAGE_LOAD_TIMEOUT = 30
 ELE_WAIT_TIMEOUT = 10
+RETRY_STALE_ATTEMPTS = 3

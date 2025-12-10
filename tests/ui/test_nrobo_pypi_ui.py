@@ -9,10 +9,9 @@ def test_nrobo_pypi_page(request, fixture_name, logger):
     wrapper: SeleniumWrapper = request.getfixturevalue(fixture_name)
     page = PageHome(wrapper)
 
-    page.get("https://pypi.org/project/nrobo/")
-
+    page.goto("https://pypi.org/project/nrobo/")
     # Assertions
-    page.locator("//h1[@class='package-header__name']").is_displayed()
+    page.locator("//h1[@class='package-header__name']").should_be_visible()
     page.locator('//*[@class="project-description"]/h1').should_have_text(
         "nRobo — Next-Gen Test Automation for Selenium (with Playwright Superpowers)"
     )
