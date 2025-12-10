@@ -1,4 +1,5 @@
-# pragma: no cover
+# coverage: ignore file
+
 from typing import Any, Dict, List, Protocol, Tuple
 
 from selenium.webdriver.remote.webelement import WebElement

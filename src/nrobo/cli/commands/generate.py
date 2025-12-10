@@ -25,4 +25,4 @@ def run(args):
     if parsed_args.page:
         generate_page_file(parsed_args.name)
     else:
-        parser.print_help()
+        parser.print_help()  # pragma: no cover
