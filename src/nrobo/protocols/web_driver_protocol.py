@@ -1,11 +1,10 @@
 # coverage: ignore file
-
-from typing import Any, Dict, List, Protocol, Tuple
+from typing import Any, Dict, List, Protocol, Tuple, runtime_checkable
 
 from selenium.webdriver.remote.webelement import WebElement
 
 
-class SwitchToProtocol(Protocol):
+class SwitchToProtocol(Protocol):  # pragma: no cover
     """Protocol for Selenium switch_to context."""
 
     def active_element(self) -> WebElement: ...
@@ -16,11 +15,14 @@ class SwitchToProtocol(Protocol):
     def window(self, window_name: str) -> None: ...
 
 
-class SeleniumDriverProtocol(Protocol):
+@runtime_checkable
+class SeleniumDriverProtocol(Protocol):  # pragma: no cover
     """
     FULL Selenium WebDriver API — suitable for typing and autocomplete.
     This matches Chrome, Firefox, Edge, Safari WebDriver interfaces.
     """
+
+    # pragma: no cover
 
     # ----------------------------------------------------------
     # Properties
