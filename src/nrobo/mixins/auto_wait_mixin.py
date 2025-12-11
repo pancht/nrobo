@@ -6,9 +6,12 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
 from nrobo.core import settings
+from nrobo.helpers.logging_helper import get_logger
 from nrobo.helpers.selenium_helper import _safe_ready_state
 from nrobo.protocols.web_element_protocol import WebElementProtocol
 from nrobo.utils.driver_utils import is_mobile_session
+
+logger = get_logger(name=settings.NROBO_APP)
 
 
 class AutoWaitMixin:
@@ -34,7 +37,7 @@ class AutoWaitMixin:
 
         for attempt in range(1, settings.RETRY_STALE_ATTEMPTS + 1):
             try:
-                print(f"[AutoWait] Resolving locator: {desc!r}")
+                logger.debug(f"[AutoWait] Resolving locator: {desc!r}")
                 element = WebDriverWait(self.driver, settings.ELE_WAIT_TIMEOUT).until(
                     EC.visibility_of_element_located((by, value)),
                     message=f"Timeout waiting for: {desc!r}",
@@ -46,12 +49,12 @@ class AutoWaitMixin:
                         element,
                     )
                 except Exception:
-                    print(f"[AutoWait] Scroll not critical for {desc!r}")
+                    logger.debug(f"[AutoWait] Scroll not critical for {desc!r}")
 
                 return cast(WebElementProtocol, element)
 
             except StaleElementReferenceException:
-                print(
+                logger.debug(
                     f"[AutoWait] StaleElement on attempt {attempt}/{settings.RETRY_STALE_ATTEMPTS} for {desc!r}"
                 )
                 if attempt == settings.RETRY_STALE_ATTEMPTS:
@@ -59,7 +62,7 @@ class AutoWaitMixin:
                 time.sleep(0.2)
 
             except TimeoutException as e:
-                print(f"[AutoWait] Timeout resolving: {desc!r}")
+                logger.debug(f"[AutoWait] Timeout resolving: {desc!r}")
                 raise e
 
         raise RuntimeError(f"[AutoWait] Failed to resolve element: {desc!r}")  # pragma: no cover

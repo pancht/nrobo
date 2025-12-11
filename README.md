@@ -75,9 +75,9 @@ It brings stability, expressiveness, and speed to UI test automation — all pow
     ```
     2. 🧩 **Smart Locator & Collection API** - Like Playwright, but runs on Selenium:
     ```python
-    page.locator("#email").fill("admin@example.com").press("Enter")
-    page.locator("div.card:has(.price)").nth(2).click()
-    page.locator("li.item").all().filter(has_text="Active").first().click()
+    page.selector("#email").fill("admin@example.com").press("Enter")
+    page.selector("div.card:has(.price)").nth(2).click()
+    page.selector("li.item").all().filter(has_text="Active").first().click()
     ```
     3. **Collection features:**
        - .all()
@@ -100,11 +100,11 @@ It brings stability, expressiveness, and speed to UI test automation — all pow
 
        - No sleeps, no explicit waits needed
 
-        Example:
+       Example:
 
         ```python
-        page.locator("#login").click()   # waits automatically
-        page.locator("#email").fill("user")
+        page.selector("#login").click()   # waits automatically
+        page.selector("#email").fill("user")
         ```
 
     1. 🌐 **Deep Selenium Compatibility Layer**
@@ -116,10 +116,10 @@ It brings stability, expressiveness, and speed to UI test automation — all pow
 
        - Selenium-based typing (Protocol) ensures autocomplete
 
-        You can always fall back to raw Selenium if needed:
+       You can always fall back to raw Selenium if needed:
 
         ```python
-        page.locator("#submit")._find().get_attribute("class")
+        page.selector("#submit")._find().get_attribute("class")
         ```
 
     1. 📚 **Developer Experience & Extensibility**
@@ -140,7 +140,7 @@ It brings stability, expressiveness, and speed to UI test automation — all pow
         Playwright-style selectors on Selenium:
 
         ```python
-        page.locator(
+        page.selector(
             "form:has(input[name=email]) >> button:has-text('Submit'):visible"
         ).click()
         ```
@@ -148,13 +148,13 @@ It brings stability, expressiveness, and speed to UI test automation — all pow
     1. **Shadow DOM support:**
 
         ```python
-        page.locator("shadow::todo-app >>> li:has-text('Completed')").click()
+        page.selector("shadow::todo-app >>> li:has-text('Completed')").click()
         ```
 
     1. **Nested filters:**
 
         ```python
-        rows = page.locator("tr:visible").all()
+        rows = page.selector("tr:visible").all()
         rows.filter(has_text="Active").nth(0).click()
         ```
 
@@ -237,26 +237,29 @@ nRobo = **Playwright power** + **Selenium compatibility**.
 ```
 
 #### Example test:
+
 ```python
 def test_login(page):
-    page.locator("text=Login").click()
-    page.locator("#email").fill("admin")
-    page.locator("#password").fill("secret")
-    page.locator("button:has-text('Login')").click()
-    page.locator("text=Welcome").should_be_visible()
+    page.selector("text=Login").click()
+    page.selector("#email").fill("admin")
+    page.selector("#password").fill("secret")
+    page.selector("button:has-text('Login')").click()
+    page.selector("text=Welcome").should_be_visible()
 ```
 
 #### 🧰 Built-in Helpers
 ##### Conditions
+
 ```python
-page.locator("#item").should_be_visible()
-page.locator("button").should_be_enabled()
-page.locator("input").should_have_text("Hello")
+page.selector("#item").should_be_visible()
+page.selector("button").should_be_enabled()
+page.selector("input").should_have_text("Hello")
 ```
 
 ##### Collections
+
 ```python
-items = page.locator("li").all()
+items = page.selector("li").all()
 assert items.count() == 5
 ```
 

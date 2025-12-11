@@ -1,7 +1,12 @@
 import re
 from typing import Any, Callable, cast
 
+from nrobo.core import settings
+from nrobo.helpers.logging_helper import get_logger
+from nrobo.locators.locator_classifier import LocatorClassifier, LocatorType
 from nrobo.protocols.web_element_protocol import WebElementProtocol
+
+logger = get_logger(name=settings.NROBO_APP)
 
 
 class Locator(WebElementProtocol):
@@ -13,19 +18,60 @@ class Locator(WebElementProtocol):
 
     _element: WebElementProtocol  # for IDE hints only
 
-    def __init__(self, wrapper, locator: str, description: str | None = None):
+    def __init__(
+        self,
+        wrapper,
+        locator: str,
+        description: str | None = None,
+        *,
+        parent: "Locator" = None,
+    ):
         # Local import to avoid cycle at import time
         from nrobo.selenium_wrappers.selenium_wrapper import SeleniumWrapper
 
-        self.wrapper: SeleniumWrapper = cast(SeleniumWrapper, wrapper)
-        self.locator = locator
-        self.description = description or locator
-        self.by, self.value = self.wrapper.resolve_locator(locator)
+        self.parent = parent  # chain support
 
+        self.wrapper: SeleniumWrapper = cast(SeleniumWrapper, wrapper)
+        self.selector = locator
+        self.locator_type = LocatorClassifier.detect(locator)
+        self.description = description or locator
+        self.by, self.value = self.wrapper.resolve_locator(self.full_selector)
+        logger.debug(f"By={self.by}, value={self.value}")
         self.index = None  # means "single element"
         self.multiple = False  # helps distinguish single vs multiple retrieval
 
         self.is_shadow = ">>>" in locator or "shadow::" in locator
+
+    @property
+    def full_selector(self) -> str:
+        if self.parent:
+            # Special handling for XPath chain
+            if self.locator_type == LocatorType.XPATH:
+                return f"{self.parent.full_selector}{self.selector}"
+            return f"{self.parent.full_selector} {self.selector}"
+        return self.selector
+
+    def locator(self, nested_selector: str, description: str | None = None) -> "Locator":
+        nested_selector_type = LocatorClassifier.detect(nested_selector)
+
+        # ❌ Block invalid chaining between XPath and non-XPath
+        if (
+            LocatorType.XPATH in {self.locator_type, nested_selector_type}
+            and self.locator_type != nested_selector_type
+        ):
+            raise ValueError(
+                f"❌ Invalid chaining: Cannot chain {nested_selector_type.name} selector "
+                f"('{nested_selector}') onto {self.locator_type.name} base ('{self.selector}'). "
+                f"Mixing XPath and non-XPath selectors is not supported."
+            )
+
+        # ✅ Valid chaining
+        return Locator(
+            wrapper=self.wrapper,
+            locator=nested_selector,
+            description=description or nested_selector,
+            parent=self,
+        )
 
     # -------------------------------------------------------------------------
     # EXPLICIT METHODS (ensure IDE autocomplete + chaining)
@@ -241,7 +287,12 @@ class Locator(WebElementProtocol):
         locators = []
 
         for i, _ in enumerate(elements):
-            new_loc = Locator(self.wrapper, self.locator, f"{self.description}[{i}]")
+            new_loc = Locator(
+                self.wrapper,
+                self.selector,
+                f"{self.description}[{i}]",
+                parent=self.parent,  # preserve chain
+            )
             new_loc.by = self.by
             new_loc.value = self.value
             new_loc.index = i
@@ -298,7 +349,12 @@ class Locator(WebElementProtocol):
                 continue
 
             # Passed all filters — create new Locator
-            new_loc = Locator(self.wrapper, self.locator, f"{self.description}[filtered:{index}]")
+            new_loc = Locator(
+                self.wrapper,
+                self.selector,
+                f"{self.description}[filtered:{index}]",
+                parent=self.parent,  # preserve full chain
+            )
             new_loc.by = self.by
             new_loc.value = self.value
             new_loc.index = index
@@ -322,20 +378,48 @@ class Locator(WebElementProtocol):
         """
         Return Locator for nth matching element.
         """
-        new_loc = Locator(self.wrapper, self.locator, f"{self.description}[{index}]")
+        new_loc = Locator(
+            self.wrapper, self.selector, f"{self.description}[{index}]", parent=self.parent
+        )
         new_loc.by = self.by
         new_loc.value = self.value
         new_loc.index = index
         return new_loc
 
     def first(self) -> "Locator":
-        return self.nth(0)
+        """
+        Return the first matching element, preserving full selector chain.
+        """
+        new_loc = Locator(
+            wrapper=self.wrapper,
+            locator=self.selector,
+            description=f"{self.description}[first]",
+            parent=self.parent,
+        )
+        new_loc.by, new_loc.value = self.wrapper.resolve_locator(new_loc.full_selector)
+        new_loc.index = 0
+        return new_loc
 
     def last(self) -> "Locator":
+        """
+        Return the last matching element, preserving full selector chain.
+        """
         count = self.count()
         if count == 0:
-            raise AssertionError(f"No elements found for locator {self.locator}")
-        return self.nth(count - 1)
+            raise AssertionError(f"No elements found for locator {self.full_selector}")
+
+        new_loc = Locator(
+            wrapper=self.wrapper,
+            locator=self.selector,
+            description=f"{self.description}[last]",
+            parent=self.parent,
+        )
+        new_loc.by, new_loc.value = self.wrapper.resolve_locator(new_loc.full_selector)
+        new_loc.index = count - 1
+        return new_loc
 
     def count(self) -> int:
+        """
+        Count all elements matching the full selector chain.
+        """
         return len(self.wrapper.find_all(self))

@@ -86,10 +86,11 @@ page.refresh(wait="none")
 ### 📘 Examples
 
 **Basic end-to-end navigation**
+
 ```python
 page.goto("https://example.com")
 
-page.locator("text=Login").click()
+page.selector("text=Login").click()
 
 page.back()
 page.forward()
@@ -356,7 +357,7 @@ These APIs work on any locator, including CSS, XPath, text selectors, shadow-sel
 Collect all matched elements.
 
 ```python
-items = page.locator("ul li").all()
+items = page.selector("ul li").all()
 assert items.count() == 5
 ```
 
@@ -368,20 +369,23 @@ for item in items:
 ```
 
 2. `.first()`
+
 ```python
-page.locator(".menu-item").first().click()
+page.selector(".menu-item").first().click()
 ```
 
 3. `.last()`
+
 ```python
-page.locator(".menu-item").last().click()
+page.selector(".menu-item").last().click()
 ```
 
 4. `.nth(i)`
 
 Select element at index:
+
 ```python
-page.locator("div.card").nth(2).click()
+page.selector("div.card").nth(2).click()
 ```
 
 Equivalent to Playwright.
@@ -389,8 +393,9 @@ Equivalent to Playwright.
 5. `.filter(has_text="Active")`
 
 Filter by visible text:
+
 ```python
-active_rows = page.locator("tr").all().filter(has_text="Active")
+active_rows = page.selector("tr").all().filter(has_text="Active")
 active_rows.first().click()
 ```
 
@@ -400,44 +405,49 @@ rows.filter(has_text=r"/pending/i")
 ```
 
 Filter by nested CSS:
+
 ```python
-page.locator(".card").all().filter(has="button:has-text('Pay')")
+page.selector(".card").all().filter(has="button:has-text('Pay')")
 ```
 
 #### 🧪 Combined Examples
 
 Filter + nth
+
 ```python
-page.locator("li.item").all() \
-    .filter(has_text="Completed") \
+page.selector("li.item").all()
+    .filter(has_text="Completed")
     .nth(1).click()
 ```
 
 Iterate each element in filtered result
+
 ```python
-for el in page.locator("div.row").all().filter(has_text="Price"):
+for el in page.selector("div.row").all().filter(has_text="Price"):
     print(el.text())
 ```
 
 Using `.slice()`
+
 ```python
-top_three = page.locator(".result").all().slice(0, 3)
+top_three = page.selector(".result").all().slice(0, 3)
 ```
 
 Random element
+
 ```python
-page.locator(".product").all().random().click()
+page.selector(".product").all().random().click()
 ```
 
 #### 🎯 Playwright-Like Chaining (nRobo Fluent Style)
 
 ```python
-page.locator("div.card")
-    .all()
-    .filter(has_text="Premium")
-    .first()
-    .locator("button:has-text('Buy Now')")
-    .click()
+page.selector("div.card")
+.all()
+.filter(has_text="Premium")
+.first()
+.locator("button:has-text('Buy Now')")
+.click()
 ```
 
 ## 🔥 AutoWait Engine (Stability Layer)
@@ -476,9 +486,9 @@ nRobo eliminates these failure points automatically.
 ### 📌 Example (No Manual Wait Needed)
 
 ```python
-page.locator("#login").click()      # waits for visibility + scroll + stale retry
-page.locator("#email").fill("user")
-page.locator("button:has-text('Sign In')").click()  # waits for navigation if detected
+page.selector("#login").click()  # waits for visibility + scroll + stale retry
+page.selector("#email").fill("user")
+page.selector("button:has-text('Sign In')").click()  # waits for navigation if detected
 ```
 
 Everything “just works” without:
@@ -543,28 +553,33 @@ All assertion methods automatically retry until the condition becomes true, redu
 #### 📘 Assertion Examples
 
 **Check visibility**
+
 ```python
-page.locator("text=Login").should_be_visible()
+page.selector("text=Login").should_be_visible()
 ```
 
 **Validate text**
+
 ```python
-page.locator("h3").should_have_text("Secure Area")
+page.selector("h3").should_have_text("Secure Area")
 ```
 
 **Assert value of an input field**
+
 ```python
-page.locator("#email").should_have_value("admin@test.com")
+page.selector("#email").should_have_value("admin@test.com")
 ```
 
 **Assert element becomes hidden**
+
 ```python
-page.locator(".loading-spinner").should_be_hidden()
+page.selector(".loading-spinner").should_be_hidden()
 ```
 
 **Count assertions (with `.all()`)**
+
 ```python
-items = page.locator("ul li").all()
+items = page.selector("ul li").all()
 items.should_have_count(5)
 ```
 
@@ -578,8 +593,9 @@ Assertions automatically apply nRobo’s **AutoWait Engine**, meaning:
 - no ExpectedConditions
 
 Example:
+
 ```python
-page.locator("#status").should_have_text("Completed")
+page.selector("#status").should_have_text("Completed")
 ```
 
 This will retry until:
@@ -593,14 +609,16 @@ This will retry until:
 or it times out with a detailed error message.
 
 ### 🧠 Fluent API: Chain Assertions with Locators
+
 ```python
-page.locator("form >> button:has-text('Submit')")
-    .should_be_enabled()
-    .click()
+page.selector("form >> button:has-text('Submit')")
+.should_be_enabled()
+.click()
 ```
 Or:
+
 ```python
-page.locator(".toast").should_be_visible().should_contain_text("Success")
+page.selector(".toast").should_be_visible().should_contain_text("Success")
 ```
 
 ### 📌 Why nRobo Assertions Are Better
@@ -718,7 +736,7 @@ When a locator matches **multiple elements**, a filter allows you to:
 Filters are available on any `Locator` instance returned from:
 
 ```python
-page.locator("selector")
+page.selector("selector")
 ```
 
 ### ⚙️ Common Filter Methods
@@ -732,24 +750,25 @@ page.locator("selector")
 | `.filter(attribute="value")` | Filters elements by attribute value                  | `page.locator("input").filter(placeholder="Email")`       |
 
 ### 🧱 Example Usage
+
 ```python
 def test_filter_usage(page):
     page.goto("https://example.com")
 
     # Select first card
-    page.locator(".card").first().should_be_visible()
+    page.selector(".card").first().should_be_visible()
 
     # Select last product name
-    page.locator(".product-name").last().should_have_text("Deluxe Edition")
+    page.selector(".product-name").last().should_have_text("Deluxe Edition")
 
     # Select third button
-    page.locator("button").nth(2).click()
+    page.selector("button").nth(2).click()
 
     # Filter by text content
-    page.locator("button").filter(text="Login").click()
+    page.selector("button").filter(text="Login").click()
 
     # Filter by attribute
-    page.locator("input").filter(placeholder="Search").fill("nRobo")
+    page.selector("input").filter(placeholder="Search").fill("nRobo")
 ```
 
 ### 🧠 Notes & Best Practices
@@ -761,12 +780,13 @@ def test_filter_usage(page):
 - Filters can be chained with assertions:
 
 ```python
-page.locator(".menu-item").filter(text="Settings").should_be_visible()
+page.selector(".menu-item").filter(text="Settings").should_be_visible()
 ```
 
 - Combine `.all()` with loops for batch assertions:
+
 ```python
-for item in page.locator(".product").all():
+for item in page.selector(".product").all():
     item.should_be_visible()
 ```
 
@@ -853,7 +873,7 @@ This allows you to:
 def test_product_cards(page):
     page.goto("https://example.com/products")
 
-    cards = page.locator(".product-card")
+    cards = page.selector(".product-card")
 
     # Verify total number of products
     assert cards.count() == 5
@@ -873,7 +893,7 @@ def test_product_cards(page):
 
 ```python
 def test_select_specific_button(page):
-    buttons = page.locator("button")
+    buttons = page.selector("button")
 
     # Total buttons
     assert buttons.count() >= 3
@@ -938,11 +958,11 @@ def test_login_flow(page):
     page.goto("https://example.com/login")
 
     page.wait_for_visible("#username")
-    page.locator("#username").fill("nrobo_user")
-    page.locator("#password").fill("secret123")
+    page.selector("#username").fill("nrobo_user")
+    page.selector("#password").fill("secret123")
 
     page.wait_for_clickable("button:has-text('Login')")
-    page.locator("button:has-text('Login')").click()
+    page.selector("button:has-text('Login')").click()
 
     # Wait until dashboard appears
     page.wait_for_visible("#dashboard")
@@ -957,12 +977,12 @@ def test_dynamic_refresh(page):
 
     # Wait for custom condition
     page.wait_until(
-        lambda: "Updated" in page.locator("#status").text(),
+        lambda: "Updated" in page.selector("#status").text(),
         timeout=10,
         interval=0.25
     )
 
-    page.locator("#status").should_have_text("Updated Successfully")
+    page.selector("#status").should_have_text("Updated Successfully")
 ```
 
 ### ⚙️ AutoWait vs Custom Wait
@@ -1071,14 +1091,15 @@ driver.quit()
 ### 🧩 Custom Setup Example
 
 You can override setup or extend preconditions at the test or suite level:
+
 ```python
 @pytest.fixture(scope="function")
 def login_page(get_driver):
     page = get_driver(browser_name="chrome")
     page.goto("https://example.com/login")
-    page.locator("#username").fill("demo_user")
-    page.locator("#password").fill("demo_pass")
-    page.locator("button:has-text('Login')").click()
+    page.selector("#username").fill("demo_user")
+    page.selector("#password").fill("demo_pass")
+    page.selector("button:has-text('Login')").click()
     yield page
     page.quit()
 ```

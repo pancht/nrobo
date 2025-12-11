@@ -357,7 +357,7 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin, SeleniumD
                     el = elements[index]
                 else:
                     raise AssertionError(
-                        f"Nth element vanished: index={index}, locator={locator.locator}"
+                        f"Nth element vanished: index={index}, locator={locator.selector}"
                     )
         return el  # final fallback
 
@@ -367,7 +367,7 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin, SeleniumD
     def _find_shadow(self, locator):
         from nrobo.locators.shadow_selector_parser import ShadowSelectorParser
 
-        steps = ShadowSelectorParser.parse(locator.locator)
+        steps = ShadowSelectorParser.parse(locator.selector)
 
         script_path = Path(__file__).parent.parent / "locators/js/shadow_query.js"
         js = script_path.read_text()
@@ -375,13 +375,13 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin, SeleniumD
         elements = self.driver.execute_script(js, steps)
 
         if not elements:
-            raise AssertionError(f"No shadow DOM element found for {locator.locator}")
+            raise AssertionError(f"No shadow DOM element found for {locator.selector}")
 
         # wrap nth logic
         if locator.index is not None:
             if locator.index >= len(elements):
                 raise AssertionError(
-                    f"Index {locator.index} out of range in Shadow DOM for {locator.locator}"
+                    f"Index {locator.index} out of range in Shadow DOM for {locator.selector}"
                 )
             return elements[locator.index]
 
@@ -390,7 +390,7 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin, SeleniumD
     def _find_all_shadow(self, locator):
         from nrobo.locators.shadow_selector_parser import ShadowSelectorParser
 
-        steps = ShadowSelectorParser.parse(locator.locator)
+        steps = ShadowSelectorParser.parse(locator.selector)
 
         script_path = Path(__file__).parent.parent / "locators/js/shadow_query.js"
         js = script_path.read_text()
@@ -399,7 +399,7 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin, SeleniumD
 
     def _find_by_text(self, locator):
         # text=Login OR "Login"
-        raw = locator.locator
+        raw = locator.selector
 
         if raw.startswith("text="):
             text = raw.split("=", 1)[1]
@@ -420,7 +420,7 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin, SeleniumD
 
     def _find_by_has_text(self, locator):
         # e.g. "button:has-text("Save")"
-        loc = locator.locator
+        loc = locator.selector
 
         css_selector, text_part = loc.split(":has-text(", 1)
         text = text_part.rstrip(")").strip("\"'")
@@ -436,18 +436,18 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin, SeleniumD
         return elements[0]
 
     def _find_all_by_text(self, locator):
-        raw = locator.locator
+        raw = locator.selector
         text = raw.split("=", 1)[1] if raw.startswith("text=") else raw.strip("\"'")
         return TextSelectorEngine.find_by_text(self.driver, text)
 
     def _find_all_by_has_text(self, locator):
-        loc = locator.locator
+        loc = locator.selector
         css_selector, text_part = loc.split(":has-text(", 1)
         text = text_part.rstrip(")").strip("\"'")
         return TextSelectorEngine.find_has_text(self.driver, css_selector.strip(), text)
 
     def _find_by_has(self, locator):
-        base, inside = HasSelectorParser.split(locator.locator)
+        base, inside = HasSelectorParser.split(locator.selector)
 
         js_path = Path(__file__).parent.parent / "locators/js/has_query.js"
         js = js_path.read_text()
@@ -455,18 +455,18 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin, SeleniumD
         elements = self.driver.execute_script(js, base, inside)
 
         if not elements:
-            raise AssertionError(f"No element found for selector {locator.locator!r}")
+            raise AssertionError(f"No element found for selector {locator.selector!r}")
 
         # nth selection
         if locator.index is not None:
             if locator.index >= len(elements):
-                raise AssertionError(f":has() nth index out of range for: {locator.locator}")
+                raise AssertionError(f":has() nth index out of range for: {locator.selector}")
             return elements[locator.index]
 
         return elements[0]
 
     def _find_all_by_has(self, locator):
-        base, inside = HasSelectorParser.split(locator.locator)
+        base, inside = HasSelectorParser.split(locator.selector)
 
         js_path = Path(__file__).parent.parent / "locators/js/has_query.js"
         js = js_path.read_text()
@@ -474,7 +474,7 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin, SeleniumD
         return self.driver.execute_script(js, base, inside) or []
 
     def _find_by_pseudo(self, locator):
-        base, pseudos = PseudoSelectorParser.split(locator.locator)
+        base, pseudos = PseudoSelectorParser.split(locator.selector)
 
         js_path = Path(__file__).parent.parent / "locators/js/pseudo_query.js"
         js = js_path.read_text()
@@ -482,17 +482,17 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin, SeleniumD
         elements = self.driver.execute_script(js, base, pseudos)
 
         if not elements:
-            raise AssertionError(f"No element found for pseudo selector {locator.locator}")
+            raise AssertionError(f"No element found for pseudo selector {locator.selector}")
 
         if locator.index is not None:
             if locator.index >= len(elements):
-                raise AssertionError(f"Index out of range for {locator.locator}")
+                raise AssertionError(f"Index out of range for {locator.selector}")
             return elements[locator.index]
 
         return elements[0]
 
     def _find_all_by_pseudo(self, locator):
-        base, pseudos = PseudoSelectorParser.split(locator.locator)
+        base, pseudos = PseudoSelectorParser.split(locator.selector)
 
         js_path = Path(__file__).parent.parent / "locators/js/pseudo_query.js"
         js = js_path.read_text()

@@ -306,7 +306,7 @@ def test_getattr_wraps_webelement_methods():
 # -------------------------------
 def test_locator_initialization(wrapper):
     loc = Locator(wrapper, "#btn", "Button")
-    assert loc.locator == "#btn"
+    assert loc.selector == "#btn"
     assert loc.description == "Button"
     assert loc.by == "css"
     assert loc.value == "div"
@@ -368,7 +368,7 @@ def test_nth_creates_new_locator(wrapper):
 
     assert isinstance(loc2, Locator)
     assert loc2.index == 3
-    assert loc2.locator == ".item"
+    assert loc2.selector == ".item"
 
 
 # -------------------------------
@@ -818,7 +818,7 @@ def test_filter_creates_locator_on_match():
     new_loc = result[0]
 
     assert new_loc.index == 0
-    assert new_loc.locator == "div"
+    assert new_loc.selector == "div"
     assert "filtered:0" in new_loc.description
 
 
