@@ -96,25 +96,30 @@ class Locator(WebElementProtocol):
         new_loc = Locator(self.wrapper, selector, f"{self.description} >> {selector}")
         return new_loc
 
+    def _maybe_chain(self):
+        from nrobo.core import settings
+
+        return self if settings.ENABLE_LOCATOR_ACTION_CHAINING else None
+
     # -------------------------------------------------------------------------
     # EXPLICIT METHODS (ensure IDE autocomplete + chaining)
     # These call wrapper methods, which use AutoWaitMixin under the hood.
     # -------------------------------------------------------------------------
     def click(self) -> "Locator":
         self.wrapper.click(self)
-        return self
+        return self._maybe_chain()
 
     def clear(self) -> "Locator":
         self.wrapper.clear(self)
-        return self
+        return self._maybe_chain()
 
     def send_keys(self, *value: Any) -> "Locator":
         self.wrapper.send_keys(self, *value)
-        return self
+        return self._maybe_chain()
 
     def submit(self) -> "Locator":
         self.wrapper.submit(self)
-        return self
+        return self._maybe_chain()
 
     def is_displayed(self) -> bool:
         return self.wrapper.is_displayed(self)
@@ -170,11 +175,11 @@ class Locator(WebElementProtocol):
     # Playwright-style sugar
     def fill(self, value: str) -> "Locator":
         self.clear().send_keys(value)
-        return self
+        return self._maybe_chain()
 
     def press(self, key: Any) -> "Locator":
         self.send_keys(key)
-        return self
+        return self._maybe_chain()
 
     # -------------------------------------------------------------------------
     # Dynamic fallback (for any WebElement method not explicitly declared)
@@ -233,63 +238,63 @@ class Locator(WebElementProtocol):
 
     def should_be_visible(self, timeout=5) -> "Locator":
         self.wrapper.should_be_visible(self, timeout)
-        return self
+        return self._maybe_chain()
 
     def should_have_text(self, expected: str, timeout=5) -> "Locator":
         self.wrapper.should_have_text(self, expected, timeout)
-        return self
+        return self._maybe_chain()
 
     def should_be_enabled(self, timeout=5) -> "Locator":
         self.wrapper.should_be_enabled(self, timeout)
-        return self
+        return self._maybe_chain()
 
     def should_be_disabled(self, timeout=5) -> "Locator":
         self.wrapper.should_be_disabled(self, timeout)
-        return self
+        return self._maybe_chain()
 
     def should_contain_text(self, substring: str, timeout=5) -> "Locator":
         self.wrapper.should_contain_text(self, substring, timeout)
-        return self
+        return self._maybe_chain()
 
     def should_not_be_visible(self, timeout=5) -> "Locator":
         self.wrapper.should_not_be_visible(self, timeout)
-        return self
+        return self._maybe_chain()
 
     def should_be_checked(self, timeout=5) -> "Locator":
         self.wrapper.should_be_checked(self, timeout)
-        return self
+        return self._maybe_chain()
 
     def should_not_be_checked(self, timeout=5) -> "Locator":
         self.wrapper.should_not_be_checked(self, timeout)
-        return self
+        return self._maybe_chain()
 
     def should_not_have_text(self, unexpected, timeout=5) -> "Locator":
         self.wrapper.should_not_have_text(self, unexpected, timeout)
-        return self
+        return self._maybe_chain()
 
     def should_have_exact_text(self, expected, timeout=5) -> "Locator":
         self.wrapper.should_have_exact_text(self, expected, timeout)
-        return self
+        return self._maybe_chain()
 
     def should_have_attribute(self, name, expected, timeout=5) -> "Locator":
         self.wrapper.should_have_attribute(self, name, expected, timeout)
-        return self
+        return self._maybe_chain()
 
     def should_have_property(self, name, expected, timeout=5) -> "Locator":
         self.wrapper.should_have_property(self, name, expected, timeout)
-        return self
+        return self._maybe_chain()
 
     def should_have_value(self, expected, timeout=5) -> "Locator":
         self.wrapper.should_have_value(self, expected, timeout)
-        return self
+        return self._maybe_chain()
 
     def should_have_css(self, prop, expected, timeout=5) -> "Locator":
         self.wrapper.should_have_css(self, prop, expected, timeout)
-        return self
+        return self._maybe_chain()
 
     def should_match_regex(self, pattern, timeout=5) -> "Locator":
         self.wrapper.should_match_regex(self, pattern, timeout)
-        return self
+        return self._maybe_chain()
 
     def all(self) -> "LocatorCollection":  # noqa: F821
         """
