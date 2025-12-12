@@ -35,43 +35,66 @@ class Locator(WebElementProtocol):
         self.selector = locator
         self.locator_type = LocatorClassifier.detect(locator)
         self.description = description or locator
-        self.by, self.value = self.wrapper.resolve_locator(self.full_selector)
-        logger.debug(f"By={self.by}, value={self.value}")
         self.index = None  # means "single element"
         self.multiple = False  # helps distinguish single vs multiple retrieval
+
+        # Ensure all methods like filter(), all(), nth() can access by/value without triggering __getattr__
+        self.by, self.value = self.wrapper.resolve_locator(locator)
 
         self.is_shadow = ">>>" in locator or "shadow::" in locator
 
     @property
     def full_selector(self) -> str:
-        if self.parent:
-            # Special handling for XPath chain
-            if self.locator_type == LocatorType.XPATH:
-                return f"{self.parent.full_selector}{self.selector}"
-            return f"{self.parent.full_selector} {self.selector}"
-        return self.selector
+        if not self.parent:
+            return self.selector
 
-    def locator(self, nested_selector: str, description: str | None = None) -> "Locator":
-        nested_selector_type = LocatorClassifier.detect(nested_selector)
+        parent = self.parent.full_selector
+        child = self.selector
 
-        # ❌ Block invalid chaining between XPath and non-XPath
-        if (
-            LocatorType.XPATH in {self.locator_type, nested_selector_type}
-            and self.locator_type != nested_selector_type
-        ):
-            raise ValueError(
-                f"❌ Invalid chaining: Cannot chain {nested_selector_type.name} selector "
-                f"('{nested_selector}') onto {self.locator_type.name} base ('{self.selector}'). "
-                f"Mixing XPath and non-XPath selectors is not supported."
-            )
+        # --- 1. XPath chaining rules ---
+        if self.locator_type == LocatorType.XPATH:
+            # Absolute XPath overrides parent
+            if child.startswith("//") or child.startswith("/"):
+                return child
 
-        # ✅ Valid chaining
-        return Locator(
-            wrapper=self.wrapper,
-            locator=nested_selector,
-            description=description or nested_selector,
-            parent=self,
-        )
+            # Remove optional leading .//
+            if child.startswith(".//"):
+                child = child[3:]
+            elif child.startswith("./"):
+                child = child[2:]
+
+            return f"{parent}//{child}"
+
+        # --- 2. Shadow DOM chaining ---
+        if ">>>" in parent or ">>>" in child:
+            return f"{parent} >>> {child}"
+
+        # --- 3. CSS pseudo selectors applied to parent ---
+        if child.startswith(":"):
+            return f"{parent}{child}"
+
+        # --- 4. Direct combinator selectors ---
+        if child.startswith((">", "+", "~", "[")):
+            return f"{parent}{child}"
+
+        # --- 5. Default CSS descendant ---
+        return f"{parent} {child}"
+
+    # -------------------------------------------------------------------------
+    # Playwright-style chaining: locator("CSS").locator("text=Login") etc.
+    # Each segment must be re-classified as a fresh selector.
+    # -------------------------------------------------------------------------
+    def locator(self, selector: str) -> "Locator":
+        """
+        Creates a new Locator based on the given selector, independent of the
+        parent locator type. This enables playwright-style chaining:
+            page.locator("div").locator(":visible").locator("text=Login")
+        """
+        from nrobo.locators.locator import Locator  # local import to avoid cyclic
+
+        # Construct a new Locator, inheriting wrapper but NOT inheriting parent's by/value
+        new_loc = Locator(self.wrapper, selector, f"{self.description} >> {selector}")
+        return new_loc
 
     # -------------------------------------------------------------------------
     # EXPLICIT METHODS (ensure IDE autocomplete + chaining)
@@ -173,38 +196,40 @@ class Locator(WebElementProtocol):
     def _find(self) -> WebElementProtocol:
         """
         Fetch element:
-        - If index is None: return first matching element
-        - If index >= 0: return nth element
+        - Resolve the entire selector chain (`full_selector`)
+        - Dispatch based on locator type (TEXT, HAS, PSEUDO, SHADOW, etc.)
+        - Support nth() and auto-wait
         """
-        prefix = (  # noqa: F841
-            f"{self.description}[{self.index}]" if self.index is not None else self.description
-        )
 
-        if self.is_shadow:
+        # Resolve final full selector WITHOUT mutating self
+        by, value = self.wrapper.resolve_locator(self.full_selector)
+
+        # SHADOW DOM
+        if ">>>" in self.full_selector or "shadow::" in self.full_selector:
             return self.wrapper._find_shadow(self)
 
-        if self.by == "TEXT":
+        # Playwright-style selector handlers
+        if by == "TEXT":
             return self.wrapper._find_by_text(self)
 
-        if self.by == "HAS_TEXT":
+        if by == "HAS_TEXT":
             return self.wrapper._find_by_has_text(self)
 
-        if self.by == "HAS":
+        if by == "HAS":
             return self.wrapper._find_by_has(self)
 
-        if self.by == "PSEUDO":
+        if by == "PSEUDO":
             return self.wrapper._find_by_pseudo(self)
 
-        if self.by == "JS_TEXT":
-            return self.wrapper.find_by_text(self.value)
+        if by == "JS_TEXT":
+            return self.wrapper.find_by_text(value)
 
-        if self.index is None:
-            # single element: auto-wait for visibility
-            return self.wrapper._resolve(self)
+        # Nth element
+        if self.index is not None:
+            return self.wrapper._resolve_nth(by, value, self.index)
 
-        else:
-            # multiple: resolve list, pick index, auto-scroll, auto-stale-retry
-            return self.wrapper._resolve_nth(self, self.index)
+        # Default: auto-wait resolve for single element
+        return self.wrapper._resolve_with(by, value)
 
     def should_be_visible(self, timeout=5) -> "Locator":
         self.wrapper.should_be_visible(self, timeout)

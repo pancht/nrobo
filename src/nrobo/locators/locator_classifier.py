@@ -134,28 +134,28 @@ class LocatorType(str, Enum):
 
 
 class LocatorClassifier:
+
     @staticmethod
     def detect(locator: str) -> LocatorType:
+        if locator is None:
+            return LocatorType.UNKNOWN
+
         locator = locator.strip()
 
+        # EMPTY / WHITESPACE → UNKNOWN
+        if locator == "":
+            return LocatorType.UNKNOWN
+
         # --------------------------------------
-        # PLAYWRIGHT-style selectors: text= link= role= label= etc.
+        # PLAYWRIGHT selectors: text= role= label= etc.
         # --------------------------------------
         prefix = locator.split("=", 1)[0]
         if "=" in locator and prefix in {"text", "role", "label", "link", "partial-text"}:
             return LocatorType.PLAYWRIGHT
 
-        # TEXT explicit
+        # TEXT explicit form
         if locator.startswith("text="):
-            return LocatorType.TEXT  # # pragma: no cover
-
-        # XPATH
-        if locator.startswith(("/", ".//", "//", "..")) or "(@" in locator:
-            return LocatorType.XPATH
-
-        # SHADOW
-        if ">>>" in locator or "shadow::" in locator:
-            return LocatorType.SHADOW
+            return LocatorType.TEXT
 
         # QUOTED TEXT
         if (locator.startswith('"') and locator.endswith('"')) or (
@@ -163,30 +163,74 @@ class LocatorClassifier:
         ):
             return LocatorType.TEXT
 
-        # HAS-TEXT
+        # --------------------------------------
+        # XPATH rules
+        # --------------------------------------
+        if locator.startswith(("/", ".//", "./", "//", "..")):
+            return LocatorType.XPATH
+
+        # (//div)[1]
+        if locator.startswith("(") and "//" in locator:
+            return LocatorType.XPATH
+
+        # contains XPath-style attribute check
+        if "(@" in locator:
+            return LocatorType.XPATH
+
+        # --------------------------------------
+        # SHADOW DOM (Playwright-style)
+        # --------------------------------------
+        # Supports:
+        #   ">>>" deep shadow
+        #   " >> " shallow shadow
+        #   "shadow::" CSS shadow pseudo-element
+        if ">>>" in locator or " >> " in locator or "shadow::" in locator:
+            return LocatorType.SHADOW
+
+        # --------------------------------------
+        # :has-text(), :has()
+        # --------------------------------------
         if ":has-text(" in locator:
             return LocatorType.HAS_TEXT
 
-        # HAS
         if ":has(" in locator:
             return LocatorType.HAS
 
-        # PSEUDO (Playwright-style filters)
+        # --------------------------------------
+        # PSEUDO selectors
+        # --------------------------------------
         if any(
             p in locator
             for p in (":visible", ":hidden", ":enabled", ":disabled", ":checked", ":not(")
         ):
             return LocatorType.PSEUDO
 
+        # HTML TAGS set-based exact match
         if locator in HTML_TAGS:
             return LocatorType.CSS
 
-        # CSS fallback (contains CSS tokens)
-        if re.search(r"[.#>:\[\]=]", locator):
+        # --------------------------------------
+        # GARBAGE DETECTOR — fixes "!@#$%^" and "123 @bad"
+        # --------------------------------------
+        # Case 1: only symbols → UNKNOWN
+        if re.fullmatch(r"[^\w\s]+", locator):
+            return LocatorType.UNKNOWN
+
+        # Case 2: contains illegal characters like "@"
+        if "@" in locator:
+            return LocatorType.UNKNOWN
+
+        # --------------------------------------
+        # CSS SELECTOR FALLBACK
+        # --------------------------------------
+        if re.search(r"[.#>\[\]=:]", locator):
             return LocatorType.CSS
 
-        # ID (simple alphanumerics)
-        if re.match(r"^[a-zA-Z0-9_-]+$", locator):
+        # --------------------------------------
+        # ID fallback
+        # --------------------------------------
+        if re.fullmatch(r"[A-Za-z0-9_-]+", locator):
             return LocatorType.ID
 
+        # NOTHING MATCHED
         return LocatorType.UNKNOWN

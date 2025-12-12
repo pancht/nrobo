@@ -5,6 +5,7 @@ import re
 import time
 from typing import Any, Callable, List
 
+from nrobo.locators.locator import Locator
 from nrobo.protocols.web_element_protocol import WebElementProtocol
 
 
@@ -13,6 +14,13 @@ class LocatorCollection:
 
     def __init__(self, locators: List["Locator"]):  # noqa: F821
         self.locators = locators
+
+    def locator(self, selector: str):
+        """
+        Apply a chained selector to the first element of the collection,
+        matching Playwright behavior.
+        """
+        return Locator(self.locators[0].wrapper, selector)
 
     # --------------------------------------------------------
     # Basic collection behavior
