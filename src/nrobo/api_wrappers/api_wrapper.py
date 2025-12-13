@@ -1,6 +1,6 @@
 import json
 import time
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional
 
 import requests
 from requests.adapters import HTTPAdapter, Retry
@@ -10,26 +10,55 @@ from nrobo.helpers.logging_helper import get_logger
 try:
     import allure
 except ImportError:
-    allure = None  # Allure optional
+    allure = None
 
 logger = get_logger("nRobo:API")
 
 
 class ApiWrapper:
-    """
-    A full-featured API testing helper for nRoBo.
-    Provides request handling, retries, logging, Allure attachments, and validation utilities.
-    """
-
-    def __init__(self, base_url: str, timeout: int = 10, max_retries: int = 2):
+    def __init__(
+        self,
+        base_url: str,
+        timeout: int = 10,
+        max_retries: int = 2,
+        bearer_token: Optional[str] = None,
+        basic_auth: Optional[tuple] = None,
+        oauth_token_url: Optional[str] = None,
+        oauth_client_id: Optional[str] = None,
+        oauth_client_secret: Optional[str] = None,
+        oauth_refresh_token: Optional[str] = None,
+    ):
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.session = requests.Session()
         self._configure_retries(max_retries)
+
+        # OAuth data
+        self.oauth_token_url = oauth_token_url
+        self.oauth_client_id = oauth_client_id
+        self.oauth_client_secret = oauth_client_secret
+        self.oauth_refresh_token = oauth_refresh_token
+
+        self._access_token: Optional[str] = None
+        self._refresh_token: Optional[str] = oauth_refresh_token
+        self._token_expiry: Optional[float] = None
+
+        # Authentication setup
+        if bearer_token:
+            self.session.headers.update({"Authorization": f"Bearer {bearer_token}"})
+        elif basic_auth:
+            self.session.auth = basic_auth
+        elif oauth_token_url and oauth_client_id and oauth_client_secret:
+            # If refresh token passed, use that; otherwise fetch token directly
+            if self.oauth_refresh_token:
+                self._refresh_access_token()
+            else:
+                self._fetch_access_token()
+
         logger.info(f"API client initialized for {self.base_url}")
 
     # -------------------------------------------------------------------------
-    # Public HTTP methods
+    # HTTP Methods
     # -------------------------------------------------------------------------
     def get(self, endpoint: str, **kwargs):
         return self._request("GET", endpoint, **kwargs)
@@ -53,63 +82,98 @@ class ApiWrapper:
         return self._request("OPTIONS", endpoint, **kwargs)
 
     # -------------------------------------------------------------------------
-    # Core request handler
+    # Core request logic (handles refresh automatically)
     # -------------------------------------------------------------------------
-    def _request(
-        self,
-        method: str,
-        endpoint: str,
-        *,
-        params: Optional[Dict[str, Any]] = None,
-        json_data: Optional[Any] = None,
-        data: Optional[Any] = None,
-        headers: Optional[Dict[str, str]] = None,
-        files: Optional[Dict[str, Any]] = None,
-        expected_status: Optional[int] = None,
-        retries: int = 0,
-        **kwargs,
-    ) -> requests.Response:
-        """Send HTTP request with robust logging, Allure attachment, and optional validation."""
-
+    def _request(self, method: str, endpoint: str, **kwargs):
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
+        attempt = 0
+
+        while True:
+            response = self._send_request(method, url, **kwargs)
+
+            # Auto-refresh on 401 or expired token
+            if response.status_code == 401 and self.oauth_refresh_token and attempt == 0:
+                logger.info("401 detected — attempting refresh token request...")
+                self._refresh_access_token()
+                attempt += 1
+                continue
+
+            return response
+
+    def _send_request(self, method: str, url: str, **kwargs):
         start_time = time.time()
-
         try:
-            logger.info(f"[{method}] {url}")
-            logger.debug(f"Params={params}, JSON={json_data}, Data={data}")
-
             response = self.session.request(
                 method,
                 url,
-                params=params,
-                json=json_data,
-                data=data,
-                files=files,
-                headers=headers,
                 timeout=self.timeout,
                 **kwargs,
             )
-
         except requests.RequestException as e:
             logger.error(f"Request failed: {e}")
-            if retries > 0:
-                return self._request(method, endpoint, retries=retries - 1, **kwargs)
             raise
 
         duration = round(time.time() - start_time, 3)
-        logger.info(f"Response: {response.status_code} ({duration}s)")
+        logger.info(f"[{method}] {url} => {response.status_code} ({duration}s)")
 
-        self._attach_to_allure(method, url, response, params, json_data, data)
-
-        if expected_status:
-            assert (
-                response.status_code == expected_status
-            ), f"Expected {expected_status}, got {response.status_code}: {response.text[:200]}"
-
+        self._attach_to_allure(method, url, response, kwargs)
         return response
 
     # -------------------------------------------------------------------------
-    # Retry + Logging + Helpers
+    # OAuth Management
+    # -------------------------------------------------------------------------
+    def _fetch_access_token(self):
+        """Fetch a new access token using client credentials."""
+        logger.info("Fetching OAuth token via client credentials…")
+        data = {
+            "grant_type": "client_credentials",
+            "client_id": self.oauth_client_id,
+            "client_secret": self.oauth_client_secret,
+        }
+        self._perform_token_fetch(data)
+
+    def _refresh_access_token(self):
+        """Refresh access token using an existing refresh token."""
+        if not self.oauth_refresh_token:
+            raise RuntimeError("Refresh token not configured for OAuth")
+
+        logger.info("Fetching OAuth token via refresh token…")
+        data = {
+            "grant_type": "refresh_token",
+            "refresh_token": self.oauth_refresh_token,
+            "client_id": self.oauth_client_id,
+            "client_secret": self.oauth_client_secret,
+        }
+        self._perform_token_fetch(data)
+
+    def _perform_token_fetch(self, data: Dict[str, str]):
+        """Internal method to perform the token request and update headers."""
+        response = requests.post(self.oauth_token_url, data=data, timeout=self.timeout)
+        response.raise_for_status()
+
+        token_body = response.json()
+        access_token = token_body.get("access_token")
+        refresh_token = token_body.get("refresh_token")
+        expires_in = token_body.get("expires_in", 0)
+
+        if not access_token:
+            raise RuntimeError("OAuth access token not found in response!")
+
+        # Update token + refresh token
+        self._access_token = access_token
+        if refresh_token:
+            self._refresh_token = refresh_token
+
+        # Precompute expiry time (optional)
+        self._token_expiry = time.time() + expires_in
+
+        # Update session header
+        self.session.headers.update({"Authorization": f"Bearer {access_token}"})
+
+        logger.info("OAuth token stored & Authorization header updated successfully.")
+
+    # -------------------------------------------------------------------------
+    # Retry and Session Helpers
     # -------------------------------------------------------------------------
     def _configure_retries(self, max_retries: int):
         retry_strategy = Retry(
@@ -122,55 +186,38 @@ class ApiWrapper:
         self.session.mount("http://", adapter)
         self.session.mount("https://", adapter)
 
-    def _attach_to_allure(self, method, url, response, params, json_data, data):
-        """Attach request and response to Allure if available."""
+    # -------------------------------------------------------------------------
+    # Allure Attachments (optional)
+    # -------------------------------------------------------------------------
+    def _attach_to_allure(self, method, url, response, kwargs):
         if not allure:
             return
-
         with allure.step(f"{method} {url}"):
-            allure.attach(json.dumps(params or {}, indent=2), "Params", allure.attachment_type.JSON)
-            if json_data:
-                allure.attach(
-                    json.dumps(json_data, indent=2), "Payload", allure.attachment_type.JSON
-                )
-            elif data:
-                allure.attach(str(data), "Data", allure.attachment_type.TEXT)
+            details = {**kwargs}
             allure.attach(
-                f"Status: {response.status_code}\n\n{response.text[:1000]}",
-                "Response",
+                json.dumps(details, indent=2), "Request data", allure.attachment_type.JSON
+            )
+            allure.attach(
+                f"Status: {response.status_code}\n\n{response.text[:1500]}",
+                "Response body",
                 allure.attachment_type.TEXT,
             )
 
     # -------------------------------------------------------------------------
-    # Assertion helpers
+    # JSON Assertion Helpers
     # -------------------------------------------------------------------------
     @staticmethod
-    def assert_json_key(response: requests.Response, key: str):
-        """Assert that a key exists in the JSON body."""
-        try:
-            body = response.json()
-        except Exception:
-            raise AssertionError("Response is not valid JSON")
-        assert key in body, f"Key '{key}' not found in JSON response"
-
-    @staticmethod
-    def assert_json_value(response: requests.Response, key: str, expected_value: Any):
-        """Assert that a JSON key equals an expected value."""
-        ApiWrapper.assert_json_key(response, key)
-        actual = response.json()[key]
-        assert actual == expected_value, f"For key '{key}', expected {expected_value}, got {actual}"
-
-    @staticmethod
-    def assert_status(response: requests.Response, expected_code: int):
-        """Validate response status."""
+    def assert_status(response, expected_code: int):
         assert (
             response.status_code == expected_code
-        ), f"Expected HTTP {expected_code}, got {response.status_code}: {response.text[:200]}"
+        ), f"Expected {expected_code}, got {response.status_code}"
 
     @staticmethod
-    def extract_json(response: requests.Response) -> Union[Dict[str, Any], list]:
-        """Return parsed JSON or raise error."""
-        try:
-            return response.json()
-        except ValueError as e:
-            raise AssertionError(f"Invalid JSON response: {e}")
+    def assert_json_key(response, key: str):
+        body = response.json()
+        assert key in body, f"JSON key '{key}' not found"
+
+    @staticmethod
+    def assert_json_value(response, key: str, expected: Any):
+        body = response.json()
+        assert body.get(key) == expected, f"Expected {expected}, got {body.get(key)}"

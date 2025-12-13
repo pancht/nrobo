@@ -238,7 +238,23 @@ class nRoboWebDriverPlugin:
 
     @pytest.fixture
     def api(self):
-        return ApiWrapper(settings.API_BASE_URL)
+        api_auth_method = os.getenv("NROBO_API_AUTH_METHOD")
+        api_auth_bearer_token = os.getenv("NROBO_BEARER_TOKEN")
+        api_auth_basic_auth = os.getenv("NROBO_BASIC_AUTH")
+        api_oauth2_client_id = os.getenv("NROBO_OAUTH2_CLIENT_ID")
+        api_oauth2_client_secret = os.getenv("NROBO_OAUTH2_CLIENT_SECRET")
+        if api_auth_method.lower() == "bearer" and api_auth_bearer_token:
+            return ApiWrapper(settings.API_BASE_URL, bearer_token=api_auth_bearer_token)
+        elif api_auth_method.lower() == "basic" and api_auth_basic_auth:
+            return ApiWrapper(settings.API_BASE_URL, basic_auth=api_auth_basic_auth)
+        elif api_auth_method.lower() == "oauth":
+            return ApiWrapper(
+                settings.API_BASE_URL,
+                oauth_client_id=api_oauth2_client_id,
+                oauth_client_secret=api_oauth2_client_secret,
+            )
+        else:
+            return ApiWrapper(settings.API_BASE_URL)
 
 
 # ---------------------------------------------------------------
