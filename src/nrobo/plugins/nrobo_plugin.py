@@ -236,7 +236,7 @@ class nRoboWebDriverPlugin:
         # logging.debug("[Hook] pytest_configure called for plugin (worker/master).")
         pass
 
-    @pytest.fixture
+    @pytest.fixture(scope="session")
     def api(self):
         api_auth_method = os.getenv("NROBO_API_AUTH_METHOD")
         api_auth_bearer_token = os.getenv("NROBO_BEARER_TOKEN")
