@@ -111,7 +111,7 @@ page.refresh(wait="load")
 - nth(), all(), filter()
 ### 📘 nRobo CSS Selector Table (with Implementation Examples)
 | Selector Pattern                                             | Description                    | nRobo Usage Example                                                          |
-| ------------------------------------------------------------ | ------------------------------ | ---------------------------------------------------------------------------- |
+|--------------------------------------------------------------| ------------------------------ |------------------------------------------------------------------------------|
 | `h1`                                                         | All `<h1>` elements            | `page.locator("h1")`                                                         |
 | `.btn`                                                       | Class selector                 | `page.locator(".btn")`                                                       |
 | `#login`                                                     | ID selector                    | `page.locator("#login")`                                                     |
@@ -132,8 +132,8 @@ page.refresh(wait="load")
 | `h3:has-text("Welcome")`                                     | Header containing text         | `page.locator('h3:has-text("Welcome")')`                                     |
 | `a:has-text("A/B Testing")`                                  | Link with text                 | `page.locator('a:has-text("A/B Testing")')`                                  |
 | `div:has(input[name='email'])`                               | div containing specific input  | `page.locator("div:has(input[name='email'])")`                               |
-| `li:has(a:has-text('File'))`                                 | li containing a link           | `page.locator("li:has(a:has-text('File'))")`                                 |
-| `table:has(td:has-text('Active'))`                           | table with cell matching text  | `page.locator("table:has(td:has-text('Active'))")`                           |
+| `li:has(a:has-text('File'))`  ***Not Supported***            | li containing a link           | `page.locator("li:has(a:has-text('File'))")`                    |
+| `table:has(td:has-text('Active'))`  ***Not Supported***      | table with cell matching text  | `page.locator("table:has(td:has-text('Active'))")`                           |
 | `button:visible`                                             | Only visible buttons           | `page.locator("button:visible")`                                             |
 | `input:hidden`                                               | Hidden input fields            | `page.locator("input:hidden")`                                               |
 | `button:enabled`                                             | Enabled button                 | `page.locator("button:enabled")`                                             |
