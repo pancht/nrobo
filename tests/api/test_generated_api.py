@@ -1,10 +1,12 @@
+from pathlib import Path
+
 import pytest
 import schemathesis
 
 from nrobo.api_wrappers.api_wrapper import ApiWrapper
 
 # Load the spec
-schema = schemathesis.from_path("openapi/api_spec.yaml", validate_schema=True)
+schema = schemathesis.openapi.from_path(Path("openapi/api_spec.yaml").resolve())
 
 #
 # @pytest.fixture(scope="session")

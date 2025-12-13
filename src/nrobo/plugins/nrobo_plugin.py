@@ -11,11 +11,11 @@ from _pytest.fixtures import FixtureRequest
 from colorlog import ColoredFormatter
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from nrobo.api_wrappers.api_wrapper import ApiWrapper
 from nrobo.core import settings
 from nrobo.drivers.driver_factory import get_driver
 from nrobo.helpers._pytest_helper import extract_test_name
 from nrobo.helpers._pytest_xdist import grab_worker_id, is_running_with_xdist
+from nrobo.helpers.api_factory import get_api_wrapper
 from nrobo.selenium_wrappers.selenium_wrapper import SeleniumWrapper
 
 
@@ -238,23 +238,7 @@ class nRoboWebDriverPlugin:
 
     @pytest.fixture(scope="session")
     def api(self):
-        api_auth_method = os.getenv("NROBO_API_AUTH_METHOD")
-        api_auth_bearer_token = os.getenv("NROBO_BEARER_TOKEN")
-        api_auth_basic_auth = os.getenv("NROBO_BASIC_AUTH")
-        api_oauth2_client_id = os.getenv("NROBO_OAUTH2_CLIENT_ID")
-        api_oauth2_client_secret = os.getenv("NROBO_OAUTH2_CLIENT_SECRET")
-        if api_auth_method.lower() == "bearer" and api_auth_bearer_token:
-            return ApiWrapper(settings.API_BASE_URL, bearer_token=api_auth_bearer_token)
-        elif api_auth_method.lower() == "basic" and api_auth_basic_auth:
-            return ApiWrapper(settings.API_BASE_URL, basic_auth=api_auth_basic_auth)
-        elif api_auth_method.lower() == "oauth":
-            return ApiWrapper(
-                settings.API_BASE_URL,
-                oauth_client_id=api_oauth2_client_id,
-                oauth_client_secret=api_oauth2_client_secret,
-            )
-        else:
-            return ApiWrapper(settings.API_BASE_URL)
+        return get_api_wrapper()
 
 
 # ---------------------------------------------------------------

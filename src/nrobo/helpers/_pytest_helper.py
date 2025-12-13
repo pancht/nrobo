@@ -119,7 +119,6 @@ def detect_fixture_usage(fixture_name: str, test_paths: List[str], pytest_args: 
                 logger.warning(
                     "  - Check if arguments passed are correct pytest args. Check following link: https://docs.pytest.org/en/stable/reference/reference.html?utm_source=chatgpt.com#command-line-flags"
                 )
-
             if cpe.returncode in [5, 2]:
                 raise NoTestsFoundException()
 
