@@ -7,7 +7,7 @@ folders:
   - common/utils
   - data
   - docs
-  - openai
+  - openapi
   - pages
   - tests/ui
   - tests/api
@@ -29,7 +29,7 @@ folders:
   - test_artifacts/videos
 
 files:
-  openai/api_spec.yaml:
+  openapi/api_spec.yaml: |
     openapi: 3.0.1
     info:
       title: OpenAI Completions API
@@ -75,7 +75,6 @@ files:
                           properties:
                             text:
                               type: string
-
     components:
       securitySchemes:
         BearerAuth:
