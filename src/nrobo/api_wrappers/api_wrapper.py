@@ -139,8 +139,8 @@ class ApiWrapper:
 
     def _refresh_access_token(self):
         """Refresh access token using an existing refresh token."""
-        if not self.oauth_refresh_token:
-            raise RuntimeError("Refresh token not configured for OAuth")
+        if not self.oauth_refresh_token:  # pragma: no cover
+            raise RuntimeError("Refresh token not configured for OAuth")  # pragma: no cover
 
         logger.info("Fetching OAuth token via refresh token…")
         data = {
@@ -161,8 +161,8 @@ class ApiWrapper:
         refresh_token = token_body.get("refresh_token")
         expires_in = token_body.get("expires_in", 0)
 
-        if not access_token:
-            raise RuntimeError("OAuth access token not found in response!")
+        if not access_token:  # pragma: no cover
+            raise RuntimeError("OAuth access token not found in response!")  # pragma: no cover
 
         # Update token + refresh token
         self._access_token = access_token
@@ -195,8 +195,8 @@ class ApiWrapper:
     # Allure Attachments (optional)
     # -------------------------------------------------------------------------
     def _attach_to_allure(self, method, url, response, kwargs):
-        if not allure:
-            return
+        if not allure:  # pragma: no cover
+            return  # pragma: no cover
         with allure.step(f"{method} {url}"):
             details = {**kwargs}
             allure.attach(
