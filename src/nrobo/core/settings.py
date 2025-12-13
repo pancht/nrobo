@@ -81,3 +81,6 @@ RETRY_STALE_ATTEMPTS = 3
 
 # nrobo-exclusive features
 ENABLE_LOCATOR_ACTION_CHAINING = True
+
+# API Testing
+API_BASE_URL = "https://extinct-api.herokuapp.com"

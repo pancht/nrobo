@@ -11,6 +11,7 @@ from _pytest.fixtures import FixtureRequest
 from colorlog import ColoredFormatter
 from selenium.webdriver.remote.webdriver import WebDriver
 
+from nrobo.api_wrappers.api_wrapper import ApiWrapper
 from nrobo.core import settings
 from nrobo.drivers.driver_factory import get_driver
 from nrobo.helpers._pytest_helper import extract_test_name
@@ -234,6 +235,10 @@ class nRoboWebDriverPlugin:
     def pytest_configure(self, config: Config):
         # logging.debug("[Hook] pytest_configure called for plugin (worker/master).")
         pass
+
+    @pytest.fixture
+    def api(self):
+        return ApiWrapper(settings.API_BASE_URL)
 
 
 # ---------------------------------------------------------------
