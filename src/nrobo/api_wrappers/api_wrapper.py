@@ -88,6 +88,8 @@ class ApiWrapper:
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
         attempt = 0
 
+        expected_status = kwargs.pop("expected_status", None)  # <- extract custom param
+
         while True:
             response = self._send_request(method, url, **kwargs)
 
@@ -97,6 +99,9 @@ class ApiWrapper:
                 self._refresh_access_token()
                 attempt += 1
                 continue
+
+            if expected_status is not None:
+                self.assert_status(response, expected_status)  # <- custom validation
 
             return response
 

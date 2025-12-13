@@ -38,7 +38,8 @@ dependencies = [
   "pyyaml",
   "jsonschema",
   "openapi-schema-validator",
-
+  "requests",
+  "requests-mock",
 ]
 
 [project.scripts]
