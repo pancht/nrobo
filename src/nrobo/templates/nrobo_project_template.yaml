@@ -85,6 +85,12 @@ files:
     [pytest]
     filterwarnings =
         ignore::pytest.PytestAssertRewriteWarning
+    markers =
+        api: Mark a test as an API test
+        ui: Mark a test as a UI test
+        regression: Mark a test as a Regression test
+        smoke: Mark a test as a Smoke test
+        sanity: Mark a test as a Sanity test
   requirements.txt: |
     # add dependencies here
   configs/.env: |
