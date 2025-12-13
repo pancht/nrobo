@@ -73,3 +73,11 @@ MOBILE_DIR = os.getenv("NROBO_MOBILE_DIR", "mobile")
 API_DIR = os.getenv("NROBO_API_DIR", "api")
 PAGE_OBJECT_DIR = os.getenv("NROBO_PAGE_OBJECT_DIR", "pages")
 TEST_DATA_DIR = os.getenv("NROBO_TEST_DATA_DIR", "test_data")
+
+# Global timeouts
+PAGE_LOAD_TIMEOUT = 30
+ELE_WAIT_TIMEOUT = 10
+RETRY_STALE_ATTEMPTS = 3
+
+# nrobo-exclusive features
+ENABLE_LOCATOR_ACTION_CHAINING = True

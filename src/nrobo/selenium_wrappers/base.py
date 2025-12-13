@@ -4,7 +4,6 @@
 import logging
 import typing
 
-from selenium.common import TimeoutException
 from selenium.webdriver.common.alert import Alert
 from selenium.webdriver.common.print_page_options import (  # pylint: disable=C0412, C0412 # noqa: E501
     PrintOptions,
@@ -20,6 +19,8 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 
+from nrobo.core import settings
+from nrobo.core.settings import ELE_WAIT_TIMEOUT
 from nrobo.drivers.base_driver import BaseDriver
 from nrobo.mixins.screenshot_mixin import ScreenshotMixin
 from nrobo.mixins.timeout_mixin import TimeoutMixin
@@ -27,13 +28,11 @@ from nrobo.mixins.window_mixin import WindowMixin
 from nrobo.selenium_wrappers.nrobo_types import AnyBy, AnyDriver
 from nrobo.utils.driver_utils import is_mobile_session
 
-PAGE_LOAD_TIMEOUT = 30
-ELE_WAIT_TIMEOUT = 10
-
 
 class SeleniumWrapperBase(
     WindowMixin, TimeoutMixin, ScreenshotMixin, BaseDriver
 ):  # pylint: disable=R0904
+    PAGELOAD_TIMEOUT = getattr(settings, "PAGE_LOAD_TIMEOUT", 30)
 
     def __init__(
         self, driver: AnyDriver, logger: logging.Logger
@@ -55,27 +54,24 @@ class SeleniumWrapperBase(
         """windows."""
         self._windows = _windows
 
-    def _wait_page_load(self):
-        if is_mobile_session(self.driver):
-            return
-
-        try:
-            # Webdriver implementation of page load timeout
-            self.set_page_load_timeout(PAGE_LOAD_TIMEOUT)
-
-            # Custom page load timeout
-            WebDriverWait(self.driver, PAGE_LOAD_TIMEOUT).until(  # noqa: E501
-                lambda driver: driver.execute_script("return document.readyState")
-                == "complete"  # noqa: E501
-            )
-        except TimeoutException as te:
-            self.logger.info(f"Exception: {te}")
-        except AttributeError as ae:
-            self.logger.info(f"Exception: {ae}")
-        # nprint("End of Wait for page load...", style=STYLE.PURPLE4)
-
-    def wait_for_page_to_be_loaded(self):  # pylint: disable=W0612
-        self._wait_page_load()
+    # def _wait_page_load(self):
+    #     if is_mobile_session(self.driver):
+    #         return
+    #
+    #     try:
+    #         # Webdriver implementation of page load timeout
+    #         self.set_page_load_timeout(PAGE_LOAD_TIMEOUT)
+    #
+    #         # Custom page load timeout
+    #         WebDriverWait(self.driver, PAGE_LOAD_TIMEOUT).until(  # noqa: E501
+    #             lambda driver: driver.execute_script("return document.readyState")
+    #             == "complete"  # noqa: E501
+    #         )
+    #     except TimeoutException as te:
+    #         self.logger.info(f"Exception: {te}")
+    #     except AttributeError as ae:
+    #         self.logger.info(f"Exception: {ae}")
+    #     # nprint("End of Wait for page load...", style=STYLE.PURPLE4)
 
     def get(self, url: str):
         """selenium webdriver wrapper method: get"""

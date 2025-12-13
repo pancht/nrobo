@@ -573,3 +573,25 @@ def test_show_pytest_help_menu(monkeypatch):
 
     # Optional: assert exit code
     assert e.value.code == 0
+
+
+def test_handle_subcommand_generate_invokes_generate(monkeypatch):
+    """
+    Ensure that when 'nrobo generate page LoginPage' is passed,
+    cli_parser._handle_subcommand_if_any() calls generate.run() with the right args.
+    """
+
+    argv = ["nrobo", "generate", "page", "LoginPage"]
+
+    # Patch generate.run and sys.exit so the test doesn't exit
+    with (
+        patch.object(cli_parser.generate, "run", MagicMock()) as mock_generate,
+        patch.object(sys, "exit") as mock_exit,
+    ):
+        cli_parser._handle_subcommand_if_any(argv)
+
+        # Assert that generate.run() was called with ["page", "LoginPage"]
+        mock_generate.assert_called_once_with(["page", "LoginPage"])
+
+        # sys.exit(0) should be called at the end of branch
+        mock_exit.assert_called_once_with(0)

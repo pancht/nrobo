@@ -92,8 +92,8 @@ def detect_fixture_usage(fixture_name: str, test_paths: List[str], pytest_args: 
             subprocess.run(
                 cmd,
                 check=True,
-                # stdout=subprocess.DEVNULL,
-                # stderr=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
             )
         except CalledProcessError as cpe:
             # print(cpe)
@@ -123,8 +123,21 @@ def detect_fixture_usage(fixture_name: str, test_paths: List[str], pytest_args: 
             if cpe.returncode in [5, 2]:
                 raise NoTestsFoundException()
 
-        with report_path.open("r", encoding="utf-8") as f:
-            data = json.load(f)
+        try:
+            content = report_path.read_text(encoding="utf-8").strip()
+            if not content:
+                # No fixtures found, or plugin didn't write anything
+                return False
+
+            data = json.loads(content)
+
+        except (json.JSONDecodeError, FileNotFoundError):
+            # Corrupt JSON, incomplete write, or empty file
+            return False
+
+            # Normalize: ensure it's iterable
+        if not isinstance(data, list):
+            return False
 
         return any(fixture_name in entry.get("fixtures", []) for entry in data)
 

@@ -1,4 +1,4 @@
-# pragma: no cover
+# coverage: ignore file
 from typing import Any, Dict, List, Protocol, runtime_checkable
 
 

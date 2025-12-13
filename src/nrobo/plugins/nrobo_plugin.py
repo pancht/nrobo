@@ -65,6 +65,7 @@ class nRoboWebDriverPlugin:
         logger_name = f"{settings.NROBO_APP}.{test_name}"
         logger = logging.getLogger(logger_name)
         logger.setLevel(logging.DEBUG)
+        logger.propagate = False
 
         # If already initialized (handlers exist) → reuse
         if logger.handlers:
@@ -137,6 +138,7 @@ class nRoboWebDriverPlugin:
         yield nrobo_wrapper_
 
         # logging.debug("[Fixture:nrobo] Test finished; quitting WebDriver.")
+        nrobo_wrapper_.logger.handlers.clear()
         self.driver_instance.quit()
 
     @pytest.fixture(scope="function")
@@ -148,6 +150,7 @@ class nRoboWebDriverPlugin:
         yield nrobo_wrapper_
 
         # logging.debug("[Fixture:nrobo] Test finished; quitting WebDriver.")
+        nrobo_wrapper_.logger.handlers.clear()
         self.driver_instance.quit()
 
     # ---------------------------------------------------------------

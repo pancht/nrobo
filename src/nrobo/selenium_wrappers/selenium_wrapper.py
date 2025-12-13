@@ -8,23 +8,22 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
+from nrobo.core.settings import PAGE_LOAD_TIMEOUT
 from nrobo.locators.has_selector_parser import HasSelectorParser
+from nrobo.locators.has_text_selector_parser import HasTextEngine, HasTextParser
 from nrobo.locators.locator import Locator
 from nrobo.locators.locator_classifier import LocatorClassifier, LocatorType
 from nrobo.locators.pseudo_selector_parser import PseudoSelectorParser
 from nrobo.locators.text_selector_engine import TextSelectorEngine
-from nrobo.locators.web_element_protocol import WebElementProtocol
 from nrobo.mixins.auto_wait_mixin import AutoWaitMixin
 from nrobo.mixins.window_mixin import WindowMixin
-from nrobo.selenium_wrappers.base import SeleniumWrapperBase
-from nrobo.selenium_wrappers.nrobo_types import AnyBy, AnyDriver
-from nrobo.selenium_wrappers.selenium_webdriver_protocol import SeleniumDriverProtocol
-
-PAGE_LOAD_TIMEOUT = 30
-ELE_WAIT_TIMEOUT = 10
+from nrobo.protocols.web_driver_protocol import SeleniumDriverProtocol
+from nrobo.protocols.web_element_protocol import WebElementProtocol
+from nrobo.selenium_wrappers.nrobo_types import AnyBy
+from nrobo.selenium_wrappers.selenium_wrapper_base import SeleniumWrapperBase
 
 
-class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin):
+class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin, SeleniumDriverProtocol):
     """Final Selenium wrapper:
     - driver delegation via SeleniumWrapperBase.__getattr__
     - window helpers from WindowMixin
@@ -34,10 +33,63 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin):
 
     driver: SeleniumDriverProtocol  # enables IDE autocompletion
 
-    def __init__(self, driver: AnyDriver, logger: logging.Logger):
+    def __init__(self, driver: SeleniumDriverProtocol, logger: logging.Logger):
         super().__init__(driver, logger)
         self.driver: SeleniumDriverProtocol = driver
         self.logger = logger
+
+    def _resolve_playwright_selector(self, locator: str):
+        """
+        Translates Playwright-style selectors to Selenium selectors.
+        Supports:
+            link=Text
+            link:Partial
+            text=Something
+            "Quoted Text"
+            'Quoted Text'
+        """
+        s = locator.strip()
+
+        # ----------------------------------
+        # 1. link=Exact text
+        # ----------------------------------
+        if s.startswith("link="):
+            text = s.split("=", 1)[1].strip()
+            return (By.LINK_TEXT, text)
+
+        # ----------------------------------
+        # 2. link:Partial text
+        # ----------------------------------
+        if s.startswith("link:"):
+            text = s.split(":", 1)[1].strip()
+            return (By.PARTIAL_LINK_TEXT, text)
+
+        # ----------------------------------
+        # 3. text=Something
+        #    → JS-based text search (Playwright style)
+        # ----------------------------------
+        if s.startswith("text="):
+            text = s.split("=", 1)[1].strip()
+            return ("JS_TEXT", text)  # you handle JS_TEXT in locator._find()
+
+        # ----------------------------------
+        # 4. "Quoted Text"
+        # ----------------------------------
+        if (s.startswith('"') and s.endswith('"')) or (s.startswith("'") and s.endswith("'")):
+            text = s[1:-1]
+            return ("JS_TEXT", text)
+
+        # ----------------------------------
+        # 5. Partial text: bareword (Playwright-like)
+        # ----------------------------------
+        # If contains whitespace & not CSS-like → treat as text search
+        if " " in s and not re.search(r"[,>#\[\]:]", s):
+            return ("JS_TEXT", s)
+
+        # ----------------------------------
+        # Fallback
+        # ----------------------------------
+        raise NotImplementedError(f"Unsupported Playwright selector: {locator}")
 
     # -------------------------------------------------------------------------
     # Locator resolution (string → (By, value))
@@ -56,11 +108,11 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin):
         if loc_type == LocatorType.TEXT:
             return ("TEXT", locator)
         if loc_type == LocatorType.HAS_TEXT:
-            return ("HAS_TEXT", locator)
+            base, text_value = HasTextParser.parse(locator)
+            xpath = HasTextEngine.to_xpath(base, text_value)
+            return (By.XPATH, xpath)
         if loc_type == LocatorType.PLAYWRIGHT:
-            # TODO: convert Playwright selectors to Selenium
-            raise NotImplementedError("Playwright-style locators not supported yet.")
-
+            return self._resolve_playwright_selector(locator)
         # Fallback: treat as CSS
         return By.CSS_SELECTOR, locator
 
@@ -305,7 +357,7 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin):
                     el = elements[index]
                 else:
                     raise AssertionError(
-                        f"Nth element vanished: index={index}, locator={locator.locator}"
+                        f"Nth element vanished: index={index}, locator={locator.selector}"
                     )
         return el  # final fallback
 
@@ -315,7 +367,7 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin):
     def _find_shadow(self, locator):
         from nrobo.locators.shadow_selector_parser import ShadowSelectorParser
 
-        steps = ShadowSelectorParser.parse(locator.locator)
+        steps = ShadowSelectorParser.parse(locator.selector)
 
         script_path = Path(__file__).parent.parent / "locators/js/shadow_query.js"
         js = script_path.read_text()
@@ -323,13 +375,13 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin):
         elements = self.driver.execute_script(js, steps)
 
         if not elements:
-            raise AssertionError(f"No shadow DOM element found for {locator.locator}")
+            raise AssertionError(f"No shadow DOM element found for {locator.selector}")
 
         # wrap nth logic
         if locator.index is not None:
             if locator.index >= len(elements):
                 raise AssertionError(
-                    f"Index {locator.index} out of range in Shadow DOM for {locator.locator}"
+                    f"Index {locator.index} out of range in Shadow DOM for {locator.selector}"
                 )
             return elements[locator.index]
 
@@ -338,7 +390,7 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin):
     def _find_all_shadow(self, locator):
         from nrobo.locators.shadow_selector_parser import ShadowSelectorParser
 
-        steps = ShadowSelectorParser.parse(locator.locator)
+        steps = ShadowSelectorParser.parse(locator.selector)
 
         script_path = Path(__file__).parent.parent / "locators/js/shadow_query.js"
         js = script_path.read_text()
@@ -347,7 +399,7 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin):
 
     def _find_by_text(self, locator):
         # text=Login OR "Login"
-        raw = locator.locator
+        raw = locator.selector
 
         if raw.startswith("text="):
             text = raw.split("=", 1)[1]
@@ -368,7 +420,7 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin):
 
     def _find_by_has_text(self, locator):
         # e.g. "button:has-text("Save")"
-        loc = locator.locator
+        loc = locator.selector
 
         css_selector, text_part = loc.split(":has-text(", 1)
         text = text_part.rstrip(")").strip("\"'")
@@ -384,18 +436,18 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin):
         return elements[0]
 
     def _find_all_by_text(self, locator):
-        raw = locator.locator
+        raw = locator.selector
         text = raw.split("=", 1)[1] if raw.startswith("text=") else raw.strip("\"'")
         return TextSelectorEngine.find_by_text(self.driver, text)
 
     def _find_all_by_has_text(self, locator):
-        loc = locator.locator
+        loc = locator.selector
         css_selector, text_part = loc.split(":has-text(", 1)
         text = text_part.rstrip(")").strip("\"'")
         return TextSelectorEngine.find_has_text(self.driver, css_selector.strip(), text)
 
     def _find_by_has(self, locator):
-        base, inside = HasSelectorParser.split(locator.locator)
+        base, inside = HasSelectorParser.split(locator.selector)
 
         js_path = Path(__file__).parent.parent / "locators/js/has_query.js"
         js = js_path.read_text()
@@ -403,18 +455,18 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin):
         elements = self.driver.execute_script(js, base, inside)
 
         if not elements:
-            raise AssertionError(f"No element found for selector {locator.locator!r}")
+            raise AssertionError(f"No element found for selector {locator.selector!r}")
 
         # nth selection
         if locator.index is not None:
             if locator.index >= len(elements):
-                raise AssertionError(f":has() nth index out of range for: {locator.locator}")
+                raise AssertionError(f":has() nth index out of range for: {locator.selector}")
             return elements[locator.index]
 
         return elements[0]
 
     def _find_all_by_has(self, locator):
-        base, inside = HasSelectorParser.split(locator.locator)
+        base, inside = HasSelectorParser.split(locator.selector)
 
         js_path = Path(__file__).parent.parent / "locators/js/has_query.js"
         js = js_path.read_text()
@@ -422,7 +474,7 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin):
         return self.driver.execute_script(js, base, inside) or []
 
     def _find_by_pseudo(self, locator):
-        base, pseudos = PseudoSelectorParser.split(locator.locator)
+        base, pseudos = PseudoSelectorParser.split(locator.selector)
 
         js_path = Path(__file__).parent.parent / "locators/js/pseudo_query.js"
         js = js_path.read_text()
@@ -430,17 +482,17 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin):
         elements = self.driver.execute_script(js, base, pseudos)
 
         if not elements:
-            raise AssertionError(f"No element found for pseudo selector {locator.locator}")
+            raise AssertionError(f"No element found for pseudo selector {locator.selector}")
 
         if locator.index is not None:
             if locator.index >= len(elements):
-                raise AssertionError(f"Index out of range for {locator.locator}")
+                raise AssertionError(f"Index out of range for {locator.selector}")
             return elements[locator.index]
 
         return elements[0]
 
     def _find_all_by_pseudo(self, locator):
-        base, pseudos = PseudoSelectorParser.split(locator.locator)
+        base, pseudos = PseudoSelectorParser.split(locator.selector)
 
         js_path = Path(__file__).parent.parent / "locators/js/pseudo_query.js"
         js = js_path.read_text()
@@ -459,3 +511,6 @@ class SeleniumWrapper(SeleniumWrapperBase, WindowMixin, AutoWaitMixin):
 
         self.driver.get(url)
         return self  # chainable, like Playwright
+
+    def find_by_text(self, text: str):
+        return TextSelectorEngine.find_by_text(self.driver, text)

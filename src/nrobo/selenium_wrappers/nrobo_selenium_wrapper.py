@@ -36,7 +36,7 @@ class NRoboSeleniumWrapperClass(NRoBoCustomMethods):
         self.scrolled_height = 0
 
         # wait for page load
-        self.wait_for_page_to_be_loaded()
+        self.wait_for_page_load()
 
     def scroll_down(self):
         """scroll down web page by its scroll height"""

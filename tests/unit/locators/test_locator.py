@@ -1,927 +1,653 @@
-from unittest.mock import MagicMock
+from types import SimpleNamespace
+from unittest.mock import Mock
 
 import pytest
 
 from nrobo.locators.locator import Locator
-from nrobo.locators.locator_collection import LocatorCollection
+from nrobo.locators.locator_classifier import LocatorType
+
+# ---------------------
+#  Fixtures / Mocks
+# ---------------------
 
 
-# ---------------------------------
-# Reusable fixture
-# ---------------------------------
 @pytest.fixture
-def wrapper():
-    w = MagicMock()
-    w.resolve_locator.return_value = ("css", "div")
+def fake_element():
+    """Simple fake WebElementProtocol-like"""
+    el = SimpleNamespace()
+    el.text = "Hello World"
+    el.get_attribute = Mock(return_value="btn")
+    el.get_property = Mock(return_value="propVal")
+    return el
+
+
+@pytest.fixture
+def fake_wrapper(fake_element):
+    w = Mock()
+    # basic resolve_locator
+    w.resolve_locator.side_effect = lambda selector: ("BY", selector)
+    # basic find_all
+    w.find_all.return_value = [fake_element, fake_element]
+    # find
+    w._resolve_with.return_value = fake_element
+    # text find
+    w._find_by_text.return_value = fake_element
     return w
 
 
-@pytest.fixture
-def locator(wrapper):
-    return Locator(wrapper, "#btn")
+# ---------------------
+#  Basic Locator Behavior
+# ---------------------
 
 
-class DummyWrapper:
-    """Wrapper stub implementing find_all + resolve_locator for tests."""
-
-    def __init__(self, elements):
-        self.elements = elements
-
-    # default case
-    def find_all(self, locator):
-        return self.elements
-
-    # branch cases
-    def _find_all_shadow(self, locator):
-        return self.elements
-
-    def _find_all_by_text(self, locator):
-        return self.elements
-
-    def _find_all_by_has_text(self, locator):
-        return self.elements
-
-    def _find_all_by_has(self, locator):
-        return self.elements
-
-    def _find_all_by_pseudo(self, locator):
-        return self.elements
-
-    # required for Locator.__init__
-    def resolve_locator(self, locator):
-        return "CSS", locator
+def test_full_selector_no_parent(fake_wrapper):
+    loc = Locator(fake_wrapper, "div")
+    assert loc.full_selector == "div"
 
 
-class DummyElement:
-    """Simple fake element with text + attributes."""
+def test_full_selector_xpath_chaining(fake_wrapper):
+    parent = Locator(fake_wrapper, "//parent")
+    child = Locator(fake_wrapper, "child", parent=parent)
+    child.locator_type = LocatorType.XPATH
 
-    def __init__(self, text="", attrs=None):
-        self.text = text
-        self._attrs = attrs or {}
+    # child doesn't start with slash
+    assert child.full_selector == "//parent//child"
 
-    def get_attribute(self, name):
-        return self._attrs.get(name)
+    # absolute child
+    child2 = Locator(fake_wrapper, "/root", parent=parent)
+    child2.locator_type = LocatorType.XPATH
+    assert child2.full_selector == "/root"
 
 
-def make_locator(elements):
-    wrapper = DummyWrapper(elements)
-    loc = Locator(wrapper, "div", "div")
+def test_full_selector_shadow_chaining(fake_wrapper):
+    p = Locator(fake_wrapper, "root >>> child1")
+    c = Locator(fake_wrapper, "child2", parent=p)
+    assert ">>>" in c.full_selector and "child2" in c.full_selector
+
+
+def test_full_selector_css_pseudo_and_combinators(fake_wrapper):
+    p = Locator(fake_wrapper, "div")
+    for child in [":hover", "> span", "+ span", "~ span", "[data-test]"]:
+        loc = Locator(fake_wrapper, child, parent=p)
+        assert loc.full_selector.startswith("div")
+
+
+def test_locator_returns_new_locator(fake_wrapper):
+    base = Locator(fake_wrapper, "div")
+    nxt = base.locator("span")
+    assert nxt.selector == "span"
+    assert nxt.description.endswith(">> span")
+
+
+# ---------------------
+#  Explicit action methods
+# ---------------------
+
+
+def test_click_clear_send_keys_submits_chain(fake_wrapper):
+    loc = Locator(fake_wrapper, "input")
+    assert loc.click() is loc
+    assert loc.clear() is loc
+    assert loc.send_keys("val") is loc
+    assert loc.submit() is loc
+
+
+# ---------------------
+#  Properties & Wrapper Delegation
+# ---------------------
+
+
+def test_properties_delegate(fake_wrapper):
+    loc = Locator(fake_wrapper, "elem")
+    assert loc.is_displayed() == fake_wrapper.is_displayed(loc)
+    assert loc.text == fake_wrapper.get_text(loc)
+    assert loc.tag_name == fake_wrapper.get_tag_name(loc)
+
+
+def test_attributes_properties_and_css(fake_wrapper):
+    loc = Locator(fake_wrapper, "elem")
+    assert loc.get_attribute("a") == fake_wrapper.get_attribute(loc, "a")
+    assert loc.get_property("p") == fake_wrapper.get_property(loc, "p")
+    assert loc.value_of_css_property("c") == fake_wrapper.value_of_css_property(loc, "c")
+
+
+# ---------------------
+#  _find Resolution
+# ---------------------
+
+
+def test_find_text_locator(fake_wrapper):
+    fake_wrapper.resolve_locator.side_effect = lambda s: ("TEXT", s)
+    loc = Locator(fake_wrapper, "text=foo")
+    assert loc._find() == fake_wrapper._find_by_text(loc)
+
+
+def test_find_shadow_locator(fake_wrapper):
+    loc = Locator(fake_wrapper, "a >>> b")
+    fake_wrapper._find_shadow.return_value = "shadow"
+    assert loc._find() == "shadow"
+
+
+def test_find_default(fake_wrapper):
+    loc = Locator(fake_wrapper, "x")
+    assert loc._find() == fake_wrapper._resolve_with("BY", "x")
+
+
+# ---------------------
+#  should_* Behavior
+# ---------------------
+
+
+@pytest.mark.parametrize(
+    "method,args",
+    [
+        ("should_be_visible", ()),
+        ("should_have_text", ("txt",)),
+        ("should_be_enabled", ()),
+        ("should_not_be_visible", ()),
+        ("should_contain_text", ("txt",)),
+        ("should_match_regex", (r".*",)),
+    ],
+)
+def test_should_methods_chain(fake_wrapper, method, args):
+    loc = Locator(fake_wrapper, "el")
+    result = getattr(loc, method)(*args)
+    assert result is loc
+
+
+# ---------------------
+#  all(), nth(), first(), last(), count()
+# ---------------------
+
+
+def test_all_returns_collection(fake_wrapper):
+    loc = Locator(fake_wrapper, "els")
+    coll = loc.all()
+    # should produce 2 elements
+    assert len(coll) == 2
+    assert all(isinstance(x, Locator) for x in coll)
+
+
+def test_nth_selector(fake_wrapper):
+    loc = Locator(fake_wrapper, "els")
+    nth = loc.nth(1)
+    assert nth.index == 1
+
+
+def test_first_and_last(fake_wrapper):
+    loc = Locator(fake_wrapper, "els")
+    first = loc.first()
+    last = loc.last()
+    assert first.index == 0
+    assert last.index == loc.count() - 1
+
+
+# ---------------------
+#  Filtering
+# ---------------------
+
+
+def test_filter_has_text(fake_wrapper, fake_element):
+    fake_element.text = "Match TEXT"
+    loc = Locator(fake_wrapper, "els")
+    results = loc.filter(has_text="Match")
+    assert all("filtered" in x.description for x in results)
+
+
+def test_filter_has_not_text(fake_wrapper, fake_element):
+    fake_element.text = "Skip ME"
+    loc = Locator(fake_wrapper, "els")
+    results = loc.filter(has_not_text="Skip")
+    assert not results
+
+
+def test_filter_has_attribute(fake_wrapper, fake_element):
+    loc = Locator(fake_wrapper, "els")
+    fake_element.get_attribute.return_value = "val"
+    results = loc.filter(has_attribute=("role", "val"))
+    assert results
+
+
+def test_filter_has_regex(fake_wrapper, fake_element):
+    fake_element.text = "User 1234"
+    loc = Locator(fake_wrapper, "els")
+    results = loc.filter(has_regex=r"\d+")
+    assert results
+
+
+def test_filter_has_callable(fake_wrapper, fake_element):
+    loc = Locator(fake_wrapper, "els")
+    results = loc.filter(has=lambda el: True)
+    assert results
+
+
+def test_first_filtered_raises(fake_wrapper):
+    loc = Locator(fake_wrapper, "els")
+    with pytest.raises(AssertionError):
+        loc.first_filtered(has_text="Nope")
+
+
+def test_last_filtered(fake_wrapper, fake_element):
+    fake_element.text = "Keeps"
+    fake_wrapper.find_all.return_value = [fake_element]
+    fake_wrapper.get_text.return_value = fake_element.text  # 👈 Fix here
+    loc = Locator(fake_wrapper, "els")
+    last = loc.last_filtered(has_text="Keeps")
+    assert last.text == fake_element.text
+
+
+# ---------------------
+#  Dynamic getattr
+# ---------------------
+
+
+def test_getattr_delegates_to_element(fake_wrapper, fake_element):
+    fake_wrapper._resolve.return_value = fake_element
+    loc = Locator(fake_wrapper, "els")
+    fake_element.custom_method = Mock(return_value=None)
+    # getattr -> wrapper
+    assert loc.custom_method() is loc
+    fake_element.custom_value = "VALUE"
+    assert loc.custom_value == "VALUE"
+
+
+def test_xpath_child_startswith_dot_slash_slash(fake_wrapper):
+    parent = Locator(fake_wrapper, "//div")
+    child = Locator(fake_wrapper, ".//span", parent=parent)
+    child.locator_type = LocatorType.XPATH
+    result = child.full_selector
+    assert result == "//div//span"  # .// removed
+
+
+def test_xpath_child_startswith_dot_slash(fake_wrapper):
+    parent = Locator(fake_wrapper, "//div")
+    child = Locator(fake_wrapper, "./span", parent=parent)
+    child.locator_type = LocatorType.XPATH
+    result = child.full_selector
+    assert result == "//div//span"  # ./ removed
+
+
+def test_full_selector_default_css_descendant(fake_wrapper):
+    parent = Locator(fake_wrapper, "div")
+    child = Locator(fake_wrapper, "span", parent=parent)
+    child.locator_type = LocatorType.CSS  # Not XPATH
+    result = child.full_selector
+    assert result == "div span"
+
+
+def test_get_dom_attribute(fake_wrapper):
+    fake_wrapper.get_dom_attribute.return_value = "data-value"
+    loc = Locator(fake_wrapper, "button")
+    result = loc.get_dom_attribute("data-test")
+    assert result == "data-value"
+    fake_wrapper.get_dom_attribute.assert_called_once_with(loc, "data-test")
+
+
+def test_get_dom_property(fake_wrapper):
+    fake_wrapper.get_dom_property.return_value = "DOM_PROP"
+    loc = Locator(fake_wrapper, "input")
+    result = loc.get_dom_property("aria-hidden")
+    assert result == "DOM_PROP"
+    fake_wrapper.get_dom_property.assert_called_once_with(loc, "aria-hidden")
+
+
+def test_location_property(fake_wrapper):
+    fake_wrapper.get_location.return_value = {"x": 100, "y": 200}
+    loc = Locator(fake_wrapper, "div")
+    result = loc.location
+    assert result == {"x": 100, "y": 200}
+    fake_wrapper.get_location.assert_called_once_with(loc)
+
+
+def test_location_once_scrolled_into_view(fake_wrapper):
+    fake_wrapper.get_location_scrolled.return_value = {"x": 50, "y": 75}
+    loc = Locator(fake_wrapper, "div")
+    result = loc.location_once_scrolled_into_view
+    assert result == {"x": 50, "y": 75}
+    fake_wrapper.get_location_scrolled.assert_called_once_with(loc)
+
+
+def test_size_property(fake_wrapper):
+    fake_wrapper.get_size.return_value = {"width": 300, "height": 150}
+    loc = Locator(fake_wrapper, "img")
+    result = loc.size
+    assert result == {"width": 300, "height": 150}
+    fake_wrapper.get_size.assert_called_once_with(loc)
+
+
+def test_rect_property(fake_wrapper):
+    fake_wrapper.get_rect.return_value = {"x": 10, "y": 20, "width": 100, "height": 50}
+    loc = Locator(fake_wrapper, "canvas")
+    result = loc.rect
+    assert result == {"x": 10, "y": 20, "width": 100, "height": 50}
+    fake_wrapper.get_rect.assert_called_once_with(loc)
+
+
+def test_screenshot(fake_wrapper):
+    fake_wrapper.screenshot.return_value = True
+    loc = Locator(fake_wrapper, "section")
+    result = loc.screenshot("screenshot.png")
+    assert result is True
+    fake_wrapper.screenshot.assert_called_once_with(loc, "screenshot.png")
+
+
+def test_screenshot_as_png(fake_wrapper):
+    fake_wrapper.screenshot_as_png.return_value = b"\x89PNG\r\n"
+    loc = Locator(fake_wrapper, "section")
+    result = loc.screenshot_as_png()
+    assert result == b"\x89PNG\r\n"
+    fake_wrapper.screenshot_as_png.assert_called_once_with(loc)
+
+
+def test_screenshot_as_base64(fake_wrapper):
+    fake_wrapper.screenshot_as_base64.return_value = "iVBORw0KGgoAAAANSUhEUgAAAAUA"
+    loc = Locator(fake_wrapper, "canvas")
+    result = loc.screenshot_as_base64()
+    assert result == "iVBORw0KGgoAAAANSUhEUgAAAAUA"
+    fake_wrapper.screenshot_as_base64.assert_called_once_with(loc)
+
+
+def test_fill_calls_clear_and_send_keys(fake_wrapper):
+    loc = Locator(fake_wrapper, "input")
+    loc.clear = Mock(return_value=loc)
+    loc.send_keys = Mock(return_value=loc)
+
+    result = loc.fill("hello")
+
+    loc.clear.assert_called_once()
+    loc.send_keys.assert_called_once_with("hello")
+    assert result is loc  # chaining result from _maybe_chain
+
+
+def test_press_calls_send_keys_and_chains(fake_wrapper):
+    loc = Locator(fake_wrapper, "input")
+    loc.send_keys = Mock(return_value=loc)
+
+    result = loc.press("Enter")
+
+    loc.send_keys.assert_called_once_with("Enter")
+    assert result is loc
+
+
+def test_find_by_has(fake_wrapper):
+    def resolve_locator_mock(selector):
+        if selector == "div":
+            return ("HAS", "something")
+        return ("BY", selector)
+
+    fake_wrapper.resolve_locator.side_effect = resolve_locator_mock
+    fake_wrapper._find_by_has.return_value = "element"
+
+    loc = Locator(fake_wrapper, "div")
+    loc.index = None
+
+    result = loc._find()
+
+    assert result == "element"
+    fake_wrapper._find_by_has.assert_called_once_with(loc)
+
+
+def test_find_by_pseudo(fake_wrapper):
+    # Explicitly match the input to full_selector
+    def resolve_locator_mock(selector):
+        if selector == "::before":
+            return ("PSEUDO", "::before")
+        return ("BY", selector)  # fallback
+
+    fake_wrapper.resolve_locator.side_effect = resolve_locator_mock
+    fake_wrapper._find_by_pseudo.return_value = "pseudo-element"
+
+    loc = Locator(fake_wrapper, "::before")
+    loc.index = None
+
+    result = loc._find()
+
+    assert result == "pseudo-element"
+    fake_wrapper._find_by_pseudo.assert_called_once_with(loc)
+
+
+def test_find_by_js_text(fake_wrapper):
+    # Ensure resolve_locator returns JS_TEXT when full_selector is used
+    def resolve_locator_mock(selector):
+        if selector == "text=Click me":
+            return ("JS_TEXT", "Click me")
+        return ("BY", selector)
+
+    fake_wrapper.resolve_locator.side_effect = resolve_locator_mock
+    fake_wrapper.find_by_text.return_value = "text-element"
+
+    loc = Locator(fake_wrapper, "text=Click me")
+    loc.index = None
+
+    result = loc._find()
+
+    assert result == "text-element"
+    fake_wrapper.find_by_text.assert_called_once_with("Click me")
+
+
+def test_find_resolves_nth(fake_wrapper):
+    fake_wrapper.resolve_locator.return_value = ("BY", "div")  # 👈 Match what Locator uses
+    fake_wrapper._resolve_nth.return_value = "nth-element"
+
+    loc = Locator(fake_wrapper, "div")
+    loc.index = 2
+
+    result = loc._find()
+
+    assert result == "nth-element"
+    fake_wrapper._resolve_nth.assert_called_once_with("BY", "div", 2)  # 👈 Match above
+
+
+def test_should_be_disabled_calls_wrapper(fake_wrapper):
+    loc = Locator(fake_wrapper, "button")
+    result = loc.should_be_disabled(timeout=10)
+
+    fake_wrapper.should_be_disabled.assert_called_once_with(loc, 10)
+    assert result is loc
+
+
+def test_should_be_checked_calls_wrapper(fake_wrapper):
+    loc = Locator(fake_wrapper, "input[type=checkbox]")
+    result = loc.should_be_checked(timeout=7)
+
+    fake_wrapper.should_be_checked.assert_called_once_with(loc, 7)
+    assert result is loc
+
+
+def test_should_not_be_checked_calls_wrapper(fake_wrapper):
+    loc = Locator(fake_wrapper, "#terms")
+    result = loc.should_not_be_checked(timeout=3)
+
+    fake_wrapper.should_not_be_checked.assert_called_once_with(loc, 3)
+    assert result is loc
+
+
+def test_should_not_have_text_calls_wrapper(fake_wrapper):
+    loc = Locator(fake_wrapper, ".alert")
+    result = loc.should_not_have_text("Error", timeout=4)
+
+    fake_wrapper.should_not_have_text.assert_called_once_with(loc, "Error", 4)
+    assert result is loc
+
+
+def test_should_have_attribute_calls_wrapper(fake_wrapper):
+    loc = Locator(fake_wrapper, "a.link")
+    result = loc.should_have_attribute("href", "https://example.com", timeout=6)
+
+    fake_wrapper.should_have_attribute.assert_called_once_with(
+        loc, "href", "https://example.com", 6
+    )
+    assert result is loc
+
+
+def test_should_have_property_calls_wrapper(fake_wrapper):
+    loc = Locator(fake_wrapper, "input[type=text]")
+    result = loc.should_have_property("value", "test123", timeout=8)
+
+    fake_wrapper.should_have_property.assert_called_once_with(loc, "value", "test123", 8)
+    assert result is loc
+
+
+def test_should_have_value_calls_wrapper(fake_wrapper):
+    loc = Locator(fake_wrapper, "input#email")
+    result = loc.should_have_value("user@example.com", timeout=2)
+
+    fake_wrapper.should_have_value.assert_called_once_with(loc, "user@example.com", 2)
+    assert result is loc
+
+
+def test_should_have_css_calls_wrapper(fake_wrapper):
+    loc = Locator(fake_wrapper, ".btn")
+    result = loc.should_have_css("color", "rgb(255, 0, 0)", timeout=1)
+
+    fake_wrapper.should_have_css.assert_called_once_with(loc, "color", "rgb(255, 0, 0)", 1)
+    assert result is loc
+
+
+def test_all_calls_find_all_shadow_for_shadow_locators(fake_wrapper):
+    fake_wrapper._find_all_shadow.return_value = [Mock(), Mock()]
+    loc = Locator(fake_wrapper, "div >>> span")  # 👉 triggers is_shadow = True
     loc.by = "CSS"
-    loc.value = "div"
-    return loc
-
-
-class FakeEl:
-    def __init__(self, text="hello", attrs=None):
-        self.text = text
-        self.attrs = attrs or {}
-        self.tag_name = "div"
-
-    def get_attribute(self, name):
-        return self.attrs.get(name)
-
-    def click(self):
-        return None
-
-    def clear(self):
-        return None
-
-    def send_keys(self, *keys):
-        return None
-
-
-class FakeWrapper:
-    def __init__(self):
-        self.calls = []
-
-    def resolve_locator(self, locator):
-        return ("CSS", locator)
-
-    def click(self, loc):
-        self.calls.append(("click", loc))
-
-    def clear(self, loc):
-        self.calls.append(("clear", loc))
-
-    def send_keys(self, loc, *keys):
-        self.calls.append(("send_keys", loc, keys))
-
-    def submit(self, loc):
-        self.calls.append(("submit", loc))
-
-    def is_displayed(self, loc):
-        return True
-
-    def get_text(self, loc):
-        return "TEXT"
-
-    def get_tag_name(self, loc):
-        return "span"
-
-    def get_attribute(self, loc, name):
-        return f"attr-{name}"
-
-    def get_property(self, loc, name):
-        return f"prop-{name}"
-
-    def get_dom_attribute(self, loc, name):
-        return f"domattr-{name}"
-
-    def get_dom_property(self, loc, name):
-        return f"domprop-{name}"
-
-    def value_of_css_property(self, loc, prop):
-        return f"css-{prop}"
-
-    def get_location(self, loc):
-        return {"x": 1}
-
-    def get_location_scrolled(self, loc):
-        return {"x": 2}
-
-    def get_size(self, loc):
-        return {"w": 10}
-
-    def get_rect(self, loc):
-        return {"h": 20}
-
-    # Element fetchers
-    def _resolve(self, loc):
-        return FakeEl("one")
-
-    def _resolve_nth(self, loc, n):
-        return FakeEl(f"nth-{n}")
-
-    def _find_shadow(self, loc):
-        return FakeEl("shadow")
-
-    def _find_by_text(self, loc):
-        return FakeEl("text")
-
-    def _find_by_has_text(self, loc):
-        return FakeEl("has-text")
-
-    def _find_by_has(self, loc):
-        return FakeEl("has")
-
-    def _find_by_pseudo(self, loc):
-        return FakeEl("pseudo")
-
-    def _find_all_shadow(self, loc):
-        return [FakeEl("s1"), FakeEl("s2")]
-
-    def _find_all_by_text(self, loc):
-        return [FakeEl("t1"), FakeEl("t2")]
-
-    def _find_all_by_has_text(self, loc):
-        return [FakeEl("ht1"), FakeEl("ht2")]
-
-    def _find_all_by_has(self, loc):
-        return [FakeEl("h1"), FakeEl("h2")]
-
-    def _find_all_by_pseudo(self, loc):
-        return [FakeEl("p1"), FakeEl("p2")]
-
-    def find_all(self, loc):
-        return [FakeEl("a"), FakeEl("b"), FakeEl("c")]
-
-
-def test_locator_init_resolves_locator():
-    wrapper = FakeWrapper()
-    loc = Locator(wrapper, "#id")
-
-    assert loc.by == "CSS"
-    assert loc.value == "#id"
-    assert loc.description == "#id"
-
-
-def test_locator_actions_call_wrapper():
-    wrapper = FakeWrapper()
-    loc = Locator(wrapper, "#id")
-
-    loc.click()
-    loc.clear()
-    loc.send_keys("x", "y")
-
-    assert wrapper.calls == [
-        ("click", loc),
-        ("clear", loc),
-        ("send_keys", loc, ("x", "y")),
-    ]
-
-
-def test_locator_properties():
-    wrapper = FakeWrapper()
-    loc = Locator(wrapper, "#id")
-
-    assert loc.text == "TEXT"
-    assert loc.tag_name == "span"
-    assert loc.location == {"x": 1}
-    assert loc.location_once_scrolled_into_view == {"x": 2}
-    assert loc.size == {"w": 10}
-    assert loc.rect == {"h": 20}
-
-
-def test_find_shadow_1():
-    wrapper = FakeWrapper()
-    loc = Locator(wrapper, "shadow::#a")
-    assert loc._find().text == "shadow"
-
-
-def test_nth_first_last():
-    wrapper = FakeWrapper()
-    loc = Locator(wrapper, ".item")
-
-    assert loc.nth(1).index == 1
-    assert loc.first().index == 0
-    assert loc.last().index == 2  # 3 elements from find_all
-
-
-def test_all_returns_collection():
-    wrapper = FakeWrapper()
-    loc = Locator(wrapper, ".x")
+    loc.value = "div >>> span"
 
     result = loc.all()
-    assert isinstance(result, LocatorCollection)
-    assert len(result) == 3
-    assert result[0].index == 0
-    assert result[1].index == 1
+    assert len(result) == 2
+    fake_wrapper._find_all_shadow.assert_called_once_with(loc)
 
 
-def test_filter_has_text():
-    wrapper = FakeWrapper()
-    wrapper.find_all = lambda loc: [FakeEl("Login"), FakeEl("Hello")]
+def test_all_calls_find_all_by_text(fake_wrapper):
+    fake_wrapper._find_all_by_text.return_value = [Mock(), Mock()]
+    loc = Locator(fake_wrapper, "text=Login")
+    loc.by = "TEXT"
+    loc.value = "Login"
 
-    loc = Locator(wrapper, ".x")
-    res = loc.filter(has_text="Login")
-
-    assert len(res) == 1
-    assert isinstance(res[0], Locator)
-
-
-def test_filter_has_attribute():
-    wrapper = FakeWrapper()
-    wrapper.find_all = lambda loc: [FakeEl("", {"role": "button"}), FakeEl("", {"role": "input"})]
-
-    loc = Locator(wrapper, ".x")
-    res = loc.filter(has_attribute=("role", "button"))
-
-    assert len(res) == 1
+    result = loc.all()
+    assert len(result) == 2
+    fake_wrapper._find_all_by_text.assert_called_once_with(loc)
 
 
-def test_filter_has_regex():
-    wrapper = FakeWrapper()
-    wrapper.find_all = lambda loc: [FakeEl("User 12"), FakeEl("ABC")]
+def test_all_calls_find_all_by_has_text(fake_wrapper):
+    fake_wrapper._find_all_by_has_text.return_value = [Mock(), Mock()]
+    loc = Locator(fake_wrapper, "div")
+    loc.by = "HAS_TEXT"
+    loc.value = "div"
 
-    loc = Locator(wrapper, ".x")
-    res = loc.filter(has_regex=r"User \d+")
-
-    assert len(res) == 1
-    assert isinstance(res[0], Locator)
-
-
-def test_first_filtered_raises():
-    wrapper = FakeWrapper()
-    wrapper.find_all = lambda loc: []
-
-    loc = Locator(wrapper, ".x")
-
-    with pytest.raises(AssertionError):
-        loc.first_filtered(has_text="Login")
+    result = loc.all()
+    assert len(result) == 2
+    fake_wrapper._find_all_by_has_text.assert_called_once_with(loc)
 
 
-def test_getattr_wraps_webelement_methods():
-    wrapper = FakeWrapper()
-    el = FakeEl()
-    wrapper._resolve = lambda loc: el
+def test_all_calls_find_all_by_has(fake_wrapper):
+    fake_wrapper._find_all_by_has.return_value = [Mock(), Mock()]
+    loc = Locator(fake_wrapper, "div")
+    loc.by = "HAS"
+    loc.value = "div"
 
-    loc = Locator(wrapper, ".x")
-
-    # FakeEl.click returns None -> wrapper should return locator itself
-    assert loc.click() is loc
-
-
-# -------------------------------
-# TEST: Initialization
-# -------------------------------
-def test_locator_initialization(wrapper):
-    loc = Locator(wrapper, "#btn", "Button")
-    assert loc.locator == "#btn"
-    assert loc.description == "Button"
-    assert loc.by == "css"
-    assert loc.value == "div"
-    assert loc.index is None
-    assert loc.is_shadow is False
+    result = loc.all()
+    assert len(result) == 2
+    fake_wrapper._find_all_by_has.assert_called_once_with(loc)
 
 
-# -------------------------------
-# TEST: click/clear/send_keys call wrapper methods
-# -------------------------------
-def test_click_calls_wrapper(wrapper):
-    loc = Locator(wrapper, "#btn")
-    loc.click()
-    wrapper.click.assert_called_once_with(loc)
+def test_all_calls_find_all_by_pseudo(fake_wrapper):
+    fake_wrapper._find_all_by_pseudo.return_value = [Mock(), Mock()]
+    loc = Locator(fake_wrapper, "::before")
+    loc.by = "PSEUDO"
+    loc.value = "::before"
+
+    result = loc.all()
+    assert len(result) == 2
+    fake_wrapper._find_all_by_pseudo.assert_called_once_with(loc)
 
 
-def test_clear_calls_wrapper(wrapper):
-    loc = Locator(wrapper, "#inp")
-    loc.clear()
-    wrapper.clear.assert_called_once_with(loc)
+def test_filter_has_attribute_matches(fake_wrapper, fake_element):
+    fake_element.get_attribute.return_value = "btn"
+    fake_wrapper.find_all.return_value = [fake_element]
 
-
-def test_send_keys_calls_wrapper(wrapper):
-    loc = Locator(wrapper, "#inp")
-    loc.send_keys("abc", 123)
-    wrapper.send_keys.assert_called_once_with(loc, "abc", 123)
-
-
-# -------------------------------
-# TEST: __getattr__ fallback to WebElement
-# -------------------------------
-def test_getattr_forwards_to_webelement(wrapper):
-    mock_el = MagicMock()
-    wrapper._resolve.return_value = mock_el
-
-    loc = Locator(wrapper, "#x")
-    loc.some_method("hello")
-
-    mock_el.some_method.assert_called_once_with("hello")
-
-
-def test_getattr_chainable_when_method_returns_none(wrapper):
-    mock_el = MagicMock()
-    mock_el.do_something.return_value = None
-    wrapper._resolve.return_value = mock_el
-
-    loc = Locator(wrapper, "#x")
-    result = loc.do_something()
-
-    assert result is loc  # chainable
-
-
-# -------------------------------
-# TEST: nth() creates new locator
-# -------------------------------
-def test_nth_creates_new_locator(wrapper):
-    loc = Locator(wrapper, ".item")
-    loc2 = loc.nth(3)
-
-    assert isinstance(loc2, Locator)
-    assert loc2.index == 3
-    assert loc2.locator == ".item"
-
-
-# -------------------------------
-# TEST: all() returns LocatorCollection
-# -------------------------------
-def test_all_returns_locator_collection(wrapper):
-    wrapper.find_all.return_value = ["el1", "el2", "el3"]
-
-    loc = Locator(wrapper, ".item")
-    collection = loc.all()
-
-    assert isinstance(collection, LocatorCollection)
-    assert len(collection) == 3
-    assert collection[0].index == 0
-    assert collection[1].index == 1
-    assert collection[2].index == 2
-
-
-# -------------------------------
-# TEST: last() helper
-# -------------------------------
-def test_last_returns_last_locator(wrapper):
-    wrapper.find_all.return_value = ["a", "b", "c"]
-
-    loc = Locator(wrapper, ".item")
-    last_loc = loc.last()
-
-    assert last_loc.index == 2
-
-
-def test_last_raises_if_empty(wrapper):
-    wrapper.find_all.return_value = []
-
-    loc = Locator(wrapper, ".item")
-
-    with pytest.raises(AssertionError):
-        loc.last()
-
-
-# -------------------------------
-# TEST: count()
-# -------------------------------
-def test_count(wrapper):
-    wrapper.find_all.return_value = ["a", "b", "c", "d"]
-    loc = Locator(wrapper, ".item")
-    assert loc.count() == 4
-
-
-# -------------------------------
-# TEST: filter()
-# -------------------------------
-def test_filter_by_text(wrapper):
-    el1 = MagicMock()
-    el1.text = "Login now"
-    el2 = MagicMock()
-    el2.text = "Hello"
-    el3 = MagicMock()
-    el3.text = "Login successful"
-
-    wrapper.find_all.return_value = [el1, el2, el3]
-
-    loc = Locator(wrapper, ".item")
-    results = loc.filter(has_text="Login")
-
-    assert len(results) == 2
-    assert results[0].index == 0
-    assert results[1].index == 2
-
-
-def test_filter_by_attribute(wrapper):
-    el1 = MagicMock()
-    el1.text = ""
-    el1.get_attribute.return_value = "button"
-    el2 = MagicMock()
-    el2.text = ""
-    el2.get_attribute.return_value = "link"
-
-    wrapper.find_all.return_value = [el1, el2]
-
-    loc = Locator(wrapper, ".item")
-    results = loc.filter(has_attribute=("role", "button"))
+    loc = Locator(fake_wrapper, "button")
+    results = loc.filter(has_attribute=("role", "btn"))
 
     assert len(results) == 1
     assert results[0].index == 0
+    fake_element.get_attribute.assert_called_with("role")
 
 
-def test_filter_by_regex(wrapper):
-    el1 = MagicMock()
-    el1.text = "User 42"
-    el2 = MagicMock()
-    el2.text = "Admin"
-    wrapper.find_all.return_value = [el1, el2]
+def test_filter_with_regex_match(fake_wrapper, fake_element):
+    fake_element.text = "User 12345"
+    fake_wrapper.find_all.return_value = [fake_element]
 
-    loc = Locator(wrapper, ".item")
+    loc = Locator(fake_wrapper, "div")
     results = loc.filter(has_regex=r"User \d+")
 
     assert len(results) == 1
     assert results[0].index == 0
 
 
-# -------------------------------
-# TEST: first_filtered / last_filtered
-# -------------------------------
-def test_first_filtered(wrapper):
-    el1 = MagicMock()
-    el1.text = "A"
-    el2 = MagicMock()
-    el2.text = "Login"
-    wrapper.find_all.return_value = [el1, el2]
+def test_filter_with_regex_no_match(fake_wrapper, fake_element):
+    fake_element.text = "Admin"
+    fake_wrapper.find_all.return_value = [fake_element]
 
-    loc = Locator(wrapper, ".item")
-    first = loc.first_filtered(has_text="Login")
+    loc = Locator(fake_wrapper, "div")
+    results = loc.filter(has_regex=r"User \d+")
 
-    assert first.index == 1
+    assert len(results) == 0
 
 
-def test_first_filtered_no_match(wrapper):
-    wrapper.find_all.return_value = []
+def test_filter_with_has_callable_passes(fake_wrapper, fake_element):
+    fake_element.text = "OK"
+    fake_wrapper.find_all.return_value = [fake_element]
 
-    loc = Locator(wrapper, ".item")
-    with pytest.raises(AssertionError):
-        loc.first_filtered(has_text="X")
+    loc = Locator(fake_wrapper, "span")
+    results = loc.filter(has=lambda el: el.text == "OK")
 
+    assert len(results) == 1
+    assert results[0].index == 0
 
-def test_last_filtered(wrapper):
-    el1 = MagicMock()
-    el1.text = "Login"
-    el2 = MagicMock()
-    el2.text = "Hello Login"
-    wrapper.find_all.return_value = [el1, el2]
 
-    loc = Locator(wrapper, ".item")
-    last = loc.last_filtered(has_text="Login")
+def test_filter_with_has_callable_fails(fake_wrapper, fake_element):
+    fake_element.text = "NOPE"
+    fake_wrapper.find_all.return_value = [fake_element]
 
-    assert last.index == 1
+    loc = Locator(fake_wrapper, "span")
+    results = loc.filter(has=lambda el: el.text == "OK")
 
+    assert results == []
 
-# -------------------------------
-# TEST: _find() dispatch logic
-# -------------------------------
-def test_find_shadow_2(wrapper):
-    loc = Locator(wrapper, "div >>> span")
-    loc.is_shadow = True
-    loc._find()
-    wrapper._find_shadow.assert_called_once_with(loc)
 
+def test_first_filtered_returns_first_match(fake_wrapper, fake_element):
+    fake_element.text = "MatchMe"
+    fake_wrapper.find_all.return_value = [fake_element]
 
-def test_find_text(wrapper):
-    loc = Locator(wrapper, "text=Login")
-    loc.by = "TEXT"
-    loc._find()
-    wrapper._find_by_text.assert_called_once_with(loc)
+    loc = Locator(fake_wrapper, "div")
+    result = loc.first_filtered(has_text="MatchMe")
 
+    assert isinstance(result, Locator)
+    assert result.index == 0
 
-def test_find_has_text(wrapper):
-    loc = Locator(wrapper, "button:has-text('X')")
-    loc.by = "HAS_TEXT"
-    loc._find()
-    wrapper._find_by_has_text.assert_called_once_with(loc)
 
+def test_last_returns_last_element(fake_wrapper):
+    fake_wrapper.find_all.return_value = [Mock(), Mock(), Mock()]  # count = 3
 
-def test_find_pseudo(wrapper):
-    loc = Locator(wrapper, "button:visible")
-    loc.by = "PSEUDO"
-    loc._find()
-    wrapper._find_by_pseudo.assert_called_once_with(loc)
+    loc = Locator(fake_wrapper, ".item")
+    result = loc.last()
 
+    assert isinstance(result, Locator)
+    assert result.index == 2
+    fake_wrapper.resolve_locator.assert_called_with(result.full_selector)
 
-def test_find_single(wrapper):
-    loc = Locator(wrapper, ".item")
-    loc.by = "css"
-    loc.index = None
-    loc._find()
-    wrapper._resolve.assert_called_once_with(loc)
 
+def test_find_by_has_text(fake_wrapper):
+    def resolve_locator_mock(selector):
+        if selector == "div":  # 👈 This must match `loc.full_selector`
+            return ("HAS_TEXT", "something")
+        return ("BY", selector)
 
-def test_find_nth(wrapper):
-    loc = Locator(wrapper, ".item")
-    loc.by = "css"
-    loc.index = 3
-    loc._find()
-    wrapper._resolve_nth.assert_called_once_with(loc, 3)
+    fake_wrapper.resolve_locator.side_effect = resolve_locator_mock
+    fake_wrapper._find_by_has_text.return_value = "element"
 
+    loc = Locator(fake_wrapper, "div")
+    loc.index = None  # avoid nth path
 
-def test_get_property(locator, wrapper):
-    wrapper.get_property.return_value = "ABC"
+    result = loc._find()
 
-    value = locator.get_property("name")
-
-    wrapper.get_property.assert_called_once_with(locator, "name")
-    assert value == "ABC"
-
-
-def test_get_dom_attribute(locator, wrapper):
-    wrapper.get_dom_attribute.return_value = "xyz"
-
-    value = locator.get_dom_attribute("role")
-
-    wrapper.get_dom_attribute.assert_called_once_with(locator, "role")
-    assert value == "xyz"
-
-
-def test_get_dom_property(locator, wrapper):
-    wrapper.get_dom_property.return_value = "OK"
-
-    value = locator.get_dom_property("checked")
-
-    wrapper.get_dom_property.assert_called_once_with(locator, "checked")
-    assert value == "OK"
-
-
-def test_value_of_css_property(locator, wrapper):
-    wrapper.value_of_css_property.return_value = "10px"
-
-    val = locator.value_of_css_property("margin")
-
-    wrapper.value_of_css_property.assert_called_once_with(locator, "margin")
-    assert val == "10px"
-
-
-def test_location_property(locator, wrapper):
-    wrapper.get_location.return_value = {"x": 10, "y": 20}
-
-    assert locator.location == {"x": 10, "y": 20}
-    wrapper.get_location.assert_called_once_with(locator)
-
-
-def test_location_scrolled_property(locator, wrapper):
-    wrapper.get_location_scrolled.return_value = {"x": 5, "y": 100}
-
-    assert locator.location_once_scrolled_into_view == {"x": 5, "y": 100}
-    wrapper.get_location_scrolled.assert_called_once_with(locator)
-
-
-def test_size_property(locator, wrapper):
-    wrapper.get_size.return_value = {"w": 200, "h": 50}
-
-    assert locator.size == {"w": 200, "h": 50}
-    wrapper.get_size.assert_called_once_with(locator)
-
-
-def test_rect_property(locator, wrapper):
-    wrapper.get_rect.return_value = {"x": 0, "y": 0, "width": 100, "height": 40}
-
-    assert locator.rect == {"x": 0, "y": 0, "width": 100, "height": 40}
-    wrapper.get_rect.assert_called_once_with(locator)
-
-
-def test_screenshot_calls_wrapper(locator, wrapper):
-    wrapper.screenshot.return_value = True
-
-    result = locator.screenshot("file.png")
-
-    wrapper.screenshot.assert_called_once_with(locator, "file.png")
-    assert result is True
-
-
-def test_screenshot_as_png(locator, wrapper):
-    wrapper.screenshot_as_png.return_value = b"BINARYDATA"
-
-    assert locator.screenshot_as_png() == b"BINARYDATA"
-    wrapper.screenshot_as_png.assert_called_once_with(locator)
-
-
-def test_screenshot_as_base64(locator, wrapper):
-    wrapper.screenshot_as_base64.return_value = "base64data=="
-
-    assert locator.screenshot_as_base64() == "base64data=="
-    wrapper.screenshot_as_base64.assert_called_once_with(locator)
-
-
-def test_fill_calls_clear_and_send_keys(locator, wrapper):
-    locator.fill("hello")
-
-    wrapper.clear.assert_called_once_with(locator)
-    wrapper.send_keys.assert_called_once_with(locator, "hello")
-
-
-def test_press_calls_send_keys(locator, wrapper):
-    locator.press("ENTER")
-
-    wrapper.send_keys.assert_called_once_with(locator, "ENTER")
-
-
-def test_getattr_forwards_method_and_returns_result(wrapper):
-    mock_el = MagicMock()
-    mock_el.some_method.return_value = "RESULT"
-
-    wrapper._resolve.return_value = mock_el
-
-    loc = Locator(wrapper, "#x")
-    assert loc.some_method(1, 2) == "RESULT"
-    mock_el.some_method.assert_called_once_with(1, 2)
-
-
-def test_getattr_chainable_when_method_returns_none_(wrapper):
-    mock_el = MagicMock()
-    mock_el.some_method.return_value = None
-
-    wrapper._resolve.return_value = mock_el
-
-    loc = Locator(wrapper, "#x")
-    result = loc.some_method()
-
-    assert result is loc
-    mock_el.some_method.assert_called_once()
-
-
-def test_find_shadow_3(wrapper):
-    loc = Locator(wrapper, "#x")
-    loc.is_shadow = True
-
-    loc._find()
-    wrapper._find_shadow.assert_called_once_with(loc)
-
-
-def test_find_text_branch(wrapper):
-    loc = Locator(wrapper, "#x")
-    loc.by = "TEXT"
-
-    loc._find()
-    wrapper._find_by_text.assert_called_once_with(loc)
-
-
-def test_find_has_text_branch(wrapper):
-    loc = Locator(wrapper, "#x")
-    loc.by = "HAS_TEXT"
-
-    loc._find()
-    wrapper._find_by_has_text.assert_called_once_with(loc)
-
-
-def test_find_has_branch(wrapper):
-    loc = Locator(wrapper, "#x")
-    loc.by = "HAS"
-
-    loc._find()
-    wrapper._find_by_has.assert_called_once_with(loc)
-
-
-def test_find_pseudo_branch(wrapper):
-    loc = Locator(wrapper, "#x")
-    loc.by = "PSEUDO"
-
-    loc._find()
-    wrapper._find_by_pseudo.assert_called_once_with(loc)
-
-
-def test_find_default_branch(wrapper):
-    loc = Locator(wrapper, "#x")
-    loc.by = "css"
-    loc.index = None
-
-    loc._find()
-    wrapper._resolve.assert_called_once_with(loc)
-
-
-def test_find_nth_branch(wrapper):
-    loc = Locator(wrapper, "#x")
-    loc.by = "css"
-    loc.index = 3
-
-    loc._find()
-    wrapper._resolve_nth.assert_called_once_with(loc, 3)
-
-
-@pytest.mark.parametrize(
-    "method_name, wrapper_method, args",
-    [
-        ("should_be_visible", "should_be_visible", (5,)),
-        ("should_have_text", "should_have_text", ("X", 5)),
-        ("should_be_enabled", "should_be_enabled", (5,)),
-        ("should_be_disabled", "should_be_disabled", (5,)),
-        ("should_contain_text", "should_contain_text", ("X", 5)),
-        ("should_not_be_visible", "should_not_be_visible", (5,)),
-        ("should_be_checked", "should_be_checked", (5,)),
-        ("should_not_be_checked", "should_not_be_checked", (5,)),
-        ("should_not_have_text", "should_not_have_text", ("X", 5)),
-        ("should_have_exact_text", "should_have_exact_text", ("X", 5)),
-        # SPECIAL CASES → need (name, expected)
-        ("should_have_attribute", "should_have_attribute", ("name", "value", 5)),
-        ("should_have_property", "should_have_property", ("prop", "value", 5)),
-        ("should_have_value", "should_have_value", ("X", 5)),
-        ("should_have_css", "should_have_css", ("color", "red", 5)),
-        ("should_match_regex", "should_match_regex", ("^abc$", 5)),
-    ],
-)
-def test_should_methods(locator, wrapper, method_name, wrapper_method, args):
-    method = getattr(locator, method_name)
-
-    # --- call with expected args
-    result = method(*args)
-
-    # verify wrapper call forwarded correctly
-    wrapper_call = getattr(wrapper, wrapper_method)
-    wrapper_call.assert_called_once()
-
-    # chainable?
-    assert result is locator
-
-
-def test_filter_handles_text_exception():
-    bad_el = MagicMock()
-    type(bad_el).text = property(lambda self: (_ for _ in ()).throw(Exception("boom")))
-
-    loc = make_locator([bad_el])
-
-    result = loc.filter(has_text="anything")
-
-    assert result == []
-
-
-def test_filter_excludes_has_not_text():
-    el1 = DummyElement("Error: something wrong")
-    el2 = DummyElement("All good")
-
-    loc = make_locator([el1, el2])
-
-    result = loc.filter(has_not_text="Error")
-
-    # el1 excluded, el2 included
-    assert len(result) == 1
-    assert result[0].index == 1  # second element only
-
-
-def test_filter_custom_has_predicate():
-    el1 = DummyElement("Hello")
-    el2 = DummyElement("World")
-    loc = make_locator([el1, el2])
-
-    # Keep only elements whose text == "World"
-    result = loc.filter(has=lambda el: el.text == "World")
-
-    assert len(result) == 1
-    assert result[0].index == 1  # element 2 kept
-
-
-def test_filter_creates_locator_on_match():
-    el1 = DummyElement("Login page")
-    el2 = DummyElement("Dashboard")
-
-    loc = make_locator([el1, el2])
-
-    result = loc.filter(has_text="Login")
-
-    assert len(result) == 1
-    new_loc = result[0]
-
-    assert new_loc.index == 0
-    assert new_loc.locator == "div"
-    assert "filtered:0" in new_loc.description
-
-
-def test_all_shadow_branch():
-    wrapper = DummyWrapper(["e1", "e2"])
-    loc = Locator(wrapper, "div >>> span")  # triggers is_shadow=True
-    loc.is_shadow = True  # enforce branch
-    loc.by = "CSS"
-
-    collection = loc.all()
-
-    assert len(collection) == 2
-    assert collection[0].index == 0
-    assert collection[1].index == 1
-
-
-def test_all_text_branch():
-    wrapper = DummyWrapper(["e1", "e2"])
-    loc = Locator(wrapper, "text=Login")
-    loc.by = "TEXT"
-
-    collection = loc.all()
-
-    assert len(collection) == 2
-    assert collection[0].index == 0
-    assert collection[1].index == 1
-
-
-def test_all_has_text_branch():
-    wrapper = DummyWrapper(["e1", "e2", "e3"])
-    loc = Locator(wrapper, "x")
-    loc.by = "HAS_TEXT"
-
-    collection = loc.all()
-
-    assert len(collection) == 3
-    assert collection[2].index == 2
-
-
-def test_all_has_branch():
-    wrapper = DummyWrapper(["a", "b"])
-    loc = Locator(wrapper, "div")
-    loc.by = "HAS"
-
-    collection = loc.all()
-
-    assert len(collection) == 2
-    assert collection[1].index == 1
-
-
-def test_all_pseudo_branch():
-    wrapper = DummyWrapper(["el"])
-    loc = Locator(wrapper, "button:visible")
-    loc.by = "PSEUDO"
-
-    collection = loc.all()
-
-    assert len(collection) == 1
-    assert collection[0].index == 0
-
-
-def test_all_default_branch():
-    wrapper = DummyWrapper(["x1", "x2", "x3"])
-    loc = Locator(wrapper, "#id")
-    loc.by = "CSS"  # anything that does not hit earlier branches
-
-    collection = loc.all()
-
-    assert len(collection) == 3
-    assert collection[0].description.endswith("[0]")
-    assert collection[2].index == 2
-
-
-def test_all_returns_locator_collection_():
-    wrapper = DummyWrapper(["X"])
-    loc = Locator(wrapper, ".cls")
-
-    result = loc.all()
-
-    assert isinstance(result, LocatorCollection)
-
-
-def test_get_attribute_calls_wrapper_and_returns_value():
-    wrapper = MagicMock()
-    wrapper.resolve_locator.return_value = ("CSS", "#x")
-
-    wrapper.get_attribute.return_value = "hello"
-
-    loc = Locator(wrapper, "#x")
-
-    result = loc.get_attribute("role")
-
-    wrapper.get_attribute.assert_called_once_with(loc, "role")
-    assert result == "hello"
-
-
-def test_submit_calls_wrapper_and_is_chainable():
-    wrapper = MagicMock()
-    wrapper.resolve_locator.return_value = ("CSS", "form")
-
-    loc = Locator(wrapper, "form")
-
-    returned = loc.submit()
-
-    wrapper.submit.assert_called_once_with(loc)
-    assert returned is loc  # chainable
+    assert result == "element"
+    fake_wrapper._find_by_has_text.assert_called_once_with(loc)

@@ -1,12 +1,37 @@
-from unittest.mock import MagicMock
+from types import SimpleNamespace
+from unittest.mock import MagicMock, Mock
 
 import pytest
 
+from nrobo.locators.locator import Locator
 from nrobo.locators.locator_collection import LocatorCollection
+
 
 # ------------------------------------------------------------------------------
 # Helpers: Fake WebElement and Fake Locator
 # ------------------------------------------------------------------------------
+@pytest.fixture
+def fake_element():
+    """Simple fake WebElementProtocol-like"""
+    el = SimpleNamespace()
+    el.text = "Hello World"
+    el.get_attribute = Mock(return_value="btn")
+    el.get_property = Mock(return_value="propVal")
+    return el
+
+
+@pytest.fixture
+def fake_wrapper(fake_element):
+    w = Mock()
+    # basic resolve_locator
+    w.resolve_locator.side_effect = lambda selector: ("BY", selector)
+    # basic find_all
+    w.find_all.return_value = [fake_element, fake_element]
+    # find
+    w._resolve_with.return_value = fake_element
+    # text find
+    w._find_by_text.return_value = fake_element
+    return w
 
 
 class FakeEl:
@@ -408,3 +433,19 @@ def test_wait_for_count_timeout(monkeypatch):
 
     with pytest.raises(AssertionError):
         coll.wait_for_count(expected=3, timeout=1)
+
+
+def test_locator_collection_locator(fake_wrapper):
+    # Create a base Locator
+    base_locator = Locator(fake_wrapper, "div")
+
+    # Create a LocatorCollection with one item
+    collection = LocatorCollection([base_locator])
+
+    # Call .locator() to chain a selector
+    chained = collection.locator("span")
+
+    # Assertions
+    assert isinstance(chained, Locator)
+    assert chained.selector == "span"
+    assert chained.wrapper == fake_wrapper

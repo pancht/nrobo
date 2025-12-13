@@ -1,6 +1,12 @@
 from typing import Any
 
-from nrobo.selenium_wrappers.selenium_webdriver_protocol import SeleniumDriverProtocol
+from selenium.common import TimeoutException
+from selenium.webdriver.support.wait import WebDriverWait
+
+from nrobo.core import settings
+from nrobo.helpers.selenium_helper import _safe_ready_state
+from nrobo.protocols.web_driver_protocol import SeleniumDriverProtocol
+from nrobo.utils.driver_utils import is_mobile_session
 
 
 class SeleniumWrapperBase:
@@ -30,3 +36,13 @@ class SeleniumWrapperBase:
     @windows.setter
     def windows(self, value: dict):
         self._windows = value
+
+    def wait_for_page_load(self, timeout: int | None = None):
+        if is_mobile_session(self.driver):
+            return
+        timeout = timeout or settings.PAGE_LOAD_TIMEOUT
+        self.logger.debug(f"[nRobo] wait_for_page_to_be_loaded(timeout={timeout})")
+        try:
+            WebDriverWait(self.driver, timeout).until(lambda d: _safe_ready_state(d) == "complete")
+        except TimeoutException:
+            self.logger.warning("[nRobo] Page did not reach 'complete' before timeout.")
