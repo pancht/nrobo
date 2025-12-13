@@ -28,6 +28,7 @@ from nrobo.locators.locator_classifier import LocatorClassifier, LocatorType
         # XPATH
         # -------------------------
         ("//div[@id='header']", LocatorType.XPATH),
+        ("//*[contains(@class, 'active')]", LocatorType.XPATH),
         (".//span", LocatorType.XPATH),
         ("/html/body", LocatorType.XPATH),
         ("..", LocatorType.XPATH),
@@ -80,8 +81,10 @@ from nrobo.locators.locator_classifier import LocatorClassifier, LocatorType
         # -------------------------
         ("", LocatorType.UNKNOWN),
         ("   ", LocatorType.UNKNOWN),
+        ("\n\t  ", LocatorType.UNKNOWN),
         ("!@#$%^", LocatorType.UNKNOWN),
         ("123 @bad", LocatorType.UNKNOWN),
+        (None, LocatorType.UNKNOWN),
     ],
 )
 def test_locator_classifier_detect(locator, expected):

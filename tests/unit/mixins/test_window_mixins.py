@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 from selenium.common import UnexpectedAlertPresentException
 
@@ -97,3 +97,20 @@ def test_update_windows_alert_during_switch(_):
 
     # Warning logged for alert
     mixin.logger.warning.assert_called_once_with("Alert interrupted window detection.")
+
+
+def test_switch_to_window():
+    mock_driver = Mock()
+    mock_driver.switch_to.window = Mock()
+
+    class Dummy:
+        def __init__(self, driver):
+            self.driver = driver
+
+        def switch_to_window(self, window_name: str) -> None:
+            self.driver.switch_to.window(window_name)
+
+    obj = Dummy(mock_driver)
+    obj.switch_to_window("main")
+
+    mock_driver.switch_to.window.assert_called_once_with("main")

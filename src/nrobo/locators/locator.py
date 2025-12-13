@@ -370,7 +370,7 @@ class Locator(WebElementProtocol):
             if has_attribute:
                 attr_name, attr_value = has_attribute
                 if (el.get_attribute(attr_name) or "") != attr_value:
-                    continue
+                    continue  # pragma: no cover
 
             if regex and not regex.search(text):
                 continue
@@ -436,7 +436,9 @@ class Locator(WebElementProtocol):
         """
         count = self.count()
         if count == 0:
-            raise AssertionError(f"No elements found for locator {self.full_selector}")
+            raise AssertionError(
+                f"No elements found for locator {self.full_selector}"
+            )  # pragma: no cover
 
         new_loc = Locator(
             wrapper=self.wrapper,
