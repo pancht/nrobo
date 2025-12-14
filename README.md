@@ -59,7 +59,7 @@ This works on **Selenium**, but feels like **Playwright**.
 > nRobo = **Playwright’s power** + **Selenium’s reach** + **its own exclusive features**
 
 ## ✨ Exclusive Features (Only in nRobo)
-### 1. Locator Action Chaining (Exclusive)
+### 1. [Locator Action Chaining (Exclusive)](https://github.com/pancht/nrobo/blob/production/docs/locator_action_chaining.md)
 
 A fluent API inspired by Playwright but designed for Selenium:
 ```python
@@ -74,7 +74,7 @@ settings.ENABLE_LOCATOR_ACTION_CHAINING = True
 ```
 
 ### 📄 Full documentation:
-➡️ [docs/locator_action_chaining.md](docs/locator_action_chaining.md)
+➡️ [docs/locator_action_chaining.md](https://github.com/pancht/nrobo/blob/production/docs/locator_action_chaining.md)
 
 ## 2. Advanced Selector Engine (Playwright-level)
 
@@ -96,7 +96,7 @@ Supported:
 page.selector("form:has(input[name=email]) >> button:visible").click()
 ```
 
-## 3. Autowait Engine (Eliminates 95% Flakiness)
+## 3. [Autowait Engine (Eliminates 95% Flakiness)](https://github.com/pancht/nrobo/blob/production/docs/auto_wait_engine.md)
 
 - Retries
 
@@ -112,7 +112,7 @@ page.selector("form:has(input[name=email]) >> button:visible").click()
 page.selector("#login").click()  # auto-waits
 ```
 
-## 4. Locator Collections API
+## 4. [Locator Collections API](https://github.com/pancht/nrobo/blob/production/docs/locator_collection.md)
 
 ```python
 rows = page.selector("tr").all()
@@ -130,6 +130,8 @@ Supports:
 - `.map()`
 
 - set-like operations
+
+## 6. 🔌 [API Testing Support](https://github.com/pancht/nrobo/blob/production/docs/api_testing.md)
 
 ## 5. Modern Reporting (HTML + Allure)
 
