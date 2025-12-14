@@ -81,3 +81,11 @@ RETRY_STALE_ATTEMPTS = 3
 
 # nrobo-exclusive features
 ENABLE_LOCATOR_ACTION_CHAINING = True
+
+# API Testing
+API_BASE_URL = "https://extinct-api.herokuapp.com"
+NROBO_API_AUTH_METHOD = ""  # Could be Bearer | Basic | OAuth # nosec: B105
+NROBO_BEARER_TOKEN = ""  # Your bearer token # nosec: B105
+NROBO_BASIC_AUTH = ""  # You basic auth token # nosec: B105
+NROBO_OAUTH2_CLIENT_ID = ""  # oauth client id # nosec: B105
+NROBO_OAUTH2_CLIENT_SECRET = ""  # oauth client secret # nosec: B105

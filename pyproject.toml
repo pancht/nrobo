@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nrobo"
-version = "2025.5.4"
+version = "2025.5.10"
 description = "A Pytest-powered Smart Test Runner CLI tool."
 readme = "README.md"
 license = { text = "MIT" }
@@ -34,6 +34,12 @@ dependencies = [
   "platformdirs",
   "psutil",
   "pre-commit",
+  "schemathesis",
+  "pyyaml",
+  "jsonschema",
+  "openapi-schema-validator",
+  "requests",
+  "requests-mock",
 ]
 
 [project.scripts]

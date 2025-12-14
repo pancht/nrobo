@@ -15,6 +15,7 @@ from nrobo.core import settings
 from nrobo.drivers.driver_factory import get_driver
 from nrobo.helpers._pytest_helper import extract_test_name
 from nrobo.helpers._pytest_xdist import grab_worker_id, is_running_with_xdist
+from nrobo.helpers.api_factory import get_api_wrapper
 from nrobo.selenium_wrappers.selenium_wrapper import SeleniumWrapper
 
 
@@ -234,6 +235,10 @@ class nRoboWebDriverPlugin:
     def pytest_configure(self, config: Config):
         # logging.debug("[Hook] pytest_configure called for plugin (worker/master).")
         pass
+
+    @pytest.fixture(scope="session")
+    def api(self):
+        return get_api_wrapper()
 
 
 # ---------------------------------------------------------------

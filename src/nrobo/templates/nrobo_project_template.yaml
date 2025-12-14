@@ -7,6 +7,7 @@ folders:
   - common/utils
   - data
   - docs
+  - openapi
   - pages
   - tests/ui
   - tests/api
@@ -28,10 +29,67 @@ folders:
   - test_artifacts/videos
 
 files:
+  openapi/api_spec.yaml: |
+    openapi: 3.0.1
+    info:
+      title: OpenAI Completions API
+      version: "1.0"
+
+    servers:
+      - url: https://api.openai.com/v1
+
+    paths:
+      /completions:
+        post:
+          summary: Generate a completion
+          security:
+            - BearerAuth: [ ]
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    model:
+                      type: string
+                    prompt:
+                      type: string
+                    max_tokens:
+                      type: integer
+                  required: [ model, prompt ]
+          responses:
+            '200':
+              description: A completion result
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      choices:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            text:
+                              type: string
+    components:
+      securitySchemes:
+        BearerAuth:
+          type: http
+          scheme: bearer
   pytest.ini: |
     [pytest]
     filterwarnings =
         ignore::pytest.PytestAssertRewriteWarning
+    markers =
+        api: Mark a test as an API test
+        ui: Mark a test as a UI test
+        regression: Mark a test as a Regression test
+        smoke: Mark a test as a Smoke test
+        sanity: Mark a test as a Sanity test
   requirements.txt: |
     # add dependencies here
   configs/.env: |
