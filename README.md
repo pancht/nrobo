@@ -12,7 +12,7 @@ It’s built for QA teams who want **stability, readability, and zero flakiness*
 <a href="https://codecov.io/gh/pancht/nrobo"><img src="https://codecov.io/gh/pancht/nrobo/branch/production/graph/badge.svg?token=YOUR_TOKEN"></a>
 <a href="https://github.com/pancht/nrobo/blob/production/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg"></a>
 <a href="https://youtube.com/playlist?list=PLMkFSH7JcxPGXo5D3tesuUQcDqUPeE-ZL&si=uD3TCu6KpKDKV3G7"><img src="https://img.shields.io/badge/YouTube-Playlist-red?logo=youtube&logoColor=white"></a>
-<a href="https://pypi.org/project/nrobo/"><img src="https://static.pepy.tech/personalized-badge/nrobo?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads"></a>
+<a href="https://pepy.tech/projects/nrobo"><img src="https://static.pepy.tech/personalized-badge/nrobo?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads"></a>
 <a href="https://pypi.org/project/nrobo/"><img src="https://img.shields.io/pypi/v/nrobo.svg?color=brightgreen"></a>
 <a href="https://pypi.org/project/selenium/"><img src="https://img.shields.io/badge/Selenium-4%2B-orange"></a>
 <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10%2B-blue"></a>
