@@ -1,33 +1,93 @@
-from unittest.mock import MagicMock
+from types import SimpleNamespace
+
+import pytest
 
 from nrobo.pages.base_page import BasePage
+from nrobo.selenium_wrappers.selenium_wrapper import SeleniumWrapper
 
 
-def test_base_page_initializes_all_attributes():
+def test_base_page_with_selenium_wrapper(mocker):
     """
-    Covers all lines in BasePage.__init__().
-    Ensures that page, driver, and logger are properly set from SeleniumWrapper mock.
+    BasePage should correctly initialize when passed a SeleniumWrapper.
     """
-    # Arrange: create a mock SeleniumWrapper
-    mock_driver = MagicMock(name="MockWebDriver")
-    mock_logger = MagicMock(name="MockLogger")
+    mock_driver = mocker.Mock(name="selenium_driver")
+    mock_logger = mocker.Mock(name="logger")
 
-    mock_page = MagicMock(name="MockSeleniumWrapper")
-    mock_page.driver = mock_driver
+    selenium_wrapper = mocker.Mock(spec=SeleniumWrapper)
+    selenium_wrapper.driver = mock_driver
+    selenium_wrapper.logger = mock_logger
+
+    page = BasePage(selenium_wrapper)
+
+    assert page.page is selenium_wrapper
+    assert page.driver is mock_driver
+    assert page.logger is mock_logger
+
+
+def test_base_page_with_playwright_page_and_logger(mocker):
+    """
+    BasePage should correctly initialize when passed a Playwright Page
+    and attach logger if present.
+    """
+    try:
+        from playwright.sync_api import Page as PlaywrightPage
+    except ImportError:
+        pytest.skip("Playwright not installed")
+
+    mock_page = mocker.Mock(spec=PlaywrightPage)
+    mock_logger = mocker.Mock(name="logger")
     mock_page.logger = mock_logger
 
-    # Act: instantiate BasePage
-    base_page = BasePage(page=mock_page)
+    page = BasePage(mock_page)
 
-    # Assert: all attributes correctly assigned
-    assert base_page.page is mock_page
-    assert base_page.driver is mock_driver
-    assert base_page.logger is mock_logger
+    assert page.page is mock_page
+    assert page.driver is mock_page
+    assert page.logger is mock_logger
 
-    # Bonus: ensure that attributes exist
-    assert hasattr(base_page, "page")
-    assert hasattr(base_page, "driver")
-    assert hasattr(base_page, "logger")
 
-    # And the class-level docstring exists (for coverage completeness)
-    assert "Base class for all Page Object Model" in BasePage.__doc__
+def test_base_page_with_playwright_page_without_logger(mocker):
+    """
+    BasePage should allow Playwright Page without a logger attribute.
+    """
+    try:
+        from playwright.sync_api import Page as PlaywrightPage
+    except ImportError:
+        pytest.skip("Playwright not installed")
+
+    mock_page = mocker.Mock(spec=PlaywrightPage)
+    if hasattr(mock_page, "logger"):
+        delattr(mock_page, "logger")
+
+    page = BasePage(mock_page)
+
+    assert page.page is mock_page
+    assert page.driver is mock_page
+    assert page.logger is None
+
+
+def test_base_page_with_unsupported_type():
+    """
+    BasePage should raise TypeError for unsupported page object types.
+    """
+    unsupported_obj = SimpleNamespace()
+
+    with pytest.raises(TypeError, match="Unsupported page object type"):
+        BasePage(unsupported_obj)
+
+
+def test_base_page_playwright_not_installed(monkeypatch):
+    """
+    BasePage should still raise TypeError if Playwright is unavailable
+    and a non-Selenium object is passed.
+    """
+    monkeypatch.setattr(
+        "nrobo.pages.base_page.PlaywrightPage",
+        None,
+        raising=False,
+    )
+
+    class FakePage:
+        pass
+
+    with pytest.raises(TypeError):
+        BasePage(FakePage())
