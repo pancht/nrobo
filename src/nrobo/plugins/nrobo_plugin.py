@@ -28,15 +28,6 @@ class nRoboWebDriverPlugin:
         self.driver_instance = None
         # logging.debug("[nRoboPlugin] Plugin initialized.")
 
-    def pytest_addoption(self, parser):
-        parser.addoption(
-            "--engine",
-            action="store",
-            default="selenium",
-            choices=["selenium", "playwright"],
-            help="Select browser automation engine: selenium or playwright",
-        )
-
     # ---------------------------------------------------------------
     # Logger Setup
     # ---------------------------------------------------------------
@@ -143,6 +134,8 @@ class nRoboWebDriverPlugin:
         env_headless = os.getenv("NROBO_HEADLESS", "true").lower().strip() == "true"
 
         if engine == Engines.SELENIUM:
+
+            logger.info(f"Engine: {Engines.SELENIUM}")
             wrapper = self._get_selenium_wrapper(
                 request, logger, browser=env_browser, headless=env_headless
             )
@@ -150,6 +143,8 @@ class nRoboWebDriverPlugin:
             return wrapper
 
         elif engine == Engines.PLAYWRIGHT:
+
+            logger.info(f"Engine: {Engines.PLAYWRIGHT}")
 
             playwright = sync_playwright().start()
 
@@ -304,3 +299,13 @@ def pytest_configure(config):
     plugin_instance = nRoboWebDriverPlugin()
     config.pluginmanager.register(plugin_instance, name="nrobo_webdriver_plugin")
     # logging.debug("[nRoboPlugin] Plugin registered successfully.")
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--engine",
+        action="store",
+        default="selenium",
+        choices=["selenium", "playwright"],
+        help="Select browser automation engine: selenium or playwright",
+    )

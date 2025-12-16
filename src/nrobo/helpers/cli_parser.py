@@ -7,7 +7,7 @@ import pytest
 
 from nrobo.cli.commands import clean, generate, init, nginx, update
 from nrobo.core import settings
-from nrobo.core.constants import N_COMMANDS, NRoboCommands
+from nrobo.core.constants import N_COMMANDS, Engines, NRoboCommands
 from nrobo.core.exceptions import NoSubCommandFoundByArgParser
 from nrobo.helpers.io_helper import copy_configs_if_updated
 from nrobo.helpers.logging_helper import get_logger, set_logger_level
@@ -257,6 +257,10 @@ def get_nrobo_arg_parser(argv=None):
             unknown_args.extend(["--basetemp=.pytest_tmp"])
 
     unknown_args = prepare_reporting_args(pytest_args=unknown_args)
+
+    # add supply engine args too if present
+    if args.engine == Engines.PLAYWRIGHT:
+        unknown_args = [f"--engine={args.engine}"] + (unknown_args)
     logger.debug(f"Final PyTest Options=>{unknown_args}")
     return suites, browser, args, unknown_args
 
