@@ -42,6 +42,11 @@ def test_navigation_actions(page: Page):
     # Confirms browser history state is maintained correctly
     expect(page.get_by_role("heading", name=re.compile(r"A\/B Test"))).to_be_visible()
 
+    # Assert that the current page title matches the expected value
+    # Confirms that the browser has loaded the correct page and that
+    # the document title reflects the intended application state
+    expect(page).to_have_title("The Internet")
+
     # Navigate back to the homepage once again
     # Used to validate consistent navigation behavior across repeated actions
     page.go_back()
