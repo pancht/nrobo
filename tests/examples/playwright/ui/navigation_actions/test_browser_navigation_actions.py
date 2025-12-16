@@ -2,14 +2,20 @@ from playwright.sync_api import Page, expect
 
 
 def test_navigation_actions(page: Page):
-    # Navigate the browser to the main landing page of the test application
-    # This loads the homepage and waits until the navigation is complete
+    # Navigate the browser to the application's main landing page
+    # Wait until the full page load event is fired (all resources loaded),
+    # with a maximum timeout of 30 seconds to ensure stable navigation
     page.goto("https://the-internet.herokuapp.com", wait_until="load", timeout=30000)
 
     # Locate the hyperlink element using ARIA role "link"
     # The link is identified by its accessible name "A/B Testing"
     # Then perform a click action to navigate to the A/B Testing page
     page.get_by_role("link", name="A/B Testing").click()
+
+    # Wait until the browser URL matches the expected A/B testing page pattern
+    # Ensures navigation has completed and the DOM content is fully loaded,
+    # with a maximum wait time of 10 seconds to avoid indefinite blocking
+    page.wait_for_url("**/abtest", timeout=10000, wait_until="domcontentloaded")
 
     # Assert that the heading element on the destination page is visible
     # This verifies that the navigation to the A/B Testing page was successful
