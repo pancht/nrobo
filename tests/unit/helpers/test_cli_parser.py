@@ -53,7 +53,7 @@ def test_nrobo_help_switch_subprocess(tmp_path, user_input, expect_exit):
     assert "One or more suite YAML files under suites/ (space-separated or repeated)." in output
 
     assert "--browser" in output
-    assert "Browser to run tests on (chrome, firefox, edge, etc.)" in output
+    assert "Browser to run tests on (chrome, firefox, edge," in output
 
     assert "--no-headless" in output
     assert "Run browser in headed mode (default is headless)" in output

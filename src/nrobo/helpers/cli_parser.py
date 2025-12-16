@@ -91,7 +91,7 @@ def _base_parser():
     parser.add_argument(
         "--browser",
         action="store",
-        help="Browser to run tests on (chrome, firefox, edge, etc.)",
+        help="Browser to run tests on (chrome, firefox, edge, safari, chromium, webkit)",
         default=settings.DEFAULT_BROWSER,
     )
     parser.add_argument(
@@ -111,6 +111,14 @@ def _base_parser():
         default=False,
         help="Enable coverage reporting for the nRoBo framework. Used for nRobo framework coverage report!",
         # noqa: E501
+    )
+
+    parser.add_argument(
+        "--engine",
+        action="store",
+        default="selenium",
+        choices=["selenium", "playwright"],
+        help="Select browser automation engine: selenium or playwright",
     )
 
     parser.add_argument("-v", "--version", action="version", version=f"nrobo version {__version__}")

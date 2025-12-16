@@ -1,3 +1,17 @@
+class Engines:
+    SELENIUM = "selenium"
+    PLAYWRIGHT = "playwright"
+
+
+class Browsers:
+    CHROME = "chrome"
+    CHROMIUM = "chromium"
+    FIREFOX = "firefox"
+    SAFARI = "safari"
+    EDGE = "edge"
+    WEBKIT = "webkit"
+
+
 class ExitCodes:
     SUCCESS = 0
     SUITE_NOT_FOUND = 201

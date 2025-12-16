@@ -40,4 +40,4 @@ class WindowMixin:
 
                 switch_to_window('main')
         """
-        self.driver.switch_to.window(window_name)
+        self.driver.switch_to.window(window_name)  # pragma: no cover

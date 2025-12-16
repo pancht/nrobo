@@ -3,15 +3,19 @@ import os
 import sys
 import time
 from pathlib import Path
+from typing import Union
 
 import allure
 import pytest
 from _pytest.config import Config
 from _pytest.fixtures import FixtureRequest
 from colorlog import ColoredFormatter
+from playwright.sync_api import Page as PlaywrightPage
+from playwright.sync_api import sync_playwright
 from selenium.webdriver.remote.webdriver import WebDriver
 
 from nrobo.core import settings
+from nrobo.core.constants import Browsers, Engines
 from nrobo.drivers.driver_factory import get_driver
 from nrobo.helpers._pytest_helper import extract_test_name
 from nrobo.helpers._pytest_xdist import grab_worker_id, is_running_with_xdist
@@ -25,8 +29,13 @@ class nRoboWebDriverPlugin:
         # logging.debug("[nRoboPlugin] Plugin initialized.")
 
     def pytest_addoption(self, parser):
-        # logging.debug("[nRoboPlugin] pytest_addoption called (no custom args).")
-        pass
+        parser.addoption(
+            "--engine",
+            action="store",
+            default="selenium",
+            choices=["selenium", "playwright"],
+            help="Select browser automation engine: selenium or playwright",
+        )
 
     # ---------------------------------------------------------------
     # Logger Setup
@@ -113,15 +122,12 @@ class nRoboWebDriverPlugin:
         # logging.debug("[Fixture:logger] Creating logger fixture.")
         return self._get_logger(request)
 
-    def _get_selenium_wrapper(self, request, logger: logging.Logger):
+    def _get_selenium_wrapper(self, request, logger: logging.Logger, browser: str, headless: bool):
         # logging.debug("[Fixture:nrobo] Starting WebDriver setup...")
-
-        env_browser = os.getenv("NROBO_BROWSER", "chrome").lower()
-        env_headless = os.getenv("NROBO_HEADLESS", "true").lower().strip() == "true"
 
         # logging.debug(f"[Fixture:nrobo] Browser={env_browser}, Headless={env_headless}")
 
-        self.driver_instance: WebDriver = get_driver(env_browser, headless=env_headless)
+        self.driver_instance: WebDriver = get_driver(browser, headless=headless)
         # logging.debug("[Fixture:nrobo] WebDriver created successfully.")
 
         nrobo_wrapper_: SeleniumWrapper = SeleniumWrapper(self.driver_instance, logger=logger)
@@ -130,29 +136,78 @@ class nRoboWebDriverPlugin:
         return nrobo_wrapper_
         # logging.debug("[Fixture:nrobo] Wrapper attached to pytest node.")
 
+    def _get_driver_wrapper(self, request, logger) -> Union[SeleniumWrapper, PlaywrightPage]:
+        engine = request.config.getoption("--engine")
+
+        env_browser = os.getenv("NROBO_BROWSER", "chrome").lower()
+        env_headless = os.getenv("NROBO_HEADLESS", "true").lower().strip() == "true"
+
+        if engine == Engines.SELENIUM:
+            wrapper = self._get_selenium_wrapper(
+                request, logger, browser=env_browser, headless=env_headless
+            )
+            request.node._driver_wrapper = wrapper
+            return wrapper
+
+        elif engine == Engines.PLAYWRIGHT:
+
+            playwright = sync_playwright().start()
+
+            if env_browser in [Browsers.CHROME, Browsers.CHROMIUM]:
+
+                browser = playwright.chromium.launch(headless=env_headless)
+
+            elif env_browser == Browsers.FIREFOX:
+
+                browser = playwright.firefox.launch(headless=env_headless)
+
+            elif env_browser in [Browsers.SAFARI, Browsers.WEBKIT]:
+
+                browser = playwright.webkit.launch(headless=env_headless)
+
+            else:
+
+                raise ValueError(f"Unsupported browser for Playwright: {env_browser}")
+
+            context = browser.new_context()
+
+            page = context.new_page()
+
+            setattr(page, "logger", logger)
+
+            request.node._playwright_cleanup = (playwright, browser, context)
+
+            request.node._driver_wrapper = page
+
+            return page
+
+        else:
+            raise ValueError(f"Unknown engine type: {engine}")
+
+    def _cleanup_driver(self, request, wrapper):
+        # Playwright cleanup
+        if hasattr(request.node, "_playwright_cleanup"):
+            playwright_ctx, browser, context = request.node._playwright_cleanup
+            context.close()
+            browser.close()
+            playwright_ctx.stop()
+
+        # Selenium cleanup
+        elif isinstance(wrapper, SeleniumWrapper):
+            wrapper.logger.handlers.clear()
+            self.driver_instance.quit()
+
     @pytest.fixture(scope="function")
     def nrobo(self, request, logger):
-
-        nrobo_wrapper_ = self._get_selenium_wrapper(request, logger)
-        request.node._driver_wrapper = nrobo_wrapper_
-
-        yield nrobo_wrapper_
-
-        # logging.debug("[Fixture:nrobo] Test finished; quitting WebDriver.")
-        nrobo_wrapper_.logger.handlers.clear()
-        self.driver_instance.quit()
+        wrapper = self._get_driver_wrapper(request, logger)
+        yield wrapper
+        self._cleanup_driver(request, wrapper)
 
     @pytest.fixture(scope="function")
     def page(self, request, logger):
-
-        nrobo_wrapper_ = self._get_selenium_wrapper(request, logger)
-        request.node._driver_wrapper = nrobo_wrapper_
-
-        yield nrobo_wrapper_
-
-        # logging.debug("[Fixture:nrobo] Test finished; quitting WebDriver.")
-        nrobo_wrapper_.logger.handlers.clear()
-        self.driver_instance.quit()
+        wrapper = self._get_driver_wrapper(request, logger)
+        yield wrapper
+        self._cleanup_driver(request, wrapper)
 
     # ---------------------------------------------------------------
     # Hooks
