@@ -4,7 +4,7 @@ from playwright.sync_api import Page, expect
 def test_navigation_actions(page: Page):
     # Navigate the browser to the main landing page of the test application
     # This loads the homepage and waits until the navigation is complete
-    page.goto("https://the-internet.herokuapp.com")
+    page.goto("https://the-internet.herokuapp.com", wait_until="load", timeout=30000)
 
     # Locate the hyperlink element using ARIA role "link"
     # The link is identified by its accessible name "A/B Testing"
