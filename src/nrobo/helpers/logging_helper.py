@@ -5,13 +5,16 @@ import sys
 from colorlog import ColoredFormatter
 
 from nrobo.core import settings
+from nrobo.helpers.logging_extensions import configure_logging
+from nrobo.helpers.nrobo_helper import has_dev_flag
+from nrobo.helpers.typing_logging import DevLogger
 
 
 def get_logger(
     name: str,
     log_level_stream: str = settings.LOG_LEVEL_STREAM,
     log_level_file: str = settings.LOG_LEVEL_FILE,
-):
+) -> DevLogger:
     log_dir = os.path.join(settings.LOG_DIR)  # noqa: E501
     os.makedirs(log_dir, exist_ok=True)
 
@@ -20,7 +23,7 @@ def get_logger(
 
     # Initialize logger
     logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.DEV_DEBUG if has_dev_flag() else logging.DEBUG)
 
     # Avoid duplicate handlers (important in pytest runs)
     if logger.handlers:
@@ -28,7 +31,7 @@ def get_logger(
 
     # Stream handler (stdout)
     ch = logging.StreamHandler(sys.stdout)
-    ch.setLevel(log_level_stream)
+    ch.setLevel(logging.DEV_DEBUG if has_dev_flag() else log_level_stream)
     ch.setFormatter(
         ColoredFormatter(
             settings.LOG_FORMAT_STREAM,
@@ -38,7 +41,7 @@ def get_logger(
 
     # File handler (persistent logs)
     fh = logging.FileHandler(log_path, mode="w", encoding="utf-8")
-    fh.setLevel(log_level_file)
+    fh.setLevel(logging.DEV_DEBUG if has_dev_flag() else log_level_file)
     fh.setFormatter(logging.Formatter(settings.LOG_FORMAT_FILE))
 
     # Add handlers
@@ -47,6 +50,7 @@ def get_logger(
 
     # CRITICAL FIX: prevent root logger from duplicating messages
     # logger.propagate = False
+    configure_logging(logger)
 
     return logger
 

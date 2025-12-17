@@ -1,21 +1,29 @@
+import argparse
 import logging
 import os
 import sys
 import time
 from pathlib import Path
+from typing import Union
 
 import allure
 import pytest
 from _pytest.config import Config
 from _pytest.fixtures import FixtureRequest
 from colorlog import ColoredFormatter
+from playwright.sync_api import Page as PlaywrightPage
+from playwright.sync_api import sync_playwright
 from selenium.webdriver.remote.webdriver import WebDriver
 
 from nrobo.core import settings
+from nrobo.core.constants import Browsers, Engines
 from nrobo.drivers.driver_factory import get_driver
 from nrobo.helpers._pytest_helper import extract_test_name
 from nrobo.helpers._pytest_xdist import grab_worker_id, is_running_with_xdist
 from nrobo.helpers.api_factory import get_api_wrapper
+from nrobo.helpers.logging_extensions import configure_logging
+from nrobo.helpers.nrobo_helper import has_dev_flag
+from nrobo.helpers.typing_logging import DevLogger
 from nrobo.selenium_wrappers.selenium_wrapper import SeleniumWrapper
 
 
@@ -24,14 +32,10 @@ class nRoboWebDriverPlugin:
         self.driver_instance = None
         # logging.debug("[nRoboPlugin] Plugin initialized.")
 
-    def pytest_addoption(self, parser):
-        # logging.debug("[nRoboPlugin] pytest_addoption called (no custom args).")
-        pass
-
     # ---------------------------------------------------------------
     # Logger Setup
     # ---------------------------------------------------------------
-    def _get_logger(self, request: FixtureRequest) -> logging.Logger:
+    def _get_logger(self, request: FixtureRequest) -> DevLogger:
         """
         Creates a per-test logger that emits **exactly one log per event**.
         Prevents duplication across stdout/stderr/pytest log capture.
@@ -64,8 +68,8 @@ class nRoboWebDriverPlugin:
 
         # ---------------------------- 4. Create logger -----------------------------------
         logger_name = f"{settings.NROBO_APP}.{test_name}"
-        logger = logging.getLogger(logger_name)
-        logger.setLevel(logging.DEBUG)
+        logger: DevLogger = logging.getLogger(logger_name)
+        logger.setLevel(logging.DEV_DEBUG if has_dev_flag() else logging.DEBUG)
         logger.propagate = False
 
         # If already initialized (handlers exist) → reuse
@@ -75,7 +79,7 @@ class nRoboWebDriverPlugin:
         # ---------------------------- 5. STREAM HANDLER (stderr only!) --------------------
         # Do NOT use stdout → pytest duplicates stdout
         stream_handler = logging.StreamHandler(sys.stdout)  # defaults to stderr
-        stream_handler.setLevel(settings.LOG_LEVEL_STREAM)
+        stream_handler.setLevel(logging.DEV_DEBUG if has_dev_flag() else settings.LOG_LEVEL_STREAM)
         stream_handler.setFormatter(
             ColoredFormatter(
                 settings.LOG_FORMAT_STREAM,
@@ -85,7 +89,7 @@ class nRoboWebDriverPlugin:
 
         # ---------------------------- 6. FILE HANDLER ------------------------------------
         file_handler = logging.FileHandler(log_path, mode="w", encoding="utf-8")
-        file_handler.setLevel(settings.LOG_LEVEL_FILE)
+        file_handler.setLevel(logging.DEV_DEBUG if has_dev_flag() else settings.LOG_LEVEL_FILE)
         file_handler.setFormatter(logging.Formatter(settings.LOG_FORMAT_FILE))
 
         # ---------------------------- 7. ATTACH HANDLERS ---------------------------------
@@ -98,10 +102,11 @@ class nRoboWebDriverPlugin:
             if is_running_with_xdist()
             else f"Logger initialized for test: {test_name}"
         )
-        logger.debug(init_message)
+        logger.dev_debug(init_message)
 
         # VERY IMPORTANT: prevent propagation → pytest cannot duplicate logs
         # logger.propagate = False
+        configure_logging(logger)
 
         return logger
 
@@ -109,19 +114,16 @@ class nRoboWebDriverPlugin:
     # Fixtures
     # ---------------------------------------------------------------
     @pytest.fixture(scope="function")
-    def logger(self, request) -> logging.Logger:
+    def logger(self, request) -> DevLogger:
         # logging.debug("[Fixture:logger] Creating logger fixture.")
         return self._get_logger(request)
 
-    def _get_selenium_wrapper(self, request, logger: logging.Logger):
+    def _get_selenium_wrapper(self, request, logger: DevLogger, browser: str, headless: bool):
         # logging.debug("[Fixture:nrobo] Starting WebDriver setup...")
-
-        env_browser = os.getenv("NROBO_BROWSER", "chrome").lower()
-        env_headless = os.getenv("NROBO_HEADLESS", "true").lower().strip() == "true"
 
         # logging.debug(f"[Fixture:nrobo] Browser={env_browser}, Headless={env_headless}")
 
-        self.driver_instance: WebDriver = get_driver(env_browser, headless=env_headless)
+        self.driver_instance: WebDriver = get_driver(browser, headless=headless)
         # logging.debug("[Fixture:nrobo] WebDriver created successfully.")
 
         nrobo_wrapper_: SeleniumWrapper = SeleniumWrapper(self.driver_instance, logger=logger)
@@ -130,29 +132,81 @@ class nRoboWebDriverPlugin:
         return nrobo_wrapper_
         # logging.debug("[Fixture:nrobo] Wrapper attached to pytest node.")
 
+    def _get_driver_wrapper(self, request, logger) -> Union[SeleniumWrapper, PlaywrightPage]:
+        engine = request.config.getoption("--engine")
+
+        env_browser = os.getenv("NROBO_BROWSER", "chrome").lower()
+        env_headless = os.getenv("NROBO_HEADLESS", "true").lower().strip() == "true"
+
+        if engine == Engines.SELENIUM:
+            logger.dev_debug(f"Engine: {Engines.SELENIUM}")
+            wrapper = self._get_selenium_wrapper(
+                request, logger, browser=env_browser, headless=env_headless
+            )
+            request.node._driver_wrapper = wrapper
+            return wrapper
+
+        elif engine == Engines.PLAYWRIGHT:
+
+            logger.dev_debug(f"Engine: {Engines.PLAYWRIGHT}")
+
+            playwright = sync_playwright().start()
+
+            if env_browser in [Browsers.CHROME, Browsers.CHROMIUM]:
+
+                browser = playwright.chromium.launch(headless=env_headless)
+
+            elif env_browser == Browsers.FIREFOX:
+
+                browser = playwright.firefox.launch(headless=env_headless)
+
+            elif env_browser in [Browsers.SAFARI, Browsers.WEBKIT]:
+
+                browser = playwright.webkit.launch(headless=env_headless)
+
+            else:
+
+                raise ValueError(f"Unsupported browser for Playwright: {env_browser}")
+
+            context = browser.new_context()
+
+            page = context.new_page()
+
+            setattr(page, "logger", logger)
+
+            request.node._playwright_cleanup = (playwright, browser, context)
+
+            request.node._driver_wrapper = page
+
+            return page
+
+        else:
+            raise ValueError(f"Unknown engine type: {engine}")
+
+    def _cleanup_driver(self, request, wrapper):
+        # Playwright cleanup
+        if hasattr(request.node, "_playwright_cleanup"):  # pragma: no cover
+            playwright_ctx, browser, context = request.node._playwright_cleanup
+            context.close()
+            browser.close()
+            playwright_ctx.stop()
+
+        # Selenium cleanup
+        elif isinstance(wrapper, SeleniumWrapper):  # pragma: no cover
+            wrapper.logger.handlers.clear()
+            self.driver_instance.quit()
+
     @pytest.fixture(scope="function")
     def nrobo(self, request, logger):
-
-        nrobo_wrapper_ = self._get_selenium_wrapper(request, logger)
-        request.node._driver_wrapper = nrobo_wrapper_
-
-        yield nrobo_wrapper_
-
-        # logging.debug("[Fixture:nrobo] Test finished; quitting WebDriver.")
-        nrobo_wrapper_.logger.handlers.clear()
-        self.driver_instance.quit()
+        wrapper = self._get_driver_wrapper(request, logger)
+        yield wrapper
+        self._cleanup_driver(request, wrapper)
 
     @pytest.fixture(scope="function")
     def page(self, request, logger):
-
-        nrobo_wrapper_ = self._get_selenium_wrapper(request, logger)
-        request.node._driver_wrapper = nrobo_wrapper_
-
-        yield nrobo_wrapper_
-
-        # logging.debug("[Fixture:nrobo] Test finished; quitting WebDriver.")
-        nrobo_wrapper_.logger.handlers.clear()
-        self.driver_instance.quit()
+        wrapper = self._get_driver_wrapper(request, logger)
+        yield wrapper
+        self._cleanup_driver(request, wrapper)
 
     # ---------------------------------------------------------------
     # Hooks
@@ -179,7 +233,7 @@ class nRoboWebDriverPlugin:
                 else f"{settings.NROBO_APP}_{test_name}"
             )
 
-            logger = logging.getLogger(final_test_name)
+            logger: DevLogger = logging.getLogger(final_test_name)
             logger.info(f"Test Status: {report.outcome.upper()}")
             logger.info(f"Duration: {duration:.2f} seconds")
             # logging.debug(f"[Hook] Test report logged: {final_test_name}")
@@ -240,6 +294,23 @@ class nRoboWebDriverPlugin:
     def api(self):
         return get_api_wrapper()
 
+    def pytest_collection_modifyitems(self, config, items):
+        engine = config.getoption("--engine")
+
+        if engine not in (Engines.PLAYWRIGHT, Engines.SELENIUM):
+            pytest.exit(
+                f"Invalid --engine value: {engine}. " "Use playwright or selenium."
+            )  # pragma: no cover
+
+        skip_reason = f"Skipped: requires --engine={engine}"
+
+        for item in items:
+            if engine == Engines.PLAYWRIGHT and Engines.PLAYWRIGHT not in item.keywords:
+                item.add_marker(pytest.mark.skip(reason=skip_reason))  # pragma: no cover
+
+            elif engine == Engines.SELENIUM and Engines.PLAYWRIGHT in item.keywords:
+                item.add_marker(pytest.mark.skip(reason=skip_reason))
+
 
 # ---------------------------------------------------------------
 # Global registration entry point
@@ -249,3 +320,19 @@ def pytest_configure(config):
     plugin_instance = nRoboWebDriverPlugin()
     config.pluginmanager.register(plugin_instance, name="nrobo_webdriver_plugin")
     # logging.debug("[nRoboPlugin] Plugin registered successfully.")
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--engine",
+        action="store",
+        default="selenium",
+        choices=["selenium", "playwright"],
+        help="Select browser automation engine: selenium or playwright",
+    )
+
+    parser.addoption(
+        "--dev",
+        action="store_true",
+        help=argparse.SUPPRESS,  # hide from public help
+    )

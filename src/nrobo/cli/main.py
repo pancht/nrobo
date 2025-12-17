@@ -72,7 +72,7 @@ def run() -> int:
     logger_msg.append(f"Pytest args received: {pytest_args}")
 
     pytest_options = prepare_pytest_cli_options(suites=suites, pytest_args=pytest_args)
-    logger.debug(f"Final Pytest CLI options: {pytest_options}")
+    logger.dev_debug(f"Final Pytest CLI options: {pytest_options}")
 
     if has_non_execution_args(pytest_options):
         run_pytest_safely(pytest_options)
@@ -108,7 +108,7 @@ def run() -> int:
             cov = coverage.Coverage()
             cov.combine()
             cov.save()
-            logger.info("🧪 Combined coverage data from multiple subprocesses.")
+            logger.dev_debug("🧪 Combined coverage data from multiple subprocesses.")
         except Exception as e:  # pragma: no cover
             logger.warning(f"⚠️ Failed to combine coverage data: {e}")  # pragma: no cover
 

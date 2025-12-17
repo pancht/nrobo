@@ -60,7 +60,7 @@ def test_safari_headless_raises_not_implemented():
 
 
 def test_unsupported_browser_raises_value_error():
-    with pytest.raises(ValueError, match="Unsupported browser: opera"):
+    with pytest.raises(ValueError, match="Unsupported browser for Selenium: opera"):
         get_driver("opera")
 
 

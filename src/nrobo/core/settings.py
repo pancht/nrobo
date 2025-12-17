@@ -89,3 +89,7 @@ NROBO_BEARER_TOKEN = ""  # Your bearer token # nosec: B105
 NROBO_BASIC_AUTH = ""  # You basic auth token # nosec: B105
 NROBO_OAUTH2_CLIENT_ID = ""  # oauth client id # nosec: B105
 NROBO_OAUTH2_CLIENT_SECRET = ""  # oauth client secret # nosec: B105
+
+
+# nRobo developer flags
+NROBO_DEV_DEBUG = os.getenv("NROBO_DEV_DEBUG", "False")  # Turn developer debugging on/off flag

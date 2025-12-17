@@ -7,7 +7,7 @@ import pytest
 
 from nrobo.cli.commands import clean, generate, init, nginx, update
 from nrobo.core import settings
-from nrobo.core.constants import N_COMMANDS, NRoboCommands
+from nrobo.core.constants import N_COMMANDS, Engines, NRoboCommands
 from nrobo.core.exceptions import NoSubCommandFoundByArgParser
 from nrobo.helpers.io_helper import copy_configs_if_updated
 from nrobo.helpers.logging_helper import get_logger, set_logger_level
@@ -78,7 +78,13 @@ def _base_parser():
         "--debug",
         action="store_true",
         default=False,
-        help="Enable debug mode (prints verbose logs and sets NROBO_DEBUG=True)",  # noqa: E501
+        help="Enable user-level debug logging and sets NROBO_DEBUG=True",  # noqa: E501
+    )
+
+    parser.add_argument(
+        "--dev",
+        action="store_true",
+        help=argparse.SUPPRESS,  # hide from public help
     )
 
     # known args
@@ -91,7 +97,7 @@ def _base_parser():
     parser.add_argument(
         "--browser",
         action="store",
-        help="Browser to run tests on (chrome, firefox, edge, etc.)",
+        help="Browser to run tests on (chrome, firefox, edge, safari, chromium, webkit)",
         default=settings.DEFAULT_BROWSER,
     )
     parser.add_argument(
@@ -111,6 +117,14 @@ def _base_parser():
         default=False,
         help="Enable coverage reporting for the nRoBo framework. Used for nRobo framework coverage report!",
         # noqa: E501
+    )
+
+    parser.add_argument(
+        "--engine",
+        action="store",
+        default="selenium",
+        choices=["selenium", "playwright"],
+        help="Select browser automation engine: selenium or playwright",
     )
 
     parser.add_argument("-v", "--version", action="version", version=f"nrobo version {__version__}")
@@ -227,6 +241,12 @@ def get_nrobo_arg_parser(argv=None):
         os.environ["NROBO_DEBUG"] = "False"
         settings.DEBUG = False
 
+    if args.dev:
+        settings.NROBO_DEV_DEBUG = True
+        os.environ["NROBO_DEV_DEBUG"] = "True"
+    else:
+        settings.NROBO_DEV_DEBUG = False
+        os.environ["NROBO_DEV_DEBUG"] = "False"
     # update args
     os.environ["NROBO_BROWSER"] = browser
 
@@ -249,7 +269,18 @@ def get_nrobo_arg_parser(argv=None):
             unknown_args.extend(["--basetemp=.pytest_tmp"])
 
     unknown_args = prepare_reporting_args(pytest_args=unknown_args)
-    logger.debug(f"Final PyTest Options=>{unknown_args}")
+
+    # add supply engine args too if present
+    if args.engine == Engines.PLAYWRIGHT:
+        unknown_args = [f"--engine={args.engine}"] + unknown_args
+        os.environ["NROBO_ENGINE"] = Engines.PLAYWRIGHT
+    else:
+        os.environ["NROBO_ENGINE"] = Engines.SELENIUM
+
+    if args.dev:
+        unknown_args = ["--dev"] + unknown_args
+
+    logger.dev_debug(f"Final PyTest Options=>{unknown_args}")
     return suites, browser, args, unknown_args
 
 

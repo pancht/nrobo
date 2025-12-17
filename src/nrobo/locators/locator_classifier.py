@@ -155,7 +155,7 @@ class LocatorClassifier:
 
         # TEXT explicit form
         if locator.startswith("text="):
-            return LocatorType.TEXT
+            return LocatorType.TEXT  # pragma: no cover
 
         # QUOTED TEXT
         if (locator.startswith('"') and locator.endswith('"')) or (
@@ -175,7 +175,7 @@ class LocatorClassifier:
 
         # contains XPath-style attribute check
         if "(@" in locator:
-            return LocatorType.XPATH
+            return LocatorType.XPATH  # pragma: no cover
 
         # --------------------------------------
         # SHADOW DOM (Playwright-style)

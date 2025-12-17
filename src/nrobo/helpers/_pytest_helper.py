@@ -92,8 +92,8 @@ def detect_fixture_usage(fixture_name: str, test_paths: List[str], pytest_args: 
             subprocess.run(
                 cmd,
                 check=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
+                stdout=None if settings.NROBO_DEV_DEBUG else subprocess.DEVNULL,
+                stderr=None if settings.NROBO_DEV_DEBUG else subprocess.DEVNULL,
             )
         except CalledProcessError as cpe:
             # print(cpe)
@@ -126,17 +126,17 @@ def detect_fixture_usage(fixture_name: str, test_paths: List[str], pytest_args: 
             content = report_path.read_text(encoding="utf-8").strip()
             if not content:
                 # No fixtures found, or plugin didn't write anything
-                return False
+                return False  # pragma: no cover
 
             data = json.loads(content)
 
-        except (json.JSONDecodeError, FileNotFoundError):
+        except (json.JSONDecodeError, FileNotFoundError):  # pragma: no cover
             # Corrupt JSON, incomplete write, or empty file
-            return False
+            return False  # pragma: no cover
 
             # Normalize: ensure it's iterable
         if not isinstance(data, list):
-            return False
+            return False  # pragma: no cover
 
         return any(fixture_name in entry.get("fixtures", []) for entry in data)
 

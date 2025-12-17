@@ -49,11 +49,11 @@ def test_nrobo_help_switch_subprocess(tmp_path, user_input, expect_exit):
     # Now assert expected help content
     assert f"{settings.NROBO_APP} - Smart Test Runner built on Pytest" in output
     assert "--suite" in output
-    assert "Enable debug mode (prints verbose logs and sets NROBO_DEBUG=True)" in output
+    assert "Enable user-level debug logging and sets NROBO_DEBUG=True" in output
     assert "One or more suite YAML files under suites/ (space-separated or repeated)." in output
 
     assert "--browser" in output
-    assert "Browser to run tests on (chrome, firefox, edge, etc.)" in output
+    assert "Browser to run tests on (chrome, firefox, edge," in output
 
     assert "--no-headless" in output
     assert "Run browser in headed mode (default is headless)" in output

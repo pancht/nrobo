@@ -10,11 +10,13 @@ from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
 
+from nrobo.core.constants import Browsers
+
 
 def get_driver(browser_name: str, headless: bool = True) -> WebDriver:
     browser = browser_name.lower()
 
-    if browser == "chrome":
+    if browser in [Browsers.CHROME, Browsers.CHROMIUM]:
         options = webdriver.ChromeOptions()
         if headless:
             options.add_argument("--headless=new")
@@ -23,7 +25,7 @@ def get_driver(browser_name: str, headless: bool = True) -> WebDriver:
             service=ChromeService(ChromeDriverManager().install()), options=options  # noqa: E501
         )
 
-    elif browser == "firefox":
+    elif browser == Browsers.FIREFOX:
         options = webdriver.FirefoxOptions()
         if headless:
             options.add_argument("--headless")  # noqa: E501
@@ -31,7 +33,7 @@ def get_driver(browser_name: str, headless: bool = True) -> WebDriver:
             service=FirefoxService(GeckoDriverManager().install()), options=options  # noqa: E501
         )  # noqa: E501
 
-    elif browser == "edge":
+    elif browser == Browsers.EDGE:
         options = webdriver.EdgeOptions()
         if headless:
             options.add_argument("--headless=new")  # noqa: E501
@@ -40,7 +42,7 @@ def get_driver(browser_name: str, headless: bool = True) -> WebDriver:
             options=options,  # noqa: E501
         )  # noqa: E501
 
-    elif browser == "safari":
+    elif browser in [Browsers.SAFARI, Browsers.WEBKIT]:
         if headless:
             raise NotImplementedError("Safari does not support headless mode")
         if sys.platform != "darwin":
@@ -48,4 +50,4 @@ def get_driver(browser_name: str, headless: bool = True) -> WebDriver:
         return SafariDriver()
 
     else:
-        raise ValueError(f"Unsupported browser: {browser}")
+        raise ValueError(f"Unsupported browser for Selenium: {browser}")

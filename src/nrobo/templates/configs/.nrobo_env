@@ -9,6 +9,7 @@ NROBO_VERSION="0.1.0"
 
 # APP Mode
 NROBO_DEBUG="False"
+NROBO_DEV_DEBUG="False"
 # Test Execution
 NROBO_DEFAULT_BROWSER="chrome"
 NROBO_BROWSER="chrome"
