@@ -12,7 +12,11 @@ def write_failing_test(tmpdir: Path):
 import pytest
 
 @pytest.mark.playwright
-def test_fail(page):
+def test_fail_playwright(page):
+    page.goto("https://google.com")
+    assert False, "Intentional failure to trigger screenshot"
+
+def test_fail_selenium(page):
     page.goto("https://google.com")
     assert False, "Intentional failure to trigger screenshot"
 """
