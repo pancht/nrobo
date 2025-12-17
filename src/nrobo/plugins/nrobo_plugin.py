@@ -294,6 +294,21 @@ class nRoboWebDriverPlugin:
     def api(self):
         return get_api_wrapper()
 
+    def pytest_collection_modifyitems(self, config, items):
+        engine = config.getoption("--engine")
+
+        if engine not in (Engines.PLAYWRIGHT, Engines.SELENIUM):
+            pytest.exit(f"Invalid --engine value: {engine}. " "Use playwright or selenium.")
+
+        skip_reason = f"Skipped: requires --engine={engine}"
+
+        for item in items:
+            if engine == Engines.PLAYWRIGHT and Engines.PLAYWRIGHT not in item.keywords:
+                item.add_marker(pytest.mark.skip(reason=skip_reason))
+
+            elif engine == Engines.SELENIUM and Engines.PLAYWRIGHT in item.keywords:
+                item.add_marker(pytest.mark.skip(reason=skip_reason))
+
 
 # ---------------------------------------------------------------
 # Global registration entry point

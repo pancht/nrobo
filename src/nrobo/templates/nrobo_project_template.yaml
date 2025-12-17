@@ -85,6 +85,8 @@ files:
     filterwarnings =
         ignore::pytest.PytestAssertRewriteWarning
     markers =
+        playwright: requires Playwright engine
+        selenium: requires Selenium engine. This is default nrobo engine.
         api: Mark a test as an API test
         ui: Mark a test as a UI test
         regression: Mark a test as a Regression test

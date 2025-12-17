@@ -273,6 +273,9 @@ def get_nrobo_arg_parser(argv=None):
     # add supply engine args too if present
     if args.engine == Engines.PLAYWRIGHT:
         unknown_args = [f"--engine={args.engine}"] + unknown_args
+        os.environ["NROBO_ENGINE"] = Engines.PLAYWRIGHT
+    else:
+        os.environ["NROBO_ENGINE"] = Engines.SELENIUM
 
     if args.dev:
         unknown_args = ["--dev"] + unknown_args
