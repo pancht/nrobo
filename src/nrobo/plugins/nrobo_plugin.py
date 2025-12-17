@@ -1,4 +1,5 @@
 import argparse
+import base64
 import logging
 import os
 import sys
@@ -257,10 +258,24 @@ class nRoboWebDriverPlugin:
                 )
 
             try:
-                screenshot_bytes = wrapper.driver.get_screenshot_as_base64()
-                screenshot_as_png = wrapper.driver.get_screenshot_as_png()
+                # ---------------- Selenium ----------------
+                if isinstance(wrapper, SeleniumWrapper):
+                    screenshot_as_png = wrapper.driver.get_screenshot_as_png()  # pragma: no cover
+                    screenshot_bytes = wrapper.driver.get_screenshot_as_base64()  # pragma: no cover
 
-                allure.attach(
+                # ---------------- Playwright ----------------
+                elif isinstance(wrapper, PlaywrightPage):
+                    screenshot_as_png = wrapper.screenshot(type="png")
+                    screenshot_bytes = base64.b64encode(screenshot_as_png).decode(
+                        "utf-8"
+                    )  # pragma: no cover
+
+                else:
+                    raise TypeError(
+                        f"Unsupported wrapper type: {type(wrapper)}"
+                    )  # pragma: no cover
+
+                allure.attach(  # pragma: no cover
                     screenshot_as_png,
                     name=f"screenshot_{item.name}",
                     attachment_type=allure.attachment_type.PNG,
@@ -295,14 +310,15 @@ class nRoboWebDriverPlugin:
         return get_api_wrapper()
 
     def pytest_collection_modifyitems(self, config, items):
-        engine = config.getoption("--engine")
+        engine = config.getoption("--engine") or os.getenv("NROBO_ENGINE")
 
         if engine not in (Engines.PLAYWRIGHT, Engines.SELENIUM):
             pytest.exit(
                 f"Invalid --engine value: {engine}. " "Use playwright or selenium."
             )  # pragma: no cover
 
-        skip_reason = f"Skipped: requires --engine={engine}"
+        required_engine = Engines.PLAYWRIGHT if engine == Engines.SELENIUM else Engines.SELENIUM
+        skip_reason = f"Skipped: requires --engine={required_engine}"
 
         for item in items:
             if engine == Engines.PLAYWRIGHT and Engines.PLAYWRIGHT not in item.keywords:

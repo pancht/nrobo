@@ -6,6 +6,7 @@ from playwright.sync_api import Page, expect
 
 @pytest.mark.playwright
 def test_navigation_actions(page: Page):
+
     # Open the application's main entry page and wait for the page to fully load
     # The navigation completes only after all critical resources are loaded,
     # with a maximum wait time of 30 seconds to ensure reliability
