@@ -78,7 +78,13 @@ def _base_parser():
         "--debug",
         action="store_true",
         default=False,
-        help="Enable debug mode (prints verbose logs and sets NROBO_DEBUG=True)",  # noqa: E501
+        help="Enable user-level debug logging and sets NROBO_DEBUG=True",  # noqa: E501
+    )
+
+    parser.add_argument(
+        "--dev",
+        action="store_true",
+        help=argparse.SUPPRESS,  # hide from public help
     )
 
     # known args
@@ -234,6 +240,10 @@ def get_nrobo_arg_parser(argv=None):
     else:
         os.environ["NROBO_DEBUG"] = "False"
         settings.DEBUG = False
+
+    if args.dev:
+        settings.DEV_DEBUG = True
+        os.environ["DEV_DEBUG"] = "True"
 
     # update args
     os.environ["NROBO_BROWSER"] = browser
