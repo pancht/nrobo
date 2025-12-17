@@ -24,6 +24,7 @@ def test_existing_nrobo_env_content_matches_expected():
 
         # APP Mode
         NROBO_DEBUG="False"
+        NROBO_DEV_DEBUG="False"
         # Test Execution
         NROBO_DEFAULT_BROWSER="chrome"
         NROBO_BROWSER="chrome"

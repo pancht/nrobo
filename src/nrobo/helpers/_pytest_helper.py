@@ -92,8 +92,8 @@ def detect_fixture_usage(fixture_name: str, test_paths: List[str], pytest_args: 
             subprocess.run(
                 cmd,
                 check=True,
-                stdout=None if settings.DEV_DEBUG else subprocess.DEVNULL,
-                stderr=None if settings.DEV_DEBUG else subprocess.DEVNULL,
+                stdout=None if settings.NROBO_DEV_DEBUG else subprocess.DEVNULL,
+                stderr=None if settings.NROBO_DEV_DEBUG else subprocess.DEVNULL,
             )
         except CalledProcessError as cpe:
             # print(cpe)

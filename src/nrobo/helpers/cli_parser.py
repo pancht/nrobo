@@ -242,8 +242,11 @@ def get_nrobo_arg_parser(argv=None):
         settings.DEBUG = False
 
     if args.dev:
-        settings.DEV_DEBUG = True
+        settings.NROBO_DEV_DEBUG = True
         os.environ["NROBO_DEV_DEBUG"] = "True"
+    else:
+        settings.NROBO_DEV_DEBUG = False
+        os.environ["NROBO_DEV_DEBUG"] = "False"
     # update args
     os.environ["NROBO_BROWSER"] = browser
 
