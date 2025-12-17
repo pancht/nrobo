@@ -260,20 +260,22 @@ class nRoboWebDriverPlugin:
             try:
                 # ---------------- Selenium ----------------
                 if isinstance(wrapper, SeleniumWrapper):
-                    screenshot_as_png = wrapper.driver.get_screenshot_as_png()
-                    screenshot_bytes = wrapper.driver.get_screenshot_as_base64()
+                    screenshot_as_png = wrapper.driver.get_screenshot_as_png()  # pragma: no cover
+                    screenshot_bytes = wrapper.driver.get_screenshot_as_base64()  # pragma: no cover
 
                 # ---------------- Playwright ----------------
                 elif isinstance(wrapper, PlaywrightPage):
                     screenshot_as_png = wrapper.screenshot(type="png")
-                    screenshot_bytes = base64.b64encode(screenshot_as_png).decode("utf-8")
+                    screenshot_bytes = base64.b64encode(screenshot_as_png).decode(
+                        "utf-8"
+                    )  # pragma: no cover
 
                 else:
                     raise TypeError(
                         f"Unsupported wrapper type: {type(wrapper)}"
                     )  # pragma: no cover
 
-                allure.attach(
+                allure.attach(  # pragma: no cover
                     screenshot_as_png,
                     name=f"screenshot_{item.name}",
                     attachment_type=allure.attachment_type.PNG,
