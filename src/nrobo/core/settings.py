@@ -92,4 +92,4 @@ NROBO_OAUTH2_CLIENT_SECRET = ""  # oauth client secret # nosec: B105
 
 
 # nRobo developer flags
-DEV_DEBUG = False  # Turn developer debugging on/off flag
+NROBO_DEV_DEBUG = os.getenv("NROBO_DEV_DEBUG", "False")  # Turn developer debugging on/off flag

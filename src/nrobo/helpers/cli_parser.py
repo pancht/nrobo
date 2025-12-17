@@ -243,8 +243,7 @@ def get_nrobo_arg_parser(argv=None):
 
     if args.dev:
         settings.DEV_DEBUG = True
-        os.environ["DEV_DEBUG"] = "True"
-
+        os.environ["NROBO_DEV_DEBUG"] = "True"
     # update args
     os.environ["NROBO_BROWSER"] = browser
 
@@ -270,8 +269,12 @@ def get_nrobo_arg_parser(argv=None):
 
     # add supply engine args too if present
     if args.engine == Engines.PLAYWRIGHT:
-        unknown_args = [f"--engine={args.engine}"] + (unknown_args)
-    logger.debug(f"Final PyTest Options=>{unknown_args}")
+        unknown_args = [f"--engine={args.engine}"] + unknown_args
+
+    if args.dev:
+        unknown_args = ["--dev"] + unknown_args
+
+    logger.dev_debug(f"Final PyTest Options=>{unknown_args}")
     return suites, browser, args, unknown_args
 
 

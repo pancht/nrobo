@@ -1,3 +1,4 @@
+import argparse
 import logging
 import os
 import sys
@@ -20,6 +21,8 @@ from nrobo.drivers.driver_factory import get_driver
 from nrobo.helpers._pytest_helper import extract_test_name
 from nrobo.helpers._pytest_xdist import grab_worker_id, is_running_with_xdist
 from nrobo.helpers.api_factory import get_api_wrapper
+from nrobo.helpers.logging_extensions import configure_logging
+from nrobo.helpers.nrobo_helper import has_dev_flag
 from nrobo.selenium_wrappers.selenium_wrapper import SeleniumWrapper
 
 
@@ -65,7 +68,7 @@ class nRoboWebDriverPlugin:
         # ---------------------------- 4. Create logger -----------------------------------
         logger_name = f"{settings.NROBO_APP}.{test_name}"
         logger = logging.getLogger(logger_name)
-        logger.setLevel(logging.DEBUG)
+        logger.setLevel(logging.DEV_DEBUG if has_dev_flag() else logging.DEBUG)
         logger.propagate = False
 
         # If already initialized (handlers exist) → reuse
@@ -75,7 +78,7 @@ class nRoboWebDriverPlugin:
         # ---------------------------- 5. STREAM HANDLER (stderr only!) --------------------
         # Do NOT use stdout → pytest duplicates stdout
         stream_handler = logging.StreamHandler(sys.stdout)  # defaults to stderr
-        stream_handler.setLevel(settings.LOG_LEVEL_STREAM)
+        stream_handler.setLevel(logging.DEV_DEBUG if has_dev_flag() else settings.LOG_LEVEL_STREAM)
         stream_handler.setFormatter(
             ColoredFormatter(
                 settings.LOG_FORMAT_STREAM,
@@ -85,7 +88,7 @@ class nRoboWebDriverPlugin:
 
         # ---------------------------- 6. FILE HANDLER ------------------------------------
         file_handler = logging.FileHandler(log_path, mode="w", encoding="utf-8")
-        file_handler.setLevel(settings.LOG_LEVEL_FILE)
+        file_handler.setLevel(logging.DEV_DEBUG if has_dev_flag() else settings.LOG_LEVEL_FILE)
         file_handler.setFormatter(logging.Formatter(settings.LOG_FORMAT_FILE))
 
         # ---------------------------- 7. ATTACH HANDLERS ---------------------------------
@@ -102,6 +105,7 @@ class nRoboWebDriverPlugin:
 
         # VERY IMPORTANT: prevent propagation → pytest cannot duplicate logs
         # logger.propagate = False
+        configure_logging(logger)
 
         return logger
 
@@ -308,4 +312,10 @@ def pytest_addoption(parser):
         default="selenium",
         choices=["selenium", "playwright"],
         help="Select browser automation engine: selenium or playwright",
+    )
+
+    parser.addoption(
+        "--dev",
+        action="store_true",
+        help=argparse.SUPPRESS,  # hide from public help
     )
