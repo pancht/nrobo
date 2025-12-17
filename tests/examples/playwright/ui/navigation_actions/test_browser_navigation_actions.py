@@ -61,3 +61,9 @@ def test_navigation_actions(page: Page):
     # Reload the currently displayed page
     # Waits until the DOMContentLoaded event fires to ensure the DOM is ready
     page.reload(wait_until="domcontentloaded")
+
+
+@pytest.mark.playwright
+def test_fail(page):
+    page.goto("https://google.com")
+    assert False, "Intentional failure to trigger screenshot"

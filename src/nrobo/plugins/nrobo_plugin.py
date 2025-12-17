@@ -269,7 +269,9 @@ class nRoboWebDriverPlugin:
                     screenshot_bytes = base64.b64encode(screenshot_as_png).decode("utf-8")
 
                 else:
-                    raise TypeError(f"Unsupported wrapper type: {type(wrapper)}")
+                    raise TypeError(
+                        f"Unsupported wrapper type: {type(wrapper)}"
+                    )  # pragma: no cover
 
                 allure.attach(
                     screenshot_as_png,
