@@ -23,6 +23,7 @@ from nrobo.helpers._pytest_xdist import grab_worker_id, is_running_with_xdist
 from nrobo.helpers.api_factory import get_api_wrapper
 from nrobo.helpers.logging_extensions import configure_logging
 from nrobo.helpers.nrobo_helper import has_dev_flag
+from nrobo.helpers.typing_logging import DevLogger
 from nrobo.selenium_wrappers.selenium_wrapper import SeleniumWrapper
 
 
@@ -34,7 +35,7 @@ class nRoboWebDriverPlugin:
     # ---------------------------------------------------------------
     # Logger Setup
     # ---------------------------------------------------------------
-    def _get_logger(self, request: FixtureRequest) -> logging.Logger:
+    def _get_logger(self, request: FixtureRequest) -> DevLogger:
         """
         Creates a per-test logger that emits **exactly one log per event**.
         Prevents duplication across stdout/stderr/pytest log capture.
@@ -67,7 +68,7 @@ class nRoboWebDriverPlugin:
 
         # ---------------------------- 4. Create logger -----------------------------------
         logger_name = f"{settings.NROBO_APP}.{test_name}"
-        logger = logging.getLogger(logger_name)
+        logger: DevLogger = logging.getLogger(logger_name)
         logger.setLevel(logging.DEV_DEBUG if has_dev_flag() else logging.DEBUG)
         logger.propagate = False
 
@@ -101,7 +102,7 @@ class nRoboWebDriverPlugin:
             if is_running_with_xdist()
             else f"Logger initialized for test: {test_name}"
         )
-        logger.debug(init_message)
+        logger.dev_debug(init_message)
 
         # VERY IMPORTANT: prevent propagation → pytest cannot duplicate logs
         # logger.propagate = False
@@ -113,11 +114,11 @@ class nRoboWebDriverPlugin:
     # Fixtures
     # ---------------------------------------------------------------
     @pytest.fixture(scope="function")
-    def logger(self, request) -> logging.Logger:
+    def logger(self, request) -> DevLogger:
         # logging.debug("[Fixture:logger] Creating logger fixture.")
         return self._get_logger(request)
 
-    def _get_selenium_wrapper(self, request, logger: logging.Logger, browser: str, headless: bool):
+    def _get_selenium_wrapper(self, request, logger: DevLogger, browser: str, headless: bool):
         # logging.debug("[Fixture:nrobo] Starting WebDriver setup...")
 
         # logging.debug(f"[Fixture:nrobo] Browser={env_browser}, Headless={env_headless}")
@@ -138,8 +139,7 @@ class nRoboWebDriverPlugin:
         env_headless = os.getenv("NROBO_HEADLESS", "true").lower().strip() == "true"
 
         if engine == Engines.SELENIUM:
-
-            logger.info(f"Engine: {Engines.SELENIUM}")
+            logger.dev_debug(f"Engine: {Engines.SELENIUM}")
             wrapper = self._get_selenium_wrapper(
                 request, logger, browser=env_browser, headless=env_headless
             )
@@ -148,7 +148,7 @@ class nRoboWebDriverPlugin:
 
         elif engine == Engines.PLAYWRIGHT:
 
-            logger.info(f"Engine: {Engines.PLAYWRIGHT}")
+            logger.dev_debug(f"Engine: {Engines.PLAYWRIGHT}")
 
             playwright = sync_playwright().start()
 
@@ -233,7 +233,7 @@ class nRoboWebDriverPlugin:
                 else f"{settings.NROBO_APP}_{test_name}"
             )
 
-            logger = logging.getLogger(final_test_name)
+            logger: DevLogger = logging.getLogger(final_test_name)
             logger.info(f"Test Status: {report.outcome.upper()}")
             logger.info(f"Duration: {duration:.2f} seconds")
             # logging.debug(f"[Hook] Test report logged: {final_test_name}")

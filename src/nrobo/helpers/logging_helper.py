@@ -7,13 +7,14 @@ from colorlog import ColoredFormatter
 from nrobo.core import settings
 from nrobo.helpers.logging_extensions import configure_logging
 from nrobo.helpers.nrobo_helper import has_dev_flag
+from nrobo.helpers.typing_logging import DevLogger
 
 
 def get_logger(
     name: str,
     log_level_stream: str = settings.LOG_LEVEL_STREAM,
     log_level_file: str = settings.LOG_LEVEL_FILE,
-):
+) -> DevLogger:
     log_dir = os.path.join(settings.LOG_DIR)  # noqa: E501
     os.makedirs(log_dir, exist_ok=True)
 
