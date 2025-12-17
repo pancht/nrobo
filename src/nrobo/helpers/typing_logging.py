@@ -2,7 +2,7 @@
 from typing import Any, Protocol
 
 
-class DevLogger(Protocol):
+class DevLogger(Protocol):  # pragma: no cover
     # standard Logger API (only what you use)
     def debug(self, msg: str, *args: Any, **kwargs: Any) -> None: ...
     def info(self, msg: str, *args: Any, **kwargs: Any) -> None: ...

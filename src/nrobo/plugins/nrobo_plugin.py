@@ -185,14 +185,14 @@ class nRoboWebDriverPlugin:
 
     def _cleanup_driver(self, request, wrapper):
         # Playwright cleanup
-        if hasattr(request.node, "_playwright_cleanup"):
+        if hasattr(request.node, "_playwright_cleanup"):  # pragma: no cover
             playwright_ctx, browser, context = request.node._playwright_cleanup
             context.close()
             browser.close()
             playwright_ctx.stop()
 
         # Selenium cleanup
-        elif isinstance(wrapper, SeleniumWrapper):
+        elif isinstance(wrapper, SeleniumWrapper):  # pragma: no cover
             wrapper.logger.handlers.clear()
             self.driver_instance.quit()
 
@@ -298,13 +298,15 @@ class nRoboWebDriverPlugin:
         engine = config.getoption("--engine")
 
         if engine not in (Engines.PLAYWRIGHT, Engines.SELENIUM):
-            pytest.exit(f"Invalid --engine value: {engine}. " "Use playwright or selenium.")
+            pytest.exit(
+                f"Invalid --engine value: {engine}. " "Use playwright or selenium."
+            )  # pragma: no cover
 
         skip_reason = f"Skipped: requires --engine={engine}"
 
         for item in items:
             if engine == Engines.PLAYWRIGHT and Engines.PLAYWRIGHT not in item.keywords:
-                item.add_marker(pytest.mark.skip(reason=skip_reason))
+                item.add_marker(pytest.mark.skip(reason=skip_reason))  # pragma: no cover
 
             elif engine == Engines.SELENIUM and Engines.PLAYWRIGHT in item.keywords:
                 item.add_marker(pytest.mark.skip(reason=skip_reason))
